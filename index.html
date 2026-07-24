@@ -268,12 +268,7 @@
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">{{ namePromptKicker }}</div>
             <div style="font-family:Newsreader,serif;font-size:27px;font-weight:600;line-height:1.1;margin-top:8px;">{{ selfPromptTitle }}</div>
             <div style="font-size:13px;color:#6b6a65;margin:8px 0 18px;line-height:1.5;">{{ selfPromptSub }}</div>
-            <button onClick="{{ onStanford }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:14px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:11px;padding:13px 0;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.22);">🔒 Continue with Stanford</button>
-            <sc-if value="{{ stanfordNote }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:11.5px;color:#a15c00;background:#fdf6e7;border:1px solid #f0dfb2;border-radius:9px;padding:8px 10px;margin-top:10px;text-align:left;line-height:1.4;">This will be your Stanford passkey once it's set up with the developer. For now, find yourself below to try the prototype.</div>
-            </sc-if>
-            <div style="display:flex;align-items:center;gap:9px;margin:15px 0;color:#a8a396;font-size:11px;"><span style="flex:1;height:1px;background:#ece8de;"></span>or, in the prototype<span style="flex:1;height:1px;background:#ece8de;"></span></div>
-            <input type="text" value="{{ selfQuery }}" onInput="{{ onSelfInput }}" placeholder="{{ selfPlaceholder }}" style="width:100%;padding:12px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
+            <input type="text" value="{{ selfQuery }}" onInput="{{ onSelfInput }}" placeholder="{{ selfPlaceholder }}" style="width:100%;padding:13px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
             <div style="margin-top:10px;text-align:left;">
               <sc-for list="{{ selfSuggestions }}" as="s" hint-placeholder-count="0">
                 <div onClick="{{ s.onClick }}" style="padding:10px 12px;border:1px solid #ece8de;border-radius:10px;margin-bottom:6px;font-size:13.5px;cursor:pointer;background:#fff;"><b>{{ s.name }}</b> <span style="color:#6b6a65;">· {{ s.sub }}</span></div>
@@ -676,7 +671,7 @@ class Component extends DCLogic {
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
+      interview:null, flash:null, filtersOpen:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
       exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{},
     };
     this.stageRef = React.createRef();
@@ -1254,7 +1249,7 @@ class Component extends DCLogic {
   onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); if(!moved && this.state.mode==="general" && this.state.detailId) this.setState({detailId:null, hoverId:null}); }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
 
   selectSelf(id){
-    this.setState({ selfId:id, selfQuery:"", stanfordNote:false, detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
+    this.setState({ selfId:id, selfQuery:"", detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
       this.frameNetwork(id, true);
       // first sign-in: lead straight into the profile interview (once per person on this device)
       const n=this.byId[id]; if(!n||n.person.enriched) return;
@@ -2166,7 +2161,6 @@ class Component extends DCLogic {
       filtersOpen:s.filtersOpen, toggleFilters:()=>this.setState(st=>({filtersOpen:!st.filtersOpen})),
       filterCountLabel: (s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0) ? ` · ${(s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0)} active` : "",
       filtersCaretStyle:`display:inline-block;transition:transform .15s;transform:rotate(${s.filtersOpen?180:0}deg);color:#9b978d;`,
-      stanfordNote:s.stanfordNote, onStanford:()=>this.setState({stanfordNote:true}),
       showConnections:s.showConnections,
       toggleConnections:()=>this.setState(st=>({showConnections:!st.showConnections})),
       resultsPanel:panelOpen, reopenTab: (resultsPanel || !!egoPanel) && s.listCollapsed,
@@ -2276,7 +2270,7 @@ class Component extends DCLogic {
       selfMode, hasSelf:!!self, noSelf:!self,
       selfName:self?self.name:"", selfVentureSuffix:self&&self.ventureName?` (${self.ventureName})`:"",
       selfPromptTitle: s.mode==="alumni"?"See who you can help":"Find your connections",
-      selfPromptSub: s.mode==="alumni"?"Sign in to light up your place on the map and get personalized intros to current students.":"Sign in to get your personalized map, ranked matches, and warm intros.",
+      selfPromptSub: s.mode==="alumni"?"Find your name to light up your place on the map and get personalized intros to current students.":"Find your name to get your personalized map, ranked matches, and warm intros.",
       selfPlaceholder: s.mode==="alumni"?"Start typing your name (alumni)…":"Start typing your name…",
       selfQuery:s.selfQuery, selfSuggestions,
       onSelfInput:e=>this.setState({selfQuery:e.target.value}),
