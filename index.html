@@ -511,6 +511,27 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ profileEdit }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ profileEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefb;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.34);">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #ece8de;">
+          <div style="flex:1;">
+            <div style="font-family:Newsreader,serif;font-size:17px;font-weight:600;line-height:1.15;">Edit my profile</div>
+            <div style="font-size:11.5px;color:#8a877f;margin-top:1px;">Your project description, shown on your profile.</div>
+          </div>
+          <button onClick="{{ profileEdit.onClose }}" style="flex:none;background:none;border:none;font-size:22px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+        </div>
+        <div style="padding:16px 20px;flex:1;overflow-y:auto;">
+          <textarea value="{{ profileEdit.value }}" onInput="{{ profileEdit.onType }}" rows="10" placeholder="Describe what you're building and why it matters." style="width:100%;padding:13px 14px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;line-height:1.6;resize:vertical;outline:none;"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #ece8de;background:#fdfcf9;">
+          <button onClick="{{ profileEdit.onClose }}" style="font-size:12.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;">Cancel</button>
+          <button onClick="{{ profileEdit.onSave }}" style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;">Save</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ reach }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
       <div style="background:#fffefb;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);" class="atlas-scroll">
@@ -582,7 +603,7 @@ class Component extends DCLogic {
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false,
+      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false, profileEdit:null,
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -875,7 +896,9 @@ class Component extends DCLogic {
     if(data.approaches) person.approaches=data.approaches;
     if(data.brings!=null) person.brings=data.brings;
     if(data.seeks!=null) person.seeks=data.seeks;
-    person.enriched=true;
+    if(data.focus!=null) person.focus=data.focus;   // the profile blurb (project description)
+    // "enriched" means the interview was taken — a blurb-only edit must not flip it
+    if(data.challenge||data.approaches||data.brings||data.seeks) person.enriched=true;
   }
   applySavedProfiles(nodes){
     const store=this.loadProfiles();
@@ -883,7 +906,7 @@ class Component extends DCLogic {
   }
   // ---- the save seam: today writes to this device; a backend swaps in here (see /api docs) ----
   async persistProfile(node, data){
-    try{ const store=this.loadProfiles(); store[this.profileKey(node)]=data; localStorage.setItem("ecoatlas_profiles_v1", JSON.stringify(store)); }catch(e){}
+    try{ const store=this.loadProfiles(); const k=this.profileKey(node); store[k]={...(store[k]||{}), ...data}; localStorage.setItem("ecoatlas_profiles_v1", JSON.stringify(store)); }catch(e){}
     // FUTURE: await fetch("/api/save",{method:"POST",body:JSON.stringify({key:this.profileKey(node),...data})})
   }
   saveProfile(id, data){
@@ -909,6 +932,22 @@ class Component extends DCLogic {
   profileFilled(person){ const p=person||{}; const c=p.challenges&&p.challenges[0]||{};
     return [c.text, c.whoBears, (p.approaches||[]).length?"y":"", p.brings, p.seeks].filter(x=>x&&(""+x).trim()).length; }
   closeInterview(){ this.setState({interview:null}); }
+
+  // ---------- edit-my-profile (the blurb / project description, not the interview) ----------
+  openProfileEdit(){ const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
+    this.setState({ profileEdit:{ focus:self.person.focus||"" } }); }
+  closeProfileEdit(){ this.setState({profileEdit:null}); }
+  profileEditType(val){ this.setState(st=>st.profileEdit?({profileEdit:{...st.profileEdit, focus:val}}):null); }
+  saveProfileBlurb(){
+    const self=this.state.selfId?this.byId[this.state.selfId]:null, pe=this.state.profileEdit;
+    if(!self||!pe){ this.setState({profileEdit:null}); return; }
+    self.person.focus=pe.focus;
+    this._descDf=null;              // description-keyword tables depend on this text
+    this.persistProfile(self, { focus:pe.focus });
+    const flash="Profile updated.";
+    this.setState({ profileEdit:null, flash });
+    clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 4000);
+  }
   // text answers are controlled — committed to state on each keystroke, so step changes never leak text
   interviewType(val){
     this.setState(st=>{ if(!st.interview) return null; const step=this.INTERVIEW_STEPS[st.interview.idx];
@@ -1586,10 +1625,37 @@ class Component extends DCLogic {
     // territory region labels are hidden at rest; the "See territories" toggle reveals them.
     const territoriesAvailable = !egoActive && !namePrompt && !(self&&!s.showFullMap) && s.activeSectors.length===0 && !s.searchQuery;
     const clusFont=Math.max(12,Math.min(38,13/zoom));
-    const clusterLabels = (territoriesAvailable && s.showTerritories) ? (s.clusters||[]).map(c=>({
+    // Position a label for EVERY family (all six), once: at the centre of where that family
+    // concentrates most on the map, then spread any that would overlap so all stay legible.
+    if(!this._famLabels && s.nodes.length && Object.keys(secByKey).length){
+      const FAM=this.FAMILIES, byFam={};
+      s.nodes.forEach(n=>{ const k=(n.tags&&n.tags.length)?this.norm(n.tags[0]):null; const sec=k&&secByKey[k]; const fid=sec&&sec.family; if(!fid||!FAM[fid])return; (byFam[fid]=byFam[fid]||[]).push(n); });
+      const R=Math.max(120, Math.min(s.world.w,s.world.h)*0.16);
+      const labels = Object.keys(byFam).filter(f=>byFam[f].length>=3).map(fid=>{
+        const mem=byFam[fid];
+        // "home base": the member with the most same-family neighbours within R
+        let home=mem[0], bestC=-1;
+        mem.forEach(a=>{ let c=0; for(const b of mem){ if(Math.hypot(a.x-b.x,a.y-b.y)<R) c++; } if(c>bestC){bestC=c;home=a;} });
+        // sit the label just above the local clump around that home base
+        let sx=0,sy=0,cn=0,top=1e9;
+        mem.forEach(b=>{ if(Math.hypot(home.x-b.x,home.y-b.y)<R){ sx+=b.x;sy+=b.y;cn++; if(b.y<top)top=b.y; } });
+        return { label:FAM[fid].label, x:cn?sx/cn:home.x, y:(cn?top:home.y)-26, order:FAM[fid].order };
+      }).sort((a,b)=>a.order-b.order);
+      // de-overlap: nudge labels apart when they'd sit on top of each other
+      const minDX=Math.max(150, s.world.w*0.15), minDY=46;
+      for(let it=0; it<80; it++){ let moved=false;
+        for(let i=0;i<labels.length;i++) for(let j=i+1;j<labels.length;j++){
+          const a=labels[i], b=labels[j], dx=a.x-b.x, dy=a.y-b.y;
+          if(Math.abs(dx)<minDX && Math.abs(dy)<minDY){ const push=(minDX-Math.abs(dx))/2+1, dir=dx>=0?1:-1; a.x+=dir*push; b.x-=dir*push; moved=true; }
+        }
+        if(!moved) break;
+      }
+      this._famLabels=labels;
+    }
+    const clusterLabels = (territoriesAvailable && s.showTerritories && this._famLabels) ? this._famLabels.map(c=>({
       label:c.label, count:"",
       // solid paper pill so the name reads clearly even where it sits over dots
-      style:`position:absolute;left:${c.cx}px;top:${c.cy}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:600;color:${dark?"#eceae2":"#46443e"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;background:${dark?"rgba(24,24,22,.85)":"rgba(253,252,249,.92)"};border:1px solid ${dark?"#3d3b35":"#e0dacb"};padding:3px 12px;border-radius:9px;box-shadow:0 2px 9px rgba(0,0,0,${dark?.45:.12});`,
+      style:`position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:600;color:${dark?"#eceae2":"#46443e"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;background:${dark?"rgba(24,24,22,.85)":"rgba(253,252,249,.92)"};border:1px solid ${dark?"#3d3b35":"#e0dacb"};padding:3px 12px;border-radius:9px;box-shadow:0 2px 9px rgba(0,0,0,${dark?.45:.12});`,
       countStyle:`display:none;`,
     })) : [];
 
@@ -1690,7 +1756,7 @@ class Component extends DCLogic {
         name:n.name,
         isSelf:isSelfDetail, notSelf:!isSelfDetail,
         selfBadge: isSelfDetail ? "This is your profile" : "",
-        editProfile:()=>this.openInterview(),
+        editProfile:()=>this.openProfileEdit(),
         hasChallenge:!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"", hasWho:!!(ch0.whoBears&&ch0.whoBears.trim()), who:ch0.whoBears||"",
         hasApproaches:(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
         hasBrings:!!(p.brings&&p.brings.trim()), brings:p.brings||"",
@@ -1856,6 +1922,12 @@ class Component extends DCLogic {
       showWelcome: !s.loading && s.mode==="general" && !s.welcomeDismissed,
       dismissWelcome:()=>{ try{localStorage.setItem("ecoatlas_welcomed_v1","1");}catch(e){} this.setState({welcomeDismissed:true}); },
       stopPropagation:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
+      profileEdit: s.profileEdit ? {
+        value: s.profileEdit.focus,
+        onType:(e)=>this.profileEditType(e.target.value),
+        onSave:()=>this.saveProfileBlurb(),
+        onClose:()=>this.closeProfileEdit(),
+      } : null,
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
       onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false}),
       onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
