@@ -73,12 +73,7 @@
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:7px;">Search</div>
       <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" placeholder="solar, water, carbon, AI…" style="width:100%;padding:8px 9px;border:1px solid #e3e0d8;border-radius:8px;font-size:13px;" />
 
-      <button onClick="{{ toggleFilters }}" style="display:flex;align-items:center;width:100%;margin-top:16px;padding:9px 11px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;font-size:12.5px;font-weight:600;color:#2e2d29;cursor:pointer;">
-        <span style="flex:1;text-align:left;">Filters<span style="color:#8C1515;">{{ filterCountLabel }}</span></span>
-        <span style="{{ filtersCaretStyle }}">▾</span>
-      </button>
-      <sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;margin-top:12px;">
+      <div style="display:flex;gap:8px;margin-top:16px;">
         <div style="flex:1;">
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Program</div>
           <select value="{{ programFilter }}" onChange="{{ onProgram }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
@@ -119,8 +114,6 @@
             </div>
           </sc-for>
         </div>
-      </sc-if>
-
       </sc-if>
 
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin:20px 0 8px;">Legend</div>
@@ -188,9 +181,9 @@
           <sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ true }}">
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9a978d;font-weight:700;margin:10px 0 6px;">How to read this</div>
             <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#3a3833;line-height:1.35;">
-              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.6 0.135 235);flex:none;margin-top:3px;"></span><span>Each dot is a person; its <b>color</b> is their sector.</span></div>
-              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.135 70);flex:none;margin-top:3px;"></span><span><b>Closer together</b> means more in common, like shared projects, similar work, or complementary asks and offers.</span></div>
-              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.55 0.135 155);flex:none;margin-top:3px;"></span><span>A <b>bigger dot</b> has more connections. Hover to highlight someone; click for their profile.</span></div>
+              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>Each dot is a person; its <b>color</b> is their sector.</span></div>
+              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span><b>Closer together</b> means more in common, like shared projects, similar work, or complementary asks and offers.</span></div>
+              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>A <b>bigger dot</b> has more connections. Hover to highlight someone; click for their profile.</span></div>
             </div>
           </sc-if>
         </div>
@@ -202,6 +195,21 @@
 
       <sc-if value="{{ showTerritoryToggle }}" hint-placeholder-val="{{ true }}">
         <button onClick="{{ toggleTerritories }}" style="{{ territoryToggleStyle }}">{{ territoriesLabel }}</button>
+      </sc-if>
+
+      <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ dismissWelcome }}" style="position:absolute;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 45%,rgba(250,249,246,.55),rgba(244,242,236,.8));animation:atlasFade .25s ease;">
+          <div onClick="{{ stopPropagation }}" style="width:100%;max-width:410px;text-align:center;background:#fffefb;border:1px solid #e6e2d9;border-radius:18px;box-shadow:0 22px 60px rgba(40,36,28,.2);padding:26px 28px 22px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">The Ecopreneurship Network</div>
+            <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.12;margin-top:8px;">A living map of the room</div>
+            <div style="font-size:13.5px;color:#5a584f;margin:12px 0 6px;line-height:1.6;text-align:left;">
+              <div style="display:flex;gap:9px;margin-bottom:7px;"><span style="color:#8C1515;font-weight:700;">1.</span><span><b>Click any dot</b> to open that person and light up who they're connected to.</span></div>
+              <div style="display:flex;gap:9px;margin-bottom:7px;"><span style="color:#8C1515;font-weight:700;">2.</span><span><b>Hover</b> to preview someone without leaving where you are.</span></div>
+              <div style="display:flex;gap:9px;"><span style="color:#8C1515;font-weight:700;">3.</span><span><b>Search or filter</b> on the left to focus by area, program, or year.</span></div>
+            </div>
+            <button onClick="{{ dismissWelcome }}" style="margin-top:16px;width:100%;font-size:14px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:11px;padding:12px 0;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.22);">Start exploring</button>
+          </div>
+        </div>
       </sc-if>
 
       <sc-if value="{{ atlasControls }}" hint-placeholder-val="{{ true }}">
@@ -223,7 +231,7 @@
             <button onClick="{{ setFocus }}" style="{{ focusTabStyle }}">Focus</button>
             <button onClick="{{ setMapView }}" style="{{ mapTabStyle }}">Map</button>
           </div>
-          <button onClick="{{ exploreFullMap }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">Full map ◹</button>
+          <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
           <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
           <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
         </div>
@@ -374,6 +382,9 @@
         <button onClick="{{ closeDetail }}" style="float:right;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
         <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.15;padding-right:20px;">{{ detail.name }}</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;">{{ detail.sub }}</div>
+        <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
+          <div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0f5d52;background:rgba(15,118,110,.1);border:1px solid rgba(15,118,110,.25);border-radius:7px;padding:3px 9px;margin-bottom:11px;">{{ detail.selfBadge }}</div>
+        </sc-if>
         <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;">
           <sc-for list="{{ detail.tags }}" as="t" hint-placeholder-count="2">
             <span style="{{ t.style }}">{{ t.label }}</span>
@@ -398,6 +409,24 @@
         <sc-if value="{{ detail.hasContact }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Contact</div><div style="font-size:13px;"><a href="{{ detail.contactHref }}" style="color:#8C1515;font-weight:600;text-decoration:none;">{{ detail.contact }}</a></div></div>
         </sc-if>
+        <sc-if value="{{ detail.hasChallenge }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Challenge they're navigating</div><div style="font-size:13px;line-height:1.55;">{{ detail.challenge }}</div>
+            <sc-if value="{{ detail.hasWho }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#8a857a;margin-top:3px;">Who bears it: {{ detail.who }}</div></sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{ detail.hasApproaches }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:5px;">How they work</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <sc-for list="{{ detail.approaches }}" as="a" hint-placeholder-count="2"><span style="{{ a.style }}">{{ a.label }}</span></sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ detail.hasBrings }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">What they bring</div><div style="font-size:13px;line-height:1.55;">{{ detail.brings }}</div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasSeeks }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Looking to learn</div><div style="font-size:13px;line-height:1.55;">{{ detail.seeks }}</div></div>
+        </sc-if>
         <sc-if value="{{ detail.hasTeammates }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#3b5bdb;font-weight:700;margin-bottom:6px;">Teammates</div>
             <sc-for list="{{ detail.teammates }}" as="tm" hint-placeholder-count="1">
@@ -413,7 +442,12 @@
           </div>
         </sc-if>
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:18px;">
-          <button onClick="{{ detail.reach }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;">Reach out</button>
+          <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ detail.editProfile }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#0f766e;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;">Edit my profile</button>
+          </sc-if>
+          <sc-if value="{{ detail.notSelf }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ detail.reach }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;">Reach out</button>
+          </sc-if>
           <button onClick="{{ detail.toggleBookmark }}" style="{{ detail.bookmarkStyle }}">{{ detail.bookmarkLabel }}</button>
           <a href="{{ detail.linkedin }}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
         </div>
@@ -548,7 +582,7 @@ class Component extends DCLogic {
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false,
+      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false,
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -611,6 +645,7 @@ class Component extends DCLogic {
     };
     grab();
     try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
+    try{ if(localStorage.getItem("ecoatlas_welcomed_v1")) this.setState({ welcomeDismissed:true }); }catch(e){}
   }
 
   // ---------- affinity graph: what actually connects two students ----------
@@ -1032,7 +1067,10 @@ class Component extends DCLogic {
     const n=this.byId[id], st=this.stageRef.current;
     if(n&&st){ const r=st.getBoundingClientRect(), sc=Math.max(this.view.scale,1.1);
       this.view.scale=sc; this.view.tx=r.width/2 - n.x*sc; this.view.ty=r.height/2 - n.y*sc; this.applyView(); }
-    this.setState({ detailId:id, hoverId:id, zoom:this.view.scale });
+    // in Student view the matches panel already occupies the right edge; collapse it so the
+    // detail panel has room instead of overlapping it (the "Show matches" tab brings it back).
+    const collapse = this.state.mode!=="general" ? { listCollapsed:true } : {};
+    this.setState({ detailId:id, hoverId:id, zoom:this.view.scale, ...collapse });
   }
 
   // keywords describing what a person is navigating (their challenges + project focus).
@@ -1498,13 +1536,17 @@ class Component extends DCLogic {
       const overlap = s.activeSectors.length>=2 && s.activeSectors.every(sk=>(n.tags||[]).map(t=>this.norm(t)).includes(sk));
       if(overlap && !isSelf && !isRecip) dot+=`outline:2px solid #8C1515;outline-offset:2px;box-shadow:0 0 0 1px #fffefb,0 0 10px rgba(140,21,21,.5);`;
       const emphatic = isFocus||isSelf;
+      // a highlighted person in your network (Student view) — their name should read clearly
+      const egoConn = !!self && highlight && hi && !emphatic;
       const labelVisible = emphatic || (highlight&&hi) || (showPersonLabels && (highlight?hi:true) && matched);
-      const labelFont = emphatic ? Math.max(12, 12.5/zoom) : 11;
+      const labelFont = emphatic ? Math.max(12.5, 13/zoom) : (egoConn ? Math.max(12.5, 13/zoom) : 11);
+      const labelWeight = emphatic ? 700 : (egoConn ? 600 : 500);
+      const strongLabel = emphatic || egoConn;
       return {
         id:n.id, name:n.name,
-        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(matched?10:1))};transition:opacity .2s;pointer-events:${matched?"auto":"none"};`,
+        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(egoConn?20:(matched?10:1)))};transition:opacity .2s;pointer-events:${matched?"auto":"none"};`,
         dotStyle:dot,
-        labelStyle:`margin-top:2px;font-size:${labelFont}px;font-weight:${emphatic?700:500};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,.88);padding:0 3px;border-radius:3px;line-height:1.2;max-width:${emphatic?340:150}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${emphatic?"0 1px 4px rgba(0,0,0,.12)":"none"};display:${labelVisible?"block":"none"};`,
+        labelStyle:`margin-top:3px;font-size:${labelFont}px;font-weight:${labelWeight};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,${strongLabel?.96:.88});padding:${strongLabel?"2px 7px":"0 3px"};border-radius:6px;line-height:1.2;max-width:${emphatic?340:180}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${strongLabel?"0 1px 6px rgba(0,0,0,.15)":"none"};display:${labelVisible?"block":"none"};`,
         onEnter:()=>{ if(!self) this.setState({hoverId:n.id}); else this.setState({hoverId:n.id}); },
         onLeave:()=>this.setState({hoverId:null}),
         onClick:(e)=>{ e.stopPropagation(); this.setState({detailId:n.id}); }
@@ -1642,8 +1684,17 @@ class Component extends DCLogic {
       const closeNbs=nbAll.filter(r=>!r.co).slice(0,4);
       const whyShared=r=>r.kind==="recip"?"ask ↔ offer match":r.kind==="desc"?"similar project":(r.o.tags.filter(t=>n.tags.map(x=>this.norm(x)).includes(this.norm(t))).join(", ")||"related");
       const bm=!!s.bookmarks[this.norm(n.name)];
+      const isSelfDetail = !!(self && n.id===self.id);
+      const ch0 = (p.challenges&&p.challenges[0])||{};
       detail={
         name:n.name,
+        isSelf:isSelfDetail, notSelf:!isSelfDetail,
+        selfBadge: isSelfDetail ? "This is your profile" : "",
+        editProfile:()=>this.openInterview(),
+        hasChallenge:!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"", hasWho:!!(ch0.whoBears&&ch0.whoBears.trim()), who:ch0.whoBears||"",
+        hasApproaches:(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
+        hasBrings:!!(p.brings&&p.brings.trim()), brings:p.brings||"",
+        hasSeeks:!!(p.seeks&&p.seeks.trim()), seeks:p.seeks||"",
         panelStyle:`position:absolute;right:18px;top:74px;bottom:18px;width:344px;background:#fffefb;border:1px solid #e3e0d8;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);padding:20px;overflow-y:auto;z-index:30;animation:atlasFade .18s ease;`,
         sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
         tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e3e0d8;border-radius:8px;padding:2px 8px;" })),
@@ -1801,6 +1852,10 @@ class Component extends DCLogic {
       backToEgo:()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
       exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
       browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
+      viewProfile:()=>{ if(this.state.selfId) this.openDetailCentered(this.state.selfId); },
+      showWelcome: !s.loading && s.mode==="general" && !s.welcomeDismissed,
+      dismissWelcome:()=>{ try{localStorage.setItem("ecoatlas_welcomed_v1","1");}catch(e){} this.setState({welcomeDismissed:true}); },
+      stopPropagation:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
       onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false}),
       onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
