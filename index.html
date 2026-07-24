@@ -73,6 +73,27 @@
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:7px;">Search</div>
       <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" placeholder="solar, water, carbon, AI…" style="width:100%;padding:8px 9px;border:1px solid #e3e0d8;border-radius:8px;font-size:13px;" />
 
+      <div style="margin-top:18px;padding:12px;border:1px solid #e8dcdc;background:#fdfaf9;border-radius:11px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;">⇄ Asks &amp; offers</div>
+          <a href="#" onClick="{{ clearExchange }}" style="font-size:11px;font-weight:600;{{ clearExchangeStyle }}">Clear</a>
+        </div>
+        <div style="display:inline-flex;width:100%;border:1px solid #e3e0d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:6px;">
+          <sc-for list="{{ exchangeDirs }}" as="d" hint-placeholder-count="2">
+            <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
+          </sc-for>
+        </div>
+        <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
+          <option value="">Anything</option>
+          <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
+            <option value="{{ i.value }}">{{ i.label }}</option>
+          </sc-for>
+        </select>
+        <sc-if value="{{ exchangeHint }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:6px;">{{ exchangeHint }}</div>
+        </sc-if>
+      </div>
+
       <div style="display:flex;gap:8px;margin-top:16px;">
         <div style="flex:1;">
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Program</div>
@@ -94,25 +115,6 @@
           </select>
         </div>
       </div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;">Asks &amp; offers</div>
-        <a href="#" onClick="{{ clearExchange }}" style="font-size:11px;font-weight:600;{{ clearExchangeStyle }}">Clear</a>
-      </div>
-      <div style="display:inline-flex;width:100%;border:1px solid #e3e0d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:6px;">
-        <sc-for list="{{ exchangeDirs }}" as="d" hint-placeholder-count="2">
-          <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
-        </sc-for>
-      </div>
-      <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-        <option value="">Anything</option>
-        <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
-          <option value="{{ i.value }}">{{ i.label }}</option>
-        </sc-for>
-      </select>
-      <sc-if value="{{ exchangeHint }}" hint-placeholder-val="{{ false }}">
-        <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:6px;">{{ exchangeHint }}</div>
-      </sc-if>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;">Territories</div>
@@ -372,6 +374,9 @@
                 <button onClick="{{ p.reach }}" style="margin-top:9px;width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 0;cursor:pointer;">Reach out</button>
               </div>
             </sc-for>
+            <sc-if value="{{ g.showMore }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ g.onMore }}" style="{{ g.moreStyle }}">{{ g.moreLabel }}</button>
+            </sc-if>
           </sc-for>
         </div>
       </aside>
@@ -672,7 +677,7 @@ class Component extends DCLogic {
       showConnections:true,
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
-      exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer",
+      exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{},
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -1311,7 +1316,7 @@ class Component extends DCLogic {
     const {df,n}=this.recipDf(), cap=Math.max(3, n*0.12);
     return (list||[]).filter(w=>(df[w]||0)<=cap);
   }
-  egoData(self){
+  egoData(self, limit){
     const RC=this.REASON_COLOR;
     const myTags=(self.tags||[]).map(t=>this.norm(t));
     // one need + one offer per person: the interview answer if given, else the reciprocity-board value
@@ -1388,8 +1393,11 @@ class Component extends DCLogic {
       const theyGive = !mutual ? "" : (helpTags[0] || this.fragOf(o.person.brings || o.person.offers, sharpHelp[0]));
       const youGive  = !mutual ? "" : (giveTags[0] || this.fragOf(self.person.brings || self.person.offers, sharpGive[0]));
       return { o, score, reason, rColor, rKind, hk:helpKw, gk:giveKw, shared, surprise, mutual, theyGive, youGive };
-    }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
+    }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,limit||8);
   }
+  // Below this, a "match" is one weak keyword coincidence — showing those wastes someone's
+  // time, so "See more" stops there rather than padding the list out to a round number.
+  MORE_MIN_SCORE(){ return 8; }
   frameNetwork(id, animate){
     const self=this.byId[id]; if(!self) return;
     const ids=new Set([id]);
@@ -1421,17 +1429,35 @@ class Component extends DCLogic {
   }
 
   // ---------- filters ----------
-  matches(node){
+  // everything except the asks/offers filter — so the asks/offers dropdown can count how many
+  // people each item would actually return under the filters already in play
+  matchesBase(node){
     const s=this.state;
     if(s.programFilter && !(node.person.programs||[]).includes(s.programFilter)) return false;
     if(s.statusFilter && node.status!==s.statusFilter) return false;
     if(s.activeSectors.length && !s.activeSectors.some(sk=>node.tags.map(t=>this.norm(t)).includes(sk))) return false;
-    if(s.exchangeFilter){
-      const side = s.exchangeDir==="need" ? this.needsOf(node.person) : this.offersOf(node.person);
-      if(!side.tags.includes(s.exchangeFilter)) return false;
-    }
     if(s.searchQuery){ const hay=[node.name,node.ventureName,...(node.tags||[]),node.person.focus||"",node.person.asks||"",node.person.offers||""].join(" ").toLowerCase(); if(!s.searchQuery.split(/\s+/).filter(Boolean).every(t=>hay.includes(t))) return false; }
     return true;
+  }
+  // does this person have the selected ask/offer, on the selected side?
+  hasExchange(node, item, dir){
+    if(!item) return true;
+    const side = (dir||this.state.exchangeDir)==="need" ? this.needsOf(node.person) : this.offersOf(node.person);
+    return side.tags.includes(item);
+  }
+  matches(node){
+    return this.matchesBase(node) && this.hasExchange(node, this.state.exchangeFilter);
+  }
+  // how many people each vocabulary item would return right now, so the dropdown can hide
+  // the dead ends rather than offering options that lead to an empty map
+  exchangeCounts(){
+    const s=this.state, out={};
+    this.EXCHANGE.forEach(v=>{ out[v]=0; });
+    s.nodes.forEach(n=>{ if(!this.matchesBase(n)) return;
+      const side = s.exchangeDir==="need" ? this.needsOf(n.person) : this.offersOf(n.person);
+      side.tags.forEach(t=>{ if(out[t]!=null) out[t]++; });
+    });
+    return out;
   }
 
   neighbors(node,limit){
@@ -1448,7 +1474,11 @@ class Component extends DCLogic {
   // read free text (a Reciprocity Board answer) into the shared vocabulary
   suggestExchange(text){
     const t=(text||"").trim(); if(!t) return [];
-    return this.EXCHANGE.filter(item=>{ const re=this.EXCHANGE_HINTS[item]; return re && re.test(t); });
+    // keyed by the text itself, so edited answers get re-read automatically
+    if(!this._exCache) this._exCache=new Map();
+    let hit=this._exCache.get(t);
+    if(!hit){ hit=this.EXCHANGE.filter(item=>{ const re=this.EXCHANGE_HINTS[item]; return re && re.test(t); }); this._exCache.set(t,hit); }
+    return hit;
   }
   // what someone needs/offers in vocabulary terms: their own picks if they've made any,
   // otherwise what we could read from their board answer. `stated` marks the difference.
@@ -1568,14 +1598,22 @@ class Component extends DCLogic {
       const L=forDark?Math.min(0.82,sec.nodeL+0.08):sec.nodeL;
       return `oklch(${L.toFixed(3)} ${sec.nodeC} ${sec.hue})`;
     };
+    // The sidebar filters only exist in Browse. Carrying them into Student view would ghost
+    // someone's own network with no control on screen to clear it, so they stop at the door.
+    const browseFilters = s.mode==="general";
     const matchedIds = new Set();
-    s.nodes.forEach(n=>{ if(this.matches(n)) matchedIds.add(n.id); });
+    s.nodes.forEach(n=>{ if(!browseFilters || this.matches(n)) matchedIds.add(n.id); });
 
     // self ego network — lines derive from the same ranked matches shown in the panel
     const egoActive = !!self && !s.showFullMap;
     const egoMapView = egoActive;   // Map is the only ego view now (Focus view retired)
     const egoFocus = false;
     const egoCands = self ? this.egoData(self) : null;
+    // a deeper pass for "See more" — same ranking, cut off where the signal stops being real.
+    // Map lines stay on the top 8 so expanding the list never turns the map into a hairball.
+    const egoExtra = self
+      ? this.egoData(self, 40).slice(8).filter(c=>c.score>=this.MORE_MIN_SCORE())
+      : [];
     // people-first: students and their connections are the map at every zoom (sectors only appear when clicked)
     const zoomedIn = zoom >= 0.58;
     const showDots = true;
@@ -1683,7 +1721,10 @@ class Component extends DCLogic {
       const give=egoCands.filter(c=>c.rKind==="give" && !isAlum(c)).map(mkEgoRow);
       // everyone else worth meeting — same approach, same challenge, shared sector, teammates —
       // in one "Connections" list (each card's reason chip still says why they matched)
-      const shared=egoCands.filter(c=>(c.rKind==="customer"||c.rKind==="approach"||c.rKind==="challenge"||c.rKind==="stage"||c.rKind==="team"||c.rKind==="sector"||c.rKind==="rel") && !isAlum(c)).map(mkEgoRow);
+      const isShared=c=>(c.rKind==="customer"||c.rKind==="approach"||c.rKind==="challenge"||c.rKind==="stage"||c.rKind==="team"||c.rKind==="sector"||c.rKind==="rel");
+      const sharedExtra=egoExtra.filter(c=>isShared(c) && !isAlum(c));
+      const shared=egoCands.filter(c=>isShared(c) && !isAlum(c))
+        .concat(s.egoMore.shared ? sharedExtra : []).map(mkEgoRow);
       // alumni get their own section: any alumni already in the ranked matches, topped up
       // with the most relevant other alumni (shared sectors, or their work touches your asks)
       // reason wording for alumni: name the concrete link between THIS student and
@@ -1716,14 +1757,26 @@ class Component extends DCLogic {
         const kw=this.keywords(o.person.focus||"").filter(w=>myAsk2.includes(w)).sort((a,b)=>b.length-a.length);
         const score=sharedT.length*10+kw.length*4+this.jaccard(self.tags,o.tags)*2;
         return { o, score, reason:alumReason(o,sharedT,kw), rColor:"#8a6d3b", rKind:"alum", hk:[], gk:[], shared:sharedT };
-      }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,Math.max(0,3-alumEgo.length));
-      const alumniRows=[...alumEgo, ...alumExtra].map(mkEgoRow);
+      }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score);
+      const alumBase=Math.max(0, 3-alumEgo.length);
+      // beyond the first few, only alumni who clear the same relevance bar
+      const alumMoreAvail=alumExtra.filter(c=>c.score>=this.MORE_MIN_SCORE()).slice(alumBase);
+      const alumShown=alumExtra.slice(0,alumBase).concat(s.egoMore.alumni ? alumMoreAvail : []);
+      const alumniRows=[...alumEgo, ...alumShown].map(mkEgoRow);
       const groups=[];
       if(mutualRows.length) groups.push({ key:"mutual", label:"Two-way matches", hint:"help flows both ways", count:mutualRows.length, rows:mutualRows });
       if(help.length) groups.push({ key:"help", label:"Who can help you", hint:"they offer your ask", count:help.length, rows:help });
       if(give.length) groups.push({ key:"give", label:"Who you can help", hint:"you offer their ask", count:give.length, rows:give });
-      if(shared.length) groups.push({ key:"shared", label:"Connections", hint:"similar work, approach, or challenges", count:shared.length, rows:shared });
-      if(alumniRows.length) groups.push({ key:"alumni", label:"Alumni to connect with", hint:"they've worked your ground", count:alumniRows.length, rows:alumniRows });
+      // "See more" only appears when there are further people who clear the relevance bar —
+      // no button rather than a button that opens onto nothing worth reading
+      const moreBtn=(key,n)=>({
+        showMore: n>0,
+        moreLabel: s.egoMore[key] ? "Show fewer" : `See ${n} more`,
+        moreStyle:`width:100%;margin:2px 0 6px;font-size:11.5px;font-weight:600;color:#6b6a65;background:#fff;border:1px dashed #d9d5ca;border-radius:8px;padding:7px 0;cursor:pointer;`,
+        onMore:()=>this.setState(st=>({ egoMore:{...st.egoMore, [key]: !st.egoMore[key]} })),
+      });
+      if(shared.length) groups.push({ key:"shared", label:"Connections", hint:"similar work, approach, or challenges", count:shared.length, rows:shared, ...moreBtn("shared", sharedExtra.length) });
+      if(alumniRows.length) groups.push({ key:"alumni", label:"Alumni to connect with", hint:"they've worked your ground", count:alumniRows.length, rows:alumniRows, ...moreBtn("alumni", alumMoreAvail.length) });
       const totalRows=mutualRows.length+help.length+give.length+shared.length+alumniRows.length;
       egoPanel={ title:"Find your connections", sub: totalRows?`${totalRows} strong matches, ranked for you`:"No strong matches yet — add more to your asks & offers", groups, total:totalRows,
         enriched:!!self.person.enriched,
@@ -2183,7 +2236,11 @@ class Component extends DCLogic {
         }; })() : null,
       // browse the room by what people need or offer — the vocabulary as a way to explore
       exchangeFilter: s.exchangeFilter,
-      exchangeItems: this.EXCHANGE.map(v=>({ value:v, label:v })),
+      // only offer items someone actually has; keep the current pick listed so the select
+      // never shows blank while a filter is active
+      exchangeItems: (()=>{ const c=this.exchangeCounts();
+        return this.EXCHANGE.filter(v=>c[v]>0 || v===s.exchangeFilter)
+          .map(v=>({ value:v, label:`${v} (${c[v]||0})` })); })(),
       exchangeDirs: [{k:"offer",label:"Offering"},{k:"need",label:"Looking for"}].map(d=>{ const on=s.exchangeDir===d.k;
         return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, listCollapsed:false}),
           style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?"#8C1515":"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
