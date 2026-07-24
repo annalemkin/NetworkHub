@@ -226,11 +226,19 @@
 
       <sc-if value="{{ egoActive }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #ece8de;">
+          <input type="text" value="{{ egoSearchVal }}" onInput="{{ onEgoSearch }}" placeholder="Find anyone…" style="flex:none;width:150px;padding:6px 11px;border:1px solid #e3e0d8;border-radius:999px;font-size:12px;background:#fff;" />
           <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
           <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
           <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
           <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
         </div>
+        <sc-if value="{{ egoSearchOpen }}" hint-placeholder-val="{{ false }}">
+          <div class="atlas-scroll" style="position:absolute;top:46px;left:14px;z-index:24;width:250px;max-height:280px;overflow-y:auto;background:#fffefb;border:1px solid #e3e0d8;border-radius:11px;box-shadow:0 10px 30px rgba(40,36,28,.18);">
+            <sc-for list="{{ egoSearchResults }}" as="r" hint-placeholder-count="3">
+              <div onClick="{{ r.onClick }}" style="padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid #f2eee4;"><b>{{ r.name }}</b> <span style="color:#8a877f;">· {{ r.sub }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
       </sc-if>
 
       <sc-if value="{{ namePrompt }}" hint-placeholder-val="{{ false }}">
@@ -362,16 +370,16 @@
         <sc-if value="{{ detail.hasFocus }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Focus</div><div style="font-size:13px;line-height:1.55;">{{ detail.focus }}</div></div>
         </sc-if>
-        <sc-if value="{{ detail.hasAsks }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ detail.hasNeed }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;background:rgba(161,92,0,.06);border:1px solid rgba(161,92,0,.2);border-radius:11px;padding:10px 12px;">
             <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:4px;"><span>→</span>Looking for</div>
-            <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.asks }}</div>
+            <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.need }}</div>
           </div>
         </sc-if>
-        <sc-if value="{{ detail.hasOffers }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ detail.hasOffer }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:8px;background:rgba(15,118,110,.06);border:1px solid rgba(15,118,110,.2);border-radius:11px;padding:10px 12px;">
             <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f766e;font-weight:700;margin-bottom:4px;"><span>←</span>Can help with</div>
-            <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.offers }}</div>
+            <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.offer }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ detail.hasContact }}" hint-placeholder-val="{{ false }}">
@@ -392,12 +400,6 @@
               <sc-for list="{{ detail.approaches }}" as="a" hint-placeholder-count="2"><span style="{{ a.style }}">{{ a.label }}</span></sc-for>
             </div>
           </div>
-        </sc-if>
-        <sc-if value="{{ detail.hasSeeks }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:3px;">Needs most right now</div><div style="font-size:13px;line-height:1.55;">{{ detail.seeks }}</div></div>
-        </sc-if>
-        <sc-if value="{{ detail.hasBrings }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Can help another founder with</div><div style="font-size:13px;line-height:1.55;">{{ detail.brings }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasTeammates }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#3b5bdb;font-weight:700;margin-bottom:6px;">Teammates</div>
@@ -582,7 +584,7 @@ class Component extends DCLogic {
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false, profileEdit:null,
+      interview:null, flash:null, filtersOpen:false, stanfordNote:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -959,9 +961,10 @@ class Component extends DCLogic {
     const fresh=after.filter(c=>!before.has(c.o.id) || deep.has(c.rKind));
     const n=fresh.length;
     const flash = n>0
-      ? `Profile updated — ${n} new ${n===1?"person":"people"} surfaced from your customer, stage, and how you work.`
+      ? `${n} new ${n===1?"person":"people"} to meet — surfaced from your customer, stage, and how you work. See them on the right ▸`
       : `Profile updated. As more people add their answers, deeper matches will appear here.`;
-    this.setState({ interview:null, flash });
+    // drop them straight into their refreshed matches so the payoff is visible, not a quiet toast
+    this.setState({ interview:null, flash, listCollapsed:false }, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); });
     clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
   }
 
@@ -1120,18 +1123,19 @@ class Component extends DCLogic {
   egoData(self){
     const RC=this.REASON_COLOR;
     const myTags=(self.tags||[]).map(t=>this.norm(t));
-    const myAsk=this.keywords(self.person.asks), myOff=this.keywords(self.person.offers);
+    // one need + one offer per person: the interview answer if given, else the reciprocity-board value
+    const myNeed=this.keywords(self.person.seeks || self.person.asks);
+    const myOffer=this.keywords(self.person.brings || self.person.offers);
     // ---- signals from the profile interview (empty until the student fills it out) ----
     const myApp=new Set((self.person.approaches||[]).map(a=>this.norm(a)));
     const myChal=this.challengeKw(self.person);
-    const myBring=this.keywords(self.person.brings), mySeek=this.keywords(self.person.seeks);
     const myCust=this.keywords(self.person.customer);          // who they're building for
     const mySIdx=(this.STAGES||[]).indexOf(self.person.stage); // their stage, for "a step ahead"
     return this.state.nodes.filter(o=>o.id!==self.id).map(o=>{
       const co = o.ventureName===self.ventureName && self.ventureName && !/^solo/i.test(o.ventureName);
       const shared = (o.tags||[]).filter(t=>myTags.includes(this.norm(t)));
-      const helpKw = o.person.offers?this.keywords(o.person.offers).filter(w=>myAsk.includes(w)):[];
-      const giveKw = o.person.asks?this.keywords(o.person.asks).filter(w=>myOff.includes(w)):[];
+      const helpKw = this.keywords(o.person.brings || o.person.offers).filter(w=>myNeed.includes(w)).sort((a,b)=>b.length-a.length);  // they offer what you need
+      const giveKw = this.keywords(o.person.seeks || o.person.asks).filter(w=>myOffer.includes(w)).sort((a,b)=>b.length-a.length);   // you offer what they need
       const sim=this.jaccard(self.tags,o.tags);
       // deeper signals
       const appShared = (o.person.approaches||[]).filter(a=>myApp.has(this.norm(a)));   // same way of working
@@ -1146,15 +1150,13 @@ class Component extends DCLogic {
         // shown, since the longest of the rare overlaps tends to be the most specific.
         chalShared = chalShared.length>=2 ? chalShared.sort((a,b)=>b.length-a.length) : [];
       }
-      const bringHelp = (mySeek.length && o.person.brings) ? this.keywords(o.person.brings).filter(w=>mySeek.includes(w)).sort((a,b)=>b.length-a.length) : []; // they know what you seek
-      const giveHelp  = (myBring.length && o.person.seeks) ? this.keywords(o.person.seeks).filter(w=>myBring.includes(w)).sort((a,b)=>b.length-a.length) : [];  // you know what they seek
       const custShared = (myCust.length && o.person.customer) ? this.keywords(o.person.customer).filter(w=>myCust.includes(w)).sort((a,b)=>b.length-a.length) : []; // same customer/user
       const oSIdx = (this.STAGES||[]).indexOf(o.person.stage);
       const oneAhead = mySIdx>=0 && oSIdx>=0 && oSIdx===mySIdx+1;   // they're one stage further along
       const crossSector = shared.length===0;   // a match with no shared sector is the surprising kind
       const surprise = crossSector && (appShared.length||chalShared.length||custShared.length) ? 1 : 0;
-      const score=(co?1000:0)+shared.length*10+helpKw.length*6+giveKw.length*4+sim*2
-        + custShared.length*9 + appShared.length*8 + chalShared.length*5 + bringHelp.length*7 + giveHelp.length*5 + surprise*6 + (oneAhead?4:0);
+      const score=(co?1000:0)+shared.length*10+helpKw.length*7+giveKw.length*5+sim*2
+        + custShared.length*9 + appShared.length*8 + chalShared.length*5 + surprise*6 + (oneAhead?4:0);
       let reason,rColor,rKind;
       // priority: teammates, then the deeper cross-sector links (the point of the interview),
       // then ask/offer & knowledge exchange, then shared sector, then loose relation.
@@ -1163,12 +1165,10 @@ class Component extends DCLogic {
       else if(appShared.length && crossSector){ reason="You both work through "+appShared[0].toLowerCase(); rColor=RC.approach; rKind="approach"; }
       else if(chalShared.length && crossSector){ reason="Both wrestling with "+chalShared[0]; rColor=RC.challenge; rKind="challenge"; }
       else if(helpKw.length){ reason="Can help you with "+helpKw[0]; rColor=RC.help; rKind="help"; }
-      else if(bringHelp.length){ reason="Knows "+bringHelp[0]+", which you're after"; rColor=RC.help; rKind="help"; }
       else if(appShared.length){ reason="Similar approach: "+appShared[0].toLowerCase(); rColor=RC.approach; rKind="approach"; }
       else if(chalShared.length){ reason="Shared challenge: "+chalShared[0]; rColor=RC.challenge; rKind="challenge"; }
       else if(shared.length){ reason="Both working in "+shared[0]; rColor=RC.sector; rKind="sector"; }
       else if(giveKw.length){ reason="You can help with "+giveKw[0]; rColor=RC.give; rKind="give"; }
-      else if(giveHelp.length){ reason="You know "+giveHelp[0]+", which they're after"; rColor=RC.give; rKind="give"; }
       else if(oneAhead){ reason="A step ahead of you"; rColor=RC.stage; rKind="stage"; }
       else { reason="Related work"; rColor=RC.rel; rKind="rel"; }
       return { o, score, reason, rColor, rKind, hk:helpKw, gk:giveKw, shared, surprise };
@@ -1251,6 +1251,8 @@ class Component extends DCLogic {
   generateIntro(self, t){
     const first=t.name.split(" ")[0]; const selfName=self?self.name:"[your name]"; const selfFirst=self?self.name.split(" ")[0]:"[your name]";
     const selfVenture=self&&self.ventureName?self.ventureName:"my venture";
+    // name the sender's actual program (EcoX, EcoSprint, …) rather than a generic label
+    const selfProgram = (self && (self.person.programs||[])[0]) || "Stanford Ecopreneurship";
     const shared=self?t.tags.filter(x=>self.tags.map(y=>this.norm(y)).includes(this.norm(x))):[];
     const sharedStr=shared.slice(0,2).join(" and "); const tv=t.ventureName||"your project";
     const selfAlum=self&&self.status==="alum", tAlum=t.status==="alum";
@@ -1275,14 +1277,14 @@ class Component extends DCLogic {
       ask=`Happy to share what I learned or make introductions — want to grab 20 minutes?`;
       subject=`Happy to help — from a fellow Ecopreneurship founder`;
     } else if(tAlum){
-      intro=`I'm ${selfName}, working on ${selfVenture} through Stanford Ecopreneurship.`;
+      intro=`I'm ${selfName}, working on ${selfVenture} through ${selfProgram}.`;
       hook=`I came across your work on ${tv} in the Ecopreneurship Network, and as someone building in ${shared[0]||"a related space"}, your path is exactly the kind I'd love to learn from.`;
       if(theyHelpMe&&theirOffer) why=` I saw you can help with ${theirOffer}${myAsk?`, which is right where I'm focused (I'm looking for ${myAsk})`:""} — I'd really value your perspective.`;
       else if(myAsk) why=` Right now I'm especially trying to figure out ${myAsk}.`;
       ask=`Would you be open to a quick 15-minute call so I could hear what you learned?`;
       subject=`Stanford Ecopreneurship — would love your advice`;
     } else {
-      intro=`I'm ${selfName}, working on ${selfVenture} through Stanford Ecopreneurship.`;
+      intro=`I'm ${selfName}, working on ${selfVenture} through ${selfProgram}.`;
       hook=shared.length?`I found you through the Ecopreneurship Network — we both show up under ${sharedStr}.`:`I found you through the Ecopreneurship Network and was really interested in ${tv}.`;
       if(theyHelpMe&&iHelpThem) why=` It looks like a real two-way match: you can help with ${theirOffer||"what I'm working on"}, and in return I can offer ${myOffer||"what you're looking for"}.`;
       else if(theyHelpMe) why=` You mentioned you can help with ${theirOffer||"an area I'm focused on"}${myAsk?`, which is exactly what I'm looking for right now (${myAsk})`:""}.`;
@@ -1723,20 +1725,20 @@ class Component extends DCLogic {
         isSelf:isSelfDetail, notSelf:!isSelfDetail,
         selfBadge: isSelfDetail ? "This is your profile" : "",
         editProfile:()=>this.openProfileEdit(),
-        hasChallenge:!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"",
-        hasCustomer:!!(p.customer&&p.customer.trim()), customer:p.customer||"",
-        hasStage:!!(p.stage&&p.stage.trim()), stage:p.stage||"",
-        hasApproaches:(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
-        hasBrings:!!(p.brings&&p.brings.trim()), brings:p.brings||"",
-        hasSeeks:!!(p.seeks&&p.seeks.trim()), seeks:p.seeks||"",
+        // interview answers are the signed-in experience — never shown on the public Browse view
+        hasChallenge:selfMode&&!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"",
+        hasCustomer:selfMode&&!!(p.customer&&p.customer.trim()), customer:p.customer||"",
+        hasStage:selfMode&&!!(p.stage&&p.stage.trim()), stage:p.stage||"",
+        hasApproaches:selfMode&&(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
         panelStyle:`position:absolute;right:18px;top:74px;bottom:18px;width:344px;background:#fffefb;border:1px solid #e3e0d8;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);padding:20px;overflow-y:auto;z-index:30;animation:atlasFade .18s ease;`,
         sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
         tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e3e0d8;border-radius:8px;padding:2px 8px;" })),
         hasCohorts:(p.cohorts||[]).length>0,
         cohorts:(p.cohorts||[]).map(c=>({ label:`${c.program}${c.year?" · "+c.year:""}${c.venture?" — "+c.venture:""}`, dotStyle:`display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;background:${PC[(c.program||"").split("+")[0]]||"#999"};` })),
         hasFocus:!!p.focus, focus:p.focus,
-        hasAsks:!!(p.asks&&p.asks.trim()), asks:p.asks,
-        hasOffers:!!(p.offers&&p.offers.trim()), offers:p.offers,
+        // one need + one offer: interview answer if given, else the reciprocity-board value (shown in both views)
+        hasNeed:!!((p.seeks||p.asks||"").trim()), need:(p.seeks||p.asks||""),
+        hasOffer:!!((p.brings||p.offers||"").trim()), offer:(p.brings||p.offers||""),
         hasContact:showContact&&!!p.email, contact:p.email||"", contactHref:p.email?"mailto:"+p.email:"",
         hasTeammates:teamNbs.length>0, teammates:teamNbs.map(r=>({ name:r.o.name, shared:r.o.ventureName||"same venture", onClick:()=>this.openDetailCentered(r.o.id) })),
         hasNeighbors:closeNbs.length>0, neighbors:closeNbs.map(r=>({ name:r.o.name, shared:whyShared(r), onClick:()=>this.openDetailCentered(r.o.id) })),
@@ -1886,6 +1888,15 @@ class Component extends DCLogic {
       exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
       browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
       viewProfile:()=>{ if(this.state.selfId) this.openDetailCentered(this.state.selfId); },
+      egoSearchVal: s.egoSearch,
+      onEgoSearch: e=>this.setState({egoSearch:e.target.value}),
+      egoSearchOpen: egoActive && s.egoSearch.trim().length>=2 &&
+        s.nodes.some(n=>n.id!==(self&&self.id) && n.name.toLowerCase().includes(s.egoSearch.trim().toLowerCase())),
+      egoSearchResults: (egoActive && s.egoSearch.trim().length>=2)
+        ? s.nodes.filter(n=>n.id!==(self&&self.id) && n.name.toLowerCase().includes(s.egoSearch.trim().toLowerCase())).slice(0,8)
+            .map(n=>({ name:n.name, sub:`${n.ventureName||"Independent"} · ${n.status==="alum"?"Alumni":"Current"}`,
+              onClick:()=>this.setState({egoSearch:""}, ()=>this.openDetailCentered(n.id)) }))
+        : [],
       showWelcome: !s.loading && s.mode==="general" && !s.welcomeDismissed,
       dismissWelcome:()=>{ try{localStorage.setItem("ecoatlas_welcomed_v1","1");}catch(e){} this.setState({welcomeDismissed:true}); },
       stopPropagation:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
