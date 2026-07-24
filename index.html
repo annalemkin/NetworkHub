@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#faf9f6;color:#2e2d29;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  a{color:#8C1515;}
+  a:hover{color:#6f1010;}
+  ::selection{background:#8C15151f;}
+  input,select,textarea,button{font-family:inherit;}
+  .atlas-scroll::-webkit-scrollbar{width:9px;height:9px;}
+  .atlas-scroll::-webkit-scrollbar-thumb{background:#dcd8cd;border-radius:6px;}
+  @keyframes atlasFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @keyframes atlasPulse{0%{box-shadow:0 0 0 0 rgba(140,21,21,.45);}70%{box-shadow:0 0 0 15px rgba(140,21,21,0);}100%{box-shadow:0 0 0 0 rgba(140,21,21,0);}}
+</style>
+<script src="data.js"></script>
+</helmet>
+<template id="__bundler_thumbnail" data-bg-color="#faf9f6">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#faf9f6"/>
+    <circle cx="440" cy="330" r="150" fill="#007C9218"/>
+    <circle cx="700" cy="300" r="130" fill="#4C6B4F18"/>
+    <circle cx="600" cy="500" r="140" fill="#B26F1618"/>
+    <circle cx="360" cy="520" r="110" fill="#6E4C9E18"/>
+    <circle cx="820" cy="490" r="120" fill="#8C151518"/>
+    <circle cx="470" cy="340" r="9" fill="#007C92"/>
+    <circle cx="560" cy="380" r="9" fill="#4C6B4F"/>
+    <circle cx="640" cy="470" r="9" fill="#B26F16"/>
+    <circle cx="600" cy="400" r="15" fill="#8C1515"/>
+    <circle cx="750" cy="330" r="9" fill="#6E4C9E"/>
+    <text x="600" y="700" font-family="Georgia,serif" font-size="52" fill="#2e2d29" text-anchor="middle">The Ecopreneurship Network</text>
+  </svg>
+</template>
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#faf9f6;">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 22px;border-bottom:1px solid #e3e0d8;background:#fffefb;z-index:20;flex-wrap:wrap;">
+    <div style="display:flex;align-items:baseline;gap:12px;min-width:0;">
+      <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;">The Ecopreneurship Network</div>
+      <div style="font-size:11.5px;color:#6b6a65;white-space:nowrap;">A living map of the room · 2023–2026</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="display:inline-flex;border:1px solid #e3e0d8;border-radius:999px;overflow:hidden;background:#fff;">
+        <sc-for list="{{ audiences }}" as="a" hint-placeholder-count="3">
+          <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ openCatalog }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:7px 13px;cursor:pointer;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+    </div>
+  </header>
+
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+    <aside class="atlas-scroll" style="width:288px;flex:none;border-right:1px solid #e3e0d8;background:#fffefb;overflow-y:auto;padding:18px 18px 40px;">
+
+      <sc-if value="{{ hasSelf }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #d8c9b0;background:#fdfaf3;border-radius:12px;padding:13px;margin-bottom:12px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#8C1515;margin-bottom:4px;">Viewing as you</div>
+          <div style="font-size:13px;">You're <b>{{ selfName }}</b><span style="color:#6b6a65;">{{ selfVentureSuffix }}</span></div>
+          <div style="margin-top:6px;"><a href="#" onClick="{{ clearSelf }}" style="font-size:11.5px;font-weight:600;">Not you? Change</a></div>
+        </div>
+      </sc-if>
+
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:7px;">Search</div>
+      <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" placeholder="solar, water, carbon, AI…" style="width:100%;padding:8px 9px;border:1px solid #e3e0d8;border-radius:8px;font-size:13px;" />
+
+      <button onClick="{{ toggleFilters }}" style="display:flex;align-items:center;width:100%;margin-top:16px;padding:9px 11px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;font-size:12.5px;font-weight:600;color:#2e2d29;cursor:pointer;">
+        <span style="flex:1;text-align:left;">Filters<span style="color:#8C1515;">{{ filterCountLabel }}</span></span>
+        <span style="{{ filtersCaretStyle }}">▾</span>
+      </button>
+      <sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Program</div>
+          <select value="{{ programFilter }}" onChange="{{ onProgram }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
+            <option value="">All programs</option>
+            <option value="EcoSprint">EcoSprint</option>
+            <option value="EcoX">EcoX</option>
+            <option value="EcoSIF">EcoSIF</option>
+            <option value="EcoGlobal">EcoGlobal</option>
+            <option value="EcoRAMP">EcoRAMP</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Status</div>
+          <select value="{{ statusFilter }}" onChange="{{ onStatus }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
+            <option value="">Current + Alumni</option>
+            <option value="current">Current only</option>
+            <option value="alum">Alumni only</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;">Territories</div>
+        <a href="#" onClick="{{ clearSectors }}" style="font-size:11px;font-weight:600;{{ clearSectorsStyle }}">Clear</a>
+      </div>
+      <button onClick="{{ toggleSectorMenu }}" style="{{ sectorMenuButtonStyle }}">
+        <span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sectorSummary }}</span>
+        <span style="{{ sectorCaretStyle }}">▾</span>
+      </button>
+      <sc-if value="{{ sectorMenuOpen }}" hint-placeholder-val="{{ false }}">
+        <div class="atlas-scroll" style="margin-top:8px;max-height:300px;overflow-y:auto;padding:9px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;">
+          <sc-for list="{{ sectorGroups }}" as="g" hint-placeholder-count="6">
+            <div style="{{ g.headerStyle }}"><span style="{{ g.dotStyle }}"></span>{{ g.label }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+              <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.onClick }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.label }} <span style="opacity:.55;">{{ c.count }}</span></button>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      </sc-if>
+
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin:20px 0 8px;">Legend</div>
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;margin-bottom:5px;">Dot color · sector</div>
+      <div style="font-size:11.5px;line-height:1.7;color:#3a3833;display:flex;flex-direction:column;gap:3px;margin-bottom:15px;">
+        <sc-for list="{{ familyLegend }}" as="p" hint-placeholder-count="6">
+          <span><span style="{{ p.dotStyle }}"></span>{{ p.label }}</span>
+        </sc-for>
+      </div>
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;margin-bottom:3px;">Dot size</div>
+      <div style="font-size:11.5px;line-height:1.5;color:#8a877f;margin-bottom:15px;">Bigger dot = more connections in the network.</div>
+      <div style="font-size:12px;line-height:1.85;color:#3a3833;">
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;">Connections</div>
+        <div><span style="display:inline-block;width:22px;border-top:2px solid #807b72;margin-right:7px;vertical-align:middle;"></span>Shared focus</div>
+        <div><span style="display:inline-block;width:22px;border-top:2px dotted #807b72;margin-right:7px;vertical-align:middle;"></span>Ask ↔ offer match</div>
+      </div>
+    </aside>
+    </sc-if>
+
+    <div style="{{ stageStyle }}">
+      <div ref="{{ stageRef }}" onWheel="{{ onWheel }}" onPointerDown="{{ onPanStart }}" style="position:absolute;inset:0;cursor:grab;touch-action:none;">
+        <div ref="{{ worldRef }}" style="position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;">
+
+          <sc-for list="{{ regions }}" as="r" hint-placeholder-count="0">
+            <div style="{{ r.blobStyle }}"></div>
+          </sc-for>
+
+          <svg style="{{ svgStyle }}" width="{{ worldW }}" height="{{ worldH }}">
+            <sc-for list="{{ links }}" as="l" hint-placeholder-count="0">
+              <line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="{{ l.color }}" stroke-width="{{ l.w }}" stroke-dasharray="{{ l.dash }}" />
+            </sc-for>
+          </svg>
+
+          <sc-for list="{{ regions }}" as="r" hint-placeholder-count="0">
+            <div onClick="{{ r.onClick }}" onMouseEnter="{{ r.onEnter }}" onMouseLeave="{{ r.onLeave }}" style="{{ r.labelStyle }}">{{ r.label }}<span style="{{ r.countStyle }}">{{ r.count }}</span></div>
+          </sc-for>
+
+          <sc-for list="{{ clusterLabels }}" as="c" hint-placeholder-count="0">
+            <div style="{{ c.style }}">{{ c.label }}<span style="{{ c.countStyle }}">{{ c.count }}</span></div>
+          </sc-for>
+
+          <sc-for list="{{ nodesView }}" as="n" hint-placeholder-count="0">
+            <div data-node="1" onMouseEnter="{{ n.onEnter }}" onMouseLeave="{{ n.onLeave }}" onClick="{{ n.onClick }}" style="{{ n.wrapStyle }}">
+              <span style="{{ n.dotStyle }}"></span>
+              <span style="{{ n.labelStyle }}">{{ n.name }}</span>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ ego }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ ego.linkLabels }}" as="l" hint-placeholder-count="0">
+              <div style="{{ l.style }}">{{ l.text }}</div>
+            </sc-for>
+            <div style="{{ ego.selfMarkerStyle }}">{{ ego.marker }}</div>
+          </sc-if>
+
+        </div>
+      </div>
+
+      <sc-if value="{{ showHelpCard }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;left:16px;top:14px;background:rgba(255,254,251,.93);backdrop-filter:blur(4px);border:1px solid #e3e0d8;border-radius:11px;padding:11px 13px;max-width:292px;box-shadow:0 3px 12px rgba(0,0,0,.06);">
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <b style="color:#2e2d29;flex:1;font-size:12.5px;">{{ overviewLine }}</b>
+            <button onClick="{{ toggleHelp }}" style="flex:none;background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8C1515;cursor:pointer;white-space:nowrap;">{{ helpToggleLabel }}</button>
+          </div>
+          <sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9a978d;font-weight:700;margin:10px 0 6px;">How to read this</div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#3a3833;line-height:1.35;">
+              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.6 0.135 235);flex:none;margin-top:3px;"></span><span>Each dot is a person; its <b>color</b> is their sector.</span></div>
+              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.58 0.135 70);flex:none;margin-top:3px;"></span><span><b>Closer together</b> means more in common — shared projects, similar work, complementary asks and offers.</span></div>
+              <div style="display:flex;gap:7px;"><span style="width:9px;height:9px;border-radius:50%;background:oklch(0.55 0.135 155);flex:none;margin-top:3px;"></span><span>A <b>bigger dot</b> has more connections. Hover to highlight someone; click for their profile.</span></div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showBackToEgo }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ backToEgo }}" style="position:absolute;left:16px;top:14px;display:inline-flex;align-items:center;gap:6px;background:#8C1515;color:#fff;border:none;border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.25);">◂ Back to my network</button>
+      </sc-if>
+
+      <sc-if value="{{ atlasControls }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;">
+        <button onClick="{{ zoomIn }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);">+</button>
+        <button onClick="{{ zoomOut }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);">–</button>
+        <button onClick="{{ fitView }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.07);">⤢</button>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b6a65;font-size:14px;">Mapping the network…</div>
+      </sc-if>
+
+      <sc-if value="{{ egoActive }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #ece8de;">
+          <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
+          <div style="display:inline-flex;border:1px solid #e3e0d8;border-radius:999px;overflow:hidden;background:#fff;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <button onClick="{{ setFocus }}" style="{{ focusTabStyle }}">Focus</button>
+            <button onClick="{{ setMapView }}" style="{{ mapTabStyle }}">Map</button>
+          </div>
+          <button onClick="{{ exploreFullMap }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">Full map ◹</button>
+          <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
+          <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ focus }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#fcfbf8,#f1efe9);z-index:11;overflow:hidden;animation:atlasFade .25s ease;">
+          <div style="position:absolute;left:0;right:0;top:44px;z-index:9;text-align:center;padding:0 18px;pointer-events:none;">
+            <div style="font-family:Newsreader,serif;font-size:18px;font-weight:600;color:#2e2d29;">{{ focus.title }}</div>
+            <div style="font-size:11.5px;color:#8a857a;margin-top:2px;">{{ focus.subtitle }}</div>
+          </div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;">
+            <sc-for list="{{ focus.lines }}" as="l" hint-placeholder-count="6">
+              <line x1="50" y1="{{ focus.cy }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="{{ l.color }}" stroke-width="1.5" stroke-dasharray="{{ l.dash }}" stroke-opacity="0.4" vector-effect="non-scaling-stroke" />
+            </sc-for>
+          </svg>
+          <div style="{{ focus.selfStyle }}">
+            <div style="{{ focus.selfDotStyle }}">{{ focus.selfInitials }}</div>
+            <div style="font-family:Newsreader,serif;font-weight:600;font-size:15px;margin-top:8px;color:#2e2d29;line-height:1.15;">{{ focus.selfName }}</div>
+            <div style="font-size:10.5px;color:#8a857a;margin-top:2px;line-height:1.25;">{{ focus.selfMeta }}</div>
+          </div>
+          <sc-for list="{{ focus.people }}" as="p" hint-placeholder-count="6">
+            <div style="{{ p.posStyle }}">
+              <div onClick="{{ p.view }}" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <span style="{{ p.dotStyle }}"></span>
+                <div style="font-weight:700;font-size:12.5px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
+              </div>
+              <div style="font-size:10px;color:#3a3833;margin:3px 0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.venture }}</div>
+              <div style="font-size:10px;color:#8a857a;margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.meta }}</div>
+              <div style="{{ p.reasonStyle }}">{{ p.reason }}</div>
+              <div style="display:flex;gap:5px;margin-top:8px;">
+                <button onClick="{{ p.reach }}" style="flex:1;font-size:11.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:6px 0;cursor:pointer;">Reach out</button>
+                <button onClick="{{ p.save }}" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ namePrompt }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 42%, rgba(251,250,247,.72), rgba(243,241,235,.92));animation:atlasFade .25s ease;">
+          <div style="width:100%;max-width:400px;text-align:center;background:#fffefb;border:1px solid #e6e2d9;border-radius:18px;box-shadow:0 22px 60px rgba(40,36,28,.17);padding:30px 28px 24px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">{{ namePromptKicker }}</div>
+            <div style="font-family:Newsreader,serif;font-size:27px;font-weight:600;line-height:1.1;margin-top:8px;">{{ selfPromptTitle }}</div>
+            <div style="font-size:13px;color:#6b6a65;margin:8px 0 18px;line-height:1.5;">{{ selfPromptSub }}</div>
+            <button onClick="{{ onStanford }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:14px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:11px;padding:13px 0;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.22);">🔒 Continue with Stanford</button>
+            <sc-if value="{{ stanfordNote }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:11.5px;color:#a15c00;background:#fdf6e7;border:1px solid #f0dfb2;border-radius:9px;padding:8px 10px;margin-top:10px;text-align:left;line-height:1.4;">This will be your Stanford passkey once it's set up with the developer. For now, find yourself below to try the prototype.</div>
+            </sc-if>
+            <div style="display:flex;align-items:center;gap:9px;margin:15px 0;color:#a8a396;font-size:11px;"><span style="flex:1;height:1px;background:#ece8de;"></span>or, in the prototype<span style="flex:1;height:1px;background:#ece8de;"></span></div>
+            <input type="text" value="{{ selfQuery }}" onInput="{{ onSelfInput }}" placeholder="{{ selfPlaceholder }}" style="width:100%;padding:12px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
+            <div style="margin-top:10px;text-align:left;">
+              <sc-for list="{{ selfSuggestions }}" as="s" hint-placeholder-count="0">
+                <div onClick="{{ s.onClick }}" style="padding:10px 12px;border:1px solid #ece8de;border-radius:10px;margin-bottom:6px;font-size:13.5px;cursor:pointer;background:#fff;"><b>{{ s.name }}</b> <span style="color:#6b6a65;">· {{ s.sub }}</span></div>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;padding-top:13px;border-top:1px solid #ece8de;"><a href="#" onClick="{{ browseAll }}" style="font-size:12.5px;font-weight:600;color:#8C1515;text-decoration:none;">Just exploring? Browse the whole map →</a></div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ resultsPanel }}" hint-placeholder-val="{{ false }}">
+      <aside style="width:344px;flex:none;border-left:1px solid #e3e0d8;background:#fffefb;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
+        <div style="padding:15px 16px 12px;border-bottom:1px solid #ece8de;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="flex:1;font-family:Newsreader,serif;font-size:16px;font-weight:600;line-height:1.25;">{{ results.countLine }}</div>
+            <button onClick="{{ closeList }}" title="Collapse list" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;margin:-2px -4px 0 0;">×</button>
+          </div>
+          <div style="font-size:11.5px;color:#6b6a65;margin-top:3px;line-height:1.35;">{{ results.subLine }}</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:11px;">
+            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#9b978d;font-weight:700;">Sort</span>
+            <select value="{{ sortBy }}" onChange="{{ onSort }}" style="flex:1;padding:6px 7px;border:1px solid #e3e0d8;border-radius:8px;font-size:12px;background:#fff;">
+              <option value="match">Best match</option>
+              <option value="name">Name (A–Z)</option>
+              <option value="year">Year (newest)</option>
+            </select>
+          </div>
+        </div>
+        <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
+          <sc-for list="{{ results.groups }}" as="g" hint-placeholder-count="1">
+            <sc-if value="{{ g.showHeader }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ g.headerStyle }}">{{ g.label }} <span style="color:#8C1515;">{{ g.count }}</span></div>
+            </sc-if>
+            <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="6">
+              <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" onClick="{{ p.click }}" style="{{ p.rowStyle }}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="{{ p.dotStyle }}"></span>
+                  <div style="font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
+                  <button onClick="{{ p.reach }}" style="flex:none;white-space:nowrap;font-size:11px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3caca;border-radius:7px;padding:4px 9px;cursor:pointer;">Reach out</button>
+                </div>
+                <div style="font-size:11px;color:#3a3833;margin:4px 0 2px;">{{ p.venture }}</div>
+                <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
+                <div style="{{ p.badgeStyle }}">◆ Spans every selected territory</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">
+                  <sc-for list="{{ p.sectors }}" as="t" hint-placeholder-count="2">
+                    <span style="{{ t.style }}">{{ t.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+      </aside>
+    </sc-if>
+
+    <sc-if value="{{ egoPanel }}" hint-placeholder-val="{{ false }}">
+      <aside style="width:344px;flex:none;border-left:1px solid #e3e0d8;background:#fffefb;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
+        <div style="padding:15px 16px 13px;border-bottom:1px solid #ece8de;">
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <div style="font-family:Newsreader,serif;font-size:17px;font-weight:600;line-height:1.2;flex:1;">{{ egoPanel.title }}</div>
+            <button onClick="{{ closeList }}" title="Collapse" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;margin:-2px -4px 0 0;">×</button>
+          </div>
+          <div style="font-size:11.5px;color:#6b6a65;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
+          <button onClick="{{ egoPanel.onEnrich }}" style="{{ egoPanel.enrichBtnStyle }}"><span style="font-size:13px;">✨</span>{{ egoPanel.enrichLabel }}</button>
+        </div>
+        <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
+          <sc-for list="{{ egoPanel.groups }}" as="g" hint-placeholder-count="2">
+            <div style="display:flex;align-items:baseline;gap:7px;margin:12px 2px 8px;">
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#6b6a65;">{{ g.label }}</span>
+              <span style="font-size:11px;color:#8C1515;font-weight:700;">{{ g.count }}</span>
+              <span style="font-size:10.5px;color:#a8a396;margin-left:auto;font-style:italic;">{{ g.hint }}</span>
+            </div>
+            <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
+              <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" onClick="{{ p.view }}" title="Open profile" style="{{ p.rowStyle }}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="{{ p.dotStyle }}"></span>
+                  <div style="font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
+                  <button onClick="{{ p.save }}" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
+                </div>
+                <div style="font-size:11px;color:#3a3833;margin:4px 0 1px;">{{ p.venture }}</div>
+                <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
+                <div style="{{ p.reasonStyle }}">{{ p.reason }}</div>
+                <button onClick="{{ p.reach }}" style="margin-top:9px;width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 0;cursor:pointer;">Reach out</button>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+      </aside>
+    </sc-if>
+
+    <sc-if value="{{ reopenTab }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ openList }}" style="position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:26;display:flex;align-items:center;gap:6px;writing-mode:vertical-rl;background:#8C1515;color:#fff;border:none;border-radius:10px 0 0 10px;padding:14px 8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:-3px 3px 12px rgba(0,0,0,.15);">{{ reopenLabel }}</button>
+    </sc-if>
+
+    <sc-if value="{{ detail }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ detail.panelStyle }}" class="atlas-scroll">
+        <button onClick="{{ closeDetail }}" style="float:right;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+        <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.15;padding-right:20px;">{{ detail.name }}</div>
+        <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;">{{ detail.sub }}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;">
+          <sc-for list="{{ detail.tags }}" as="t" hint-placeholder-count="2">
+            <span style="{{ t.style }}">{{ t.label }}</span>
+          </sc-for>
+        </div>
+        <sc-if value="{{ detail.hasCohorts }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:4px;">Cohorts</div>
+            <sc-for list="{{ detail.cohorts }}" as="c" hint-placeholder-count="1">
+              <div style="font-size:12.5px;line-height:1.55;"><span style="{{ c.dotStyle }}"></span>{{ c.label }}</div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ detail.hasFocus }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Focus</div><div style="font-size:13px;line-height:1.55;">{{ detail.focus }}</div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasAsks }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Looking for</div><div style="font-size:13px;line-height:1.55;">{{ detail.asks }}</div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasOffers }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Can help with</div><div style="font-size:13px;line-height:1.55;">{{ detail.offers }}</div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasContact }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Contact</div><div style="font-size:13px;"><a href="{{ detail.contactHref }}" style="color:#8C1515;font-weight:600;text-decoration:none;">{{ detail.contact }}</a></div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasTeammates }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#3b5bdb;font-weight:700;margin-bottom:6px;">Teammates</div>
+            <sc-for list="{{ detail.teammates }}" as="tm" hint-placeholder-count="1">
+              <div onClick="{{ tm.onClick }}" style="font-size:12.5px;padding:6px 8px;border:1px solid #f0e0c2;border-left:3px solid #c98a2e;border-radius:7px;margin-bottom:5px;cursor:pointer;background:#fffdf7;"><b>{{ tm.name }}</b> <span style="color:#6b6a65;">· {{ tm.shared }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ detail.hasNeighbors }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:6px;">Closest connections</div>
+            <sc-for list="{{ detail.neighbors }}" as="nb" hint-placeholder-count="3">
+              <div onClick="{{ nb.onClick }}" style="font-size:12.5px;padding:6px 8px;border:1px solid #ece8de;border-radius:7px;margin-bottom:5px;cursor:pointer;background:#fff;"><b>{{ nb.name }}</b> <span style="color:#6b6a65;">· {{ nb.shared }}</span></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:18px;">
+          <button onClick="{{ detail.reach }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;">Reach out</button>
+          <button onClick="{{ detail.toggleBookmark }}" style="{{ detail.bookmarkStyle }}">{{ detail.bookmarkLabel }}</button>
+          <a href="{{ detail.linkedin }}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;background:#0f766e;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(15,118,110,.35);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">✨ {{ flash }}</div>
+  </sc-if>
+
+  <sc-if value="{{ interview }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
+      <div style="background:#fffefb;border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.34);">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #ece8de;">
+          <div style="width:30px;height:30px;border-radius:50%;background:#0f766e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✦</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Newsreader,serif;font-size:16px;font-weight:600;line-height:1.15;">Find your hidden connections</div>
+            <div style="font-size:11px;color:#8a877f;">{{ interview.kicker }} · {{ interview.progress }}</div>
+          </div>
+          <button onClick="{{ interview.onClose }}" title="Close (answers so far are saved when you finish)" style="flex:none;background:none;border:none;font-size:22px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+        </div>
+
+        <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:16px 20px;">
+          <sc-if value="{{ interview.welcome }}" hint-placeholder-val="{{ false }}">
+            <div style="background:rgba(15,118,110,.08);border:1px solid rgba(15,118,110,.2);border-radius:11px;padding:11px 13px;margin-bottom:14px;font-size:12.5px;color:#0f5d52;line-height:1.45;">{{ interview.welcomeText }}</div>
+          </sc-if>
+          <sc-for list="{{ interview.transcript }}" as="t" hint-placeholder-count="0">
+            <div style="margin-bottom:12px;">
+              <div style="display:inline-block;background:#f1efe9;color:#3a3833;font-size:12.5px;line-height:1.45;padding:8px 12px;border-radius:12px 12px 12px 3px;max-width:88%;">{{ t.agent }}</div>
+              <div style="text-align:right;margin-top:5px;"><span style="display:inline-block;background:#0f766e;color:#fff;font-size:12.5px;line-height:1.45;padding:8px 12px;border-radius:12px 12px 3px 12px;max-width:88%;text-align:left;">{{ t.answer }}</span></div>
+            </div>
+          </sc-for>
+
+          <div style="display:inline-block;background:#f1efe9;color:#2e2d29;font-size:13.5px;line-height:1.5;padding:10px 13px;border-radius:12px 12px 12px 3px;max-width:92%;font-weight:500;">{{ interview.agent }}</div>
+
+          <div style="margin-top:14px;">
+            <sc-if value="{{ interview.isMulti }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                <sc-for list="{{ interview.approachOptions }}" as="o" hint-placeholder-count="6">
+                  <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ interview.isLong }}" hint-placeholder-val="{{ false }}">
+              <textarea value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" rows="4" style="width:100%;padding:12px 13px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;line-height:1.5;resize:vertical;outline:none;"></textarea>
+            </sc-if>
+            <sc-if value="{{ interview.isShort }}" hint-placeholder-val="{{ false }}">
+              <input type="text" value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" style="width:100%;padding:12px 13px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;outline:none;" />
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #ece8de;background:#fdfcf9;">
+          <button onClick="{{ interview.onBack }}" style="{{ interview.backStyle }}">← Back</button>
+          <button onClick="{{ interview.onSkip }}" style="font-size:12px;color:#9b978d;background:none;border:none;cursor:pointer;">Skip</button>
+          <button onClick="{{ interview.onNext }}" style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;">{{ interview.nextLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ reach }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
+      <div style="background:#fffefb;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);" class="atlas-scroll">
+        <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;">Reach out to {{ reach.name }}</div>
+        <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 4px;line-height:1.5;">{{ reach.sub }}</div>
+        <sc-if value="{{ reach.showSelfTip }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:#a15c00;background:#fdf6e7;border:1px solid #f0dfb2;border-radius:8px;padding:8px 10px;margin:8px 0;">Tip: switch to Student view and pick who you are — intros get personalized with your name and venture.</div>
+        </sc-if>
+        <label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin:14px 0 4px;">Subject</label>
+        <input type="text" ref="{{ reachSubjRef }}" defaultValue="{{ reach.subject }}" style="width:100%;padding:9px;border:1px solid #e3e0d8;border-radius:9px;font-size:13px;" />
+        <label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin:14px 0 4px;">Message</label>
+        <textarea ref="{{ reachBodyRef }}" rows="9" defaultValue="{{ reach.body }}" style="width:100%;padding:10px;border:1px solid #e3e0d8;border-radius:9px;font-size:13px;line-height:1.55;resize:vertical;"></textarea>
+        <sc-if value="{{ reach.hasEmail }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:#6b6a65;margin-top:10px;">Their email: <b style="color:#8C1515;">{{ reach.email }}</b></div>
+        </sc-if>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;">
+          <sc-if value="{{ reach.hasEmail }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ reach.sendEmail }}" style="font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:9px;padding:9px 15px;cursor:pointer;">{{ reach.emailLabel }}</button>
+          </sc-if>
+          <a href="{{ reach.primaryHref }}" target="_blank" rel="noopener" onClick="{{ reach.onPrimary }}" style="{{ reach.primaryStyle }}">{{ reach.primaryLabel }}</a>
+          <button onClick="{{ reach.copy }}" style="font-size:13px;font-weight:600;background:#fff;border:1px solid #e3e0d8;border-radius:9px;padding:9px 15px;cursor:pointer;">Copy message</button>
+          <span style="{{ reach.copiedStyle }}">Copied ✓</span>
+          <button onClick="{{ closeReach }}" style="margin-left:auto;font-size:13px;color:#9b978d;background:none;border:none;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ catalog }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCatalogBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
+      <div style="background:#fffefb;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);" class="atlas-scroll">
+        <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;display:flex;align-items:center;gap:9px;">My catalog <span style="{{ catModalBadgeStyle }}">{{ catCount }}</span></div>
+        <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 14px;line-height:1.5;">People you've saved on this device — your shortlist to follow up with.</div>
+        <sc-if value="{{ catEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:#9b978d;padding:16px 0;">No saved people yet. Click ★ on anyone to add them here.</div>
+        </sc-if>
+        <sc-for list="{{ catalogEntries }}" as="c" hint-placeholder-count="0">
+          <div style="display:flex;gap:10px;border:1px solid #ece8de;border-radius:10px;padding:11px;margin-bottom:8px;">
+            <div style="flex:1;font-size:12.5px;line-height:1.5;">
+              <b>{{ c.name }}</b> <span style="color:#6b6a65;">· {{ c.meta }}</span><br/>
+              <span style="color:#3a3833;">{{ c.line }}</span>
+              <div style="margin-top:7px;display:flex;gap:8px;align-items:center;">
+                <button onClick="{{ c.reach }}" style="font-size:11.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;">Reach out</button>
+                <a href="{{ c.linkedin }}" target="_blank" rel="noopener" style="font-size:11.5px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
+              </div>
+            </div>
+            <button onClick="{{ c.remove }}" style="background:none;border:none;color:#9b978d;font-size:17px;cursor:pointer;align-self:flex-start;">×</button>
+          </div>
+        </sc-for>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:14px;">
+          <button onClick="{{ copyCatalog }}" style="font-size:13px;font-weight:600;background:#fff;border:1px solid #e3e0d8;border-radius:9px;padding:9px 15px;cursor:pointer;">Copy list</button>
+          <span style="{{ catCopiedStyle }}">Copied ✓</span>
+          <button onClick="{{ closeCatalog }}" style="margin-left:auto;font-size:13px;color:#9b978d;background:none;border:none;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;defaultMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;general&quot;,&quot;student&quot;,&quot;alumni&quot;],&quot;default&quot;:&quot;general&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;nameDensity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sparse&quot;,&quot;balanced&quot;,&quot;dense&quot;],&quot;default&quot;:&quot;balanced&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      loading:true, people:[], sectors:[], nodes:[], clusters:[], world:{w:1600,h:1000},
+      hoverId:null, detailId:null, mode:(props.defaultMode||"general"), selfId:null, selfQuery:"",
+      searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], sortBy:"match", sectorMenuOpen:false,
+      reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
+      showConnections:true,
+      egoLayout:"map",
+      interview:null, flash:null, filtersOpen:false, stanfordNote:false,
+    };
+    this.stageRef = React.createRef();
+    this.worldRef = React.createRef();
+    this.reachSubjRef = React.createRef();
+    this.reachBodyRef = React.createRef();
+    this.view = { tx:0, ty:0, scale:1 };
+    this.PROGRAM_COLOR = { EcoX:"#8C1515", EcoSprint:"#007C92", EcoSIF:"#B26F16", EcoGlobal:"#4C6B4F", EcoRAMP:"#6E4C9E" };
+    // ---- sector color families -------------------------------------------------------------
+    // The 23 territories are grouped into 6 families; each family owns one oklch hue and every
+    // territory in it gets a shade of that hue (assigned in buildLayout by size). A node is
+    // colored by its primary (first) territory, so the map reads as a few broad color regions
+    // with subtle within-family variation instead of 23 indistinguishable rainbow dots.
+    this.FAMILIES = {
+      energy:   { label:"Energy & Grid",                hue:235, order:0 },
+      ai:       { label:"AI & Intelligence",            hue:285, order:1 },
+      industry: { label:"Industry, Materials & Carbon", hue:70,  order:2 },
+      land:     { label:"Land, Water & Bio",            hue:155, order:3 },
+      finance:  { label:"Finance, Markets & Policy",    hue:330, order:4 },
+      society:  { label:"Adaptation & Society",         hue:20,  order:5 },
+    };
+    // keys are normalized territory names (lowercase, single-spaced) — see this.norm()
+    this.SECTOR_FAMILY = {
+      "grid & electricity":"energy", "energy transition":"energy", "grid infrastructure":"energy", "clean transportation":"energy",
+      "ai climate solutions":"ai", "planetary intelligence":"ai", "efficient datacenters":"ai",
+      "industrial decarbonization":"industry", "sustainable materials":"industry", "carbon removal":"industry", "mining & critical minerals":"industry", "circular economy":"industry",
+      "food & ag":"land", "water":"land", "biological solutions":"land", "oceans":"land",
+      "climate finance":"finance", "emerging markets":"finance", "policy":"finance",
+      "climate adaptation":"society", "environmental justice":"society", "consumer climate":"society", "sustainability education":"society",
+    };
+    // ---- profile interview -----------------------------------------------------------------
+    // Streamlined "how you work" questions (modeled on the Learning Lab survey) that a student
+    // can optionally answer in the Student view. Their answers feed the matching engine so the
+    // map surfaces non-obvious connections: same approach or same challenge across sectors, and
+    // knowledge someone brings that another is seeking. Scripted here; a real LLM plugs in at
+    // askAgent() and the save plugs in at persistProfile() — see /api docs in the repo.
+    this.INTERVIEW_STEPS = [
+      { key:"challenge", type:"long",  agent:"What's a real challenge you're navigating right now — something live, not hypothetical?", ph:"e.g. getting utilities to trust a new sensor enough to fund a paid pilot" },
+      { key:"who",       type:"short", agent:"Who feels the consequences of that most?", ph:"e.g. rural clinics that keep losing power" },
+      { key:"approaches",type:"multi", agent:"How do you tend to work a problem like that? Pick any that fit — this is what finds people in other sectors who think like you." },
+      { key:"brings",    type:"long",  agent:"What do you know or bring that others in the room might not?", ph:"a hard-won lesson, a skill, access, a way of seeing it…" },
+      { key:"seeks",     type:"long",  agent:"What are you trying to figure out, or find help with?", ph:"a question you're stuck on, an intro you need…" },
+    ];
+    this.APPROACHES = ["Hardware / physical product","Software / AI / data","Scientific R&D","Policy & advocacy","Finance & capital","Community & co-design","Go-to-market / scaling","Behavior change","Measurement & standards","Infrastructure & operations","Education & storytelling","Partnerships & coalitions"];
+    // reason palette (why two people match) — deeper kinds get their own colors
+    this.REASON_COLOR = { team:"#3b5bdb", help:"#1c2f5e", give:"#3f6fa8", approach:"#0f766e", challenge:"#a15c00", sector:"#6f6c64", rel:"#9a968c", alum:"#8a6d3b" };
+  }
+
+  norm(t){ return (t||"").trim().toLowerCase().replace(/\s+/g," "); }
+  hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),16777619);} return (h>>>0)/4294967295; }
+  jaccard(a,b){ const A=new Set((a||[]).map(x=>this.norm(x))), B=new Set((b||[]).map(x=>this.norm(x))); if(!A.size||!B.size) return 0; let inter=0; A.forEach(x=>{if(B.has(x))inter++;}); return inter/(A.size+B.size-inter); }
+
+  componentDidMount(){
+    let tries=0;
+    const grab=()=>{
+      const F = (typeof FALLBACK_PEOPLE!=="undefined"&&FALLBACK_PEOPLE)||window.FALLBACK_PEOPLE;
+      const A = (typeof ALUMNI_PEOPLE!=="undefined"&&ALUMNI_PEOPLE)||window.ALUMNI_PEOPLE;
+      if(F&&A){ this.init(this.mergePeople(F.concat(A))); return; }
+      if(tries++<40) setTimeout(grab,50);
+      else this.setState({loading:false});
+    };
+    grab();
+    try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
+  }
+
+  // ---------- affinity graph: what actually connects two students ----------
+  // idf-weighted keyword vectors from project descriptions, for cosine similarity
+  descVectors(nodes){
+    const kw={}, df={};
+    nodes.forEach(n=>{ const set=new Set(this.keywords((n.person&&n.person.focus)||"")); kw[n.id]=set; set.forEach(w=>{ df[w]=(df[w]||0)+1; }); });
+    const N=nodes.length||1;
+    const idf=w=>Math.log((N+1)/((df[w]||0)+1));
+    const nrm={};
+    nodes.forEach(n=>{ let s=0; kw[n.id].forEach(w=>{ const v=idf(w); s+=v*v; }); nrm[n.id]=Math.sqrt(s)||1; });
+    return { kw, idf, nrm };
+  }
+  // cosine similarity of two project descriptions (0..1), so long write-ups don't dominate
+  descSim(a,b,D){ let s=0; const ka=D.kw[a], kb=D.kw[b]; const small=ka.size<=kb.size?ka:kb, big=ka.size<=kb.size?kb:ka; small.forEach(w=>{ if(big.has(w)){ const v=D.idf(w); s+=v*v; } }); return s/(D.nrm[a]*D.nrm[b]); }
+
+  // weighted edges combining: teammates, ask<->offer reciprocity, project-description similarity, shared sector
+  computeAffinity(nodes){
+    const D=this.descVectors(nodes);
+    const ask={}, off={}, tag={};
+    nodes.forEach(n=>{ ask[n.id]=new Set(this.keywords(n.person&&n.person.asks)); off[n.id]=new Set(this.keywords(n.person&&n.person.offers)); tag[n.id]=new Set((n.tags||[]).map(t=>this.norm(t))); });
+    const cand=[], seen=new Set();
+    // teammates (same venture) — the strongest tie
+    const byV={};
+    nodes.forEach(n=>{ if(n.ventureName && !/^solo/i.test(n.ventureName)) (byV[n.ventureName]=byV[n.ventureName]||[]).push(n); });
+    Object.values(byV).forEach(g=>{ if(g.length>1&&g.length<=6){ for(let i=0;i<g.length;i++)for(let j=i+1;j<g.length;j++){ const k=[g[i].id,g[j].id].sort().join("|"); if(!seen.has(k)){ seen.add(k); cand.push({aid:g[i].id,bid:g[j].id,w:6,kind:"team"}); } } } });
+    // every other pair: project-description similarity is what places people near each
+    // other on the map — that's the primary signal. Ask↔offer reciprocity still creates
+    // a tie (and still leads the Student-view ranking, which has its own scoring in
+    // egoData), but here it's a modest one: a single overlapping keyword shouldn't pull
+    // two unrelated ventures together harder than genuinely similar projects do.
+    // Each pair keeps whichever reason scores highest; the edge is labeled with it.
+    for(let i=0;i<nodes.length;i++){
+      const a=nodes[i].id;
+      for(let j=i+1;j<nodes.length;j++){
+        const b=nodes[j].id, k=[a,b].sort().join("|"); if(seen.has(k)) continue;
+        let rc=0; off[a].forEach(w=>{ if(ask[b].has(w)) rc++; }); off[b].forEach(w=>{ if(ask[a].has(w)) rc++; });
+        const ds=this.descSim(a,b,D);
+        let sh=0; tag[a].forEach(t=>{ if(tag[b].has(t)) sh++; });
+        // thresholds/coefficients tuned against the real spread of descSim on this data
+        // (median 0, p90 ~0.05, p99 ~0.12): 0.045 admits roughly the top tenth of pairs,
+        // and the steep multiplier lets genuinely similar ventures approach teammate pull.
+        const wDesc = ds>=0.045 ? 1.0+ds*14 : 0;
+        const wRecip = rc>0 ? 1.5+0.3*Math.min(rc,5)+ds*3 : 0;
+        const wSector = sh>0 ? 0.35+0.2*sh : 0;   // background only — 22 broad buckets, shared by many
+        let w=wDesc, kind="desc";
+        if(wRecip>w){ w=wRecip; kind="recip"; }
+        if(wSector>w){ w=wSector; kind="sector"; }
+        if(w>0) cand.push({aid:a,bid:b,w,kind,ds,rc,sh});
+      }
+    }
+    // keep each student's strongest ties only — legible graph, no hairball
+    const byNode={}; nodes.forEach(n=>byNode[n.id]=[]);
+    cand.forEach(e=>{ byNode[e.aid].push(e); byNode[e.bid].push(e); });
+    const K=6, keep=new Set();
+    nodes.forEach(n=>{ byNode[n.id].sort((x,y)=>y.w-x.w).slice(0,K).forEach(e=>keep.add(e)); });
+    const edges=[...keep], adj={}; nodes.forEach(n=>adj[n.id]=[]);
+    edges.forEach(e=>{ adj[e.aid].push({id:e.bid,w:e.w,kind:e.kind}); adj[e.bid].push({id:e.aid,w:e.w,kind:e.kind}); });
+    nodes.forEach(n=>adj[n.id].sort((x,y)=>y.w-x.w));
+
+    // Teammates share connections in the affinity graph itself, BEFORE the force runs, so a
+    // shared neighbour is pulled toward the whole team's centre — tighter clusters, shorter
+    // lines — rather than only being drawn in after positions are fixed. (Measured ~14%
+    // shorter connections than the drawn-only version.)
+    {
+      const byV2={}; nodes.forEach(n=>{ if(n.ventureName && !/^solo/i.test(n.ventureName)) (byV2[n.ventureName]=byV2[n.ventureName]||[]).push(n.id); });
+      const has=(a,b)=>adj[a].some(e=>e.id===b);
+      Object.values(byV2).forEach(g=>{
+        if(g.length<2||g.length>6) return;
+        const set=new Set(g), ext={};
+        // each member's strongest outside ties (top 3 of their pruned adjacency)
+        g.forEach(id=>{ adj[id].filter(e=>!set.has(e.id)).slice(0,3).forEach(e=>{ if(!ext[e.id]||e.w>ext[e.id].w) ext[e.id]={w:e.w,kind:e.kind}; }); });
+        g.forEach(id=>{ Object.keys(ext).forEach(cid=>{ if(set.has(cid)||has(id,cid)) return;
+          const w=ext[cid].w, kind=ext[cid].kind;
+          adj[id].push({id:cid,w,kind}); adj[cid].push({id,w,kind}); edges.push({aid:id,bid:cid,w,kind});
+        }); });
+      });
+      nodes.forEach(n=>adj[n.id].sort((x,y)=>y.w-x.w));
+    }
+    return { edges, adj };
+  }
+
+  // Fruchterman-Reingold force layout so strongly-connected students pull together into clusters
+  runForce(nodes, edges, W){
+    const n=nodes.length; if(!n) return;
+    const k=0.85*Math.sqrt((W*W)/n), cx=W/2;
+    const dxs=new Float64Array(n), dys=new Float64Array(n), idx={};
+    nodes.forEach((nd,i)=>idx[nd.id]=i);
+    let temp=W*0.11; const iters=260, cool=temp/(iters+1);
+    for(let it=0; it<iters; it++){
+      dxs.fill(0); dys.fill(0);
+      for(let i=0;i<n;i++){ const a=nodes[i];
+        for(let j=i+1;j<n;j++){ const b=nodes[j];
+          let dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy)||0.01;
+          const f=(k*k)/d, ux=dx/d, uy=dy/d;
+          dxs[i]+=ux*f; dys[i]+=uy*f; dxs[j]-=ux*f; dys[j]-=uy*f;
+        }
+      }
+      edges.forEach(e=>{ const ai=idx[e.aid], bi=idx[e.bid], a=nodes[ai], b=nodes[bi];
+        let dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy)||0.01;
+        const wgt=Math.min(e.w,6)/2.2, f=(d*d)/k*wgt, ux=dx/d, uy=dy/d;
+        dxs[ai]-=ux*f; dys[ai]-=uy*f; dxs[bi]+=ux*f; dys[bi]+=uy*f;
+      });
+      for(let i=0;i<n;i++){ const nd=nodes[i]; dxs[i]+=(cx-nd.x)*0.006; dys[i]+=(cx-nd.y)*0.006;
+        let dd=Math.sqrt(dxs[i]*dxs[i]+dys[i]*dys[i])||0.01, lim=Math.min(dd,temp);
+        nd.x+=dxs[i]/dd*lim; nd.y+=dys[i]/dd*lim;
+        // keep everyone inside the frame (the constraint from the original Fruchterman-Reingold).
+        // Without it, a node with no strong ties feels only repulsion and walks outward at full
+        // speed every iteration, so a few strays stretched the map ~25x wider than the cluster
+        // everyone actually sits in — and fitting those strays shrank the real map to a speck.
+        nd.x=Math.min(W, Math.max(0, nd.x)); nd.y=Math.min(W, Math.max(0, nd.y));
+      }
+      temp-=cool;
+    }
+  }
+
+  // Group the settled map into the clumps a viewer actually sees, and name each one.
+  // Clustering is spatial (k-means on final positions) rather than graph-based on purpose:
+  // the label has to describe the clump on screen, and proximity is what the map communicates.
+  buildClusters(nodes){
+    const n=nodes.length; if(n<14) return [];
+    const k=Math.max(4, Math.min(9, Math.round(Math.sqrt(n/4))));
+    const dist=(a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
+    // deterministic seeding (start at the most central node, then farthest-point) so the
+    // same data always yields the same clusters — labels must not jump between page loads
+    let mx=0,my=0; nodes.forEach(nd=>{mx+=nd.x;my+=nd.y;}); mx/=n; my/=n;
+    let seed=nodes[0]; nodes.forEach(nd=>{ if(dist(nd,{x:mx,y:my})<dist(seed,{x:mx,y:my})) seed=nd; });
+    const cents=[{x:seed.x,y:seed.y}];
+    while(cents.length<k){
+      let best=null, bd=-1;
+      nodes.forEach(nd=>{ const d=Math.min(...cents.map(c=>dist(nd,c))); if(d>bd){ bd=d; best=nd; } });
+      if(!best) break; cents.push({x:best.x,y:best.y});
+    }
+    let assign=new Array(n).fill(0);
+    for(let it=0; it<24; it++){
+      let moved=false;
+      nodes.forEach((nd,i)=>{ let bi=0,bd=Infinity;
+        cents.forEach((c,ci)=>{ const d=dist(nd,c); if(d<bd){bd=d;bi=ci;} });
+        if(assign[i]!==bi){ assign[i]=bi; moved=true; } });
+      cents.forEach((c,ci)=>{ let sx=0,sy=0,cn=0;
+        nodes.forEach((nd,i)=>{ if(assign[i]===ci){ sx+=nd.x; sy+=nd.y; cn++; } });
+        if(cn){ c.x=sx/cn; c.y=sy/cn; } });
+      if(!moved) break;
+    }
+    // how common each sector is overall, so a cluster can be named by what it has an
+    // unusual concentration of rather than by whatever tag is merely popular everywhere
+    const globalCount={}, display={};
+    nodes.forEach(nd=>{ new Set((nd.tags||[]).map(t=>this.norm(t))).forEach(t=>{ globalCount[t]=(globalCount[t]||0)+1; });
+      (nd.tags||[]).forEach(t=>{ const key=this.norm(t); if(!display[key]) display[key]=t; }); });
+    const groups=cents.map((c,ci)=>{
+      const members=nodes.filter((nd,i)=>assign[i]===ci);
+      return { cx:c.x, cy:c.y, members };
+    }).filter(g=>g.members.length>=5).sort((a,b)=>b.members.length-a.members.length);
+
+    // name each spatial cluster by the sector FAMILY most of its members belong to (by their
+    // primary tag — the same tag that colors the dot), so the labels match the legend and the
+    // colors underneath. Each family names at most one region (its largest), so we get a handful
+    // of clean, well-separated region labels rather than granular per-tag ones.
+    const FAM=this.SECTOR_FAMILY, FD=this.FAMILIES;
+    const famOf=nd=>{ const t=(nd.tags&&nd.tags[0])?this.norm(nd.tags[0]):null; return (t&&FAM[t])||null; };
+    const usedFam=new Set(), out=[];
+    groups.forEach(g=>{
+      const cnt={}; g.members.forEach(nd=>{ const f=famOf(nd); if(f) cnt[f]=(cnt[f]||0)+1; });
+      let bestFid=null, bestN=0;
+      Object.keys(cnt).forEach(f=>{ if(usedFam.has(f)) return; if(cnt[f]>bestN){ bestN=cnt[f]; bestFid=f; } });
+      if(!bestFid || bestN<3) return;
+      usedFam.add(bestFid);
+      // sit the label above the clump so it doesn't cover the dots it describes
+      let top=Infinity; g.members.forEach(nd=>{ if(nd.y<top) top=nd.y; });
+      out.push({ key:bestFid, label:(FD[bestFid]||{}).label||bestFid, count:g.members.length,
+                 cx:g.cx, cy:Math.max(top-26, g.cy-160) });
+    });
+    return out;   // overlap is resolved at render time, where the zoom level is known
+  }
+
+  // merge cohort-participation rows into one node per person (name is the only reliable key — emails are blank in the source)
+  mergePeople(list){
+    const norm=s=>this.norm(s);
+    const groups=new Map();
+    list.forEach(p=>{ const k=norm(p.name); if(!k) return; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(p); });
+    const yr=r=>{ const m=(""+(r.year||"")).match(/\d{4}/); return m?+m[0]:0; };
+    const merged=[]; let dupRecords=0, dupPeople=0;
+    groups.forEach(rows=>{
+      const sorted=[...rows].sort((a,b)=>yr(b)-yr(a)); // latest cohort first
+      const primary=sorted[0];
+      const cohorts=sorted.map(r=>({ program:(r.programs||[]).join("+")||"—", year:r.year||null, venture:(r.venture||"").trim(), tags:r.tags||[] }));
+      const progUnion=[]; sorted.forEach(r=>(r.programs||[]).forEach(pr=>{ if(pr&&!progUnion.includes(pr)) progUnion.push(pr); }));
+      const tagUnion=[]; sorted.forEach(r=>(r.tags||[]).forEach(t=>{ if(t&&!tagUnion.some(x=>norm(x)===norm(t))) tagUnion.push(t); }));
+      const firstNon=f=>{ for(const r of sorted){ if(r[f]&&(""+r[f]).trim()) return r[f]; } return primary[f]||""; };
+      if(rows.length>1){ dupRecords+=rows.length-1; dupPeople++; }
+      merged.push(Object.assign({}, primary, {
+        programs:progUnion, tags:tagUnion,
+        status: rows.some(r=>r.status==="current")?"current":"alum",
+        year:primary.year, venture:primary.venture,
+        focus:firstNon("focus"), linkedin:firstNon("linkedin"), email:firstNon("email"),
+        asks:firstNon("asks"), offers:firstNon("offers"),
+        cohorts, cohortLabel:cohorts.map(c=>`${c.program}${c.year?" "+c.year:""}`).join(", ")
+      }));
+    });
+    if(dupRecords) try{ console.info(`[Atlas] merged ${dupRecords} duplicate cohort record(s) across ${dupPeople} people → ${merged.length} unique nodes`); }catch(e){}
+    return merged;
+  }
+
+  init(people){
+    const layout = this.buildLayout(people);
+    this.byId = {}; layout.nodes.forEach(n=>this.byId[n.id]=n);
+    this.applySavedProfiles(layout.nodes);   // re-hydrate any answers this device saved earlier
+    this.setState({ loading:false, people, sectors:layout.sectors, nodes:layout.nodes, clusters:layout.clusters||[], world:layout.world }, ()=>{
+      let attempts=0;
+      const tryFit=()=>{
+        const st=this.stageRef.current;
+        if(st && st.getBoundingClientRect().width>1){ this.fitView(); return; }
+        if(attempts++<60) requestAnimationFrame(tryFit);
+      };
+      tryFit();
+    });
+  }
+
+  // ---------- profile enrichment (interview answers) ----------
+  // identity key for saved answers: LinkedIn if we have it, else the normalized name
+  profileKey(node){ const li=(node.person&&node.person.linkedin||"").trim().toLowerCase(); return li || this.norm(node.name); }
+  loadProfiles(){ try{ return JSON.parse(localStorage.getItem("ecoatlas_profiles_v1")||"{}")||{}; }catch(e){ return {}; } }
+  // fold a saved answer set onto a person object so the matching engine can read it
+  mergeProfile(person, name, data){
+    if(!data) return;
+    if(data.challenge) person.challenges=[{text:data.challenge, whoBears:data.who||""}];
+    if(data.approaches) person.approaches=data.approaches;
+    if(data.brings!=null) person.brings=data.brings;
+    if(data.seeks!=null) person.seeks=data.seeks;
+    person.enriched=true;
+  }
+  applySavedProfiles(nodes){
+    const store=this.loadProfiles();
+    nodes.forEach(n=>{ const d=store[this.profileKey(n)]; if(d) this.mergeProfile(n.person, n.name, d); });
+  }
+  // ---- the save seam: today writes to this device; a backend swaps in here (see /api docs) ----
+  async persistProfile(node, data){
+    try{ const store=this.loadProfiles(); store[this.profileKey(node)]=data; localStorage.setItem("ecoatlas_profiles_v1", JSON.stringify(store)); }catch(e){}
+    // FUTURE: await fetch("/api/save",{method:"POST",body:JSON.stringify({key:this.profileKey(node),...data})})
+  }
+  saveProfile(id, data){
+    const n=this.byId[id]; if(!n) return;
+    this.mergeProfile(n.person, n.name, data);
+    this._chalDf=null;   // challenge-word rarity table depends on profile text
+    this.persistProfile(n, data);
+  }
+
+  // ---------- interview flow ----------
+  openInterview(welcome){
+    const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
+    const p=self.person||{};
+    const answers={
+      challenge:(p.challenges&&p.challenges[0]&&p.challenges[0].text)||"",
+      who:(p.challenges&&p.challenges[0]&&p.challenges[0].whoBears)||"",
+      approaches:(p.approaches||[]).slice(),
+      brings:p.brings||"", seeks:p.seeks||"",
+    };
+    this.setState({ interview:{ idx:0, answers, welcome:!!welcome }, detailId:null });
+  }
+  // how many of the 5 interview topics a person has filled in (drives the panel nudge)
+  profileFilled(person){ const p=person||{}; const c=p.challenges&&p.challenges[0]||{};
+    return [c.text, c.whoBears, (p.approaches||[]).length?"y":"", p.brings, p.seeks].filter(x=>x&&(""+x).trim()).length; }
+  closeInterview(){ this.setState({interview:null}); }
+  // text answers are controlled — committed to state on each keystroke, so step changes never leak text
+  interviewType(val){
+    this.setState(st=>{ if(!st.interview) return null; const step=this.INTERVIEW_STEPS[st.interview.idx];
+      return { interview:{...st.interview, answers:{...st.interview.answers, [step.key]:val}} }; });
+  }
+  interviewNext(){ const iv=this.state.interview; if(!iv) return;
+    if(iv.idx < this.INTERVIEW_STEPS.length-1) this.setState({interview:{...iv, idx:iv.idx+1}}); else this.finishInterview(iv); }
+  interviewBack(){ const iv=this.state.interview; if(!iv||iv.idx<=0) return; this.setState({interview:{...iv, idx:iv.idx-1}}); }
+  interviewSkip(){ const iv=this.state.interview; if(!iv) return;
+    if(iv.idx < this.INTERVIEW_STEPS.length-1) this.setState({interview:{...iv, idx:iv.idx+1}}); else this.finishInterview(iv); }
+  toggleApproach(label){
+    this.setState(st=>{ if(!st.interview) return null; const set=new Set(st.interview.answers.approaches||[]);
+      set.has(label)?set.delete(label):set.add(label);
+      return { interview:{...st.interview, answers:{...st.interview.answers, approaches:[...set]}} }; });
+  }
+  finishInterview(iv){
+    const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self){ this.setState({interview:null}); return; }
+    const before=new Set(this.egoData(self).map(c=>c.o.id));
+    this.saveProfile(self.id, iv.answers);
+    const after=this.egoData(self);
+    const fresh=after.filter(c=>!before.has(c.o.id) || c.rKind==="approach" || c.rKind==="challenge");
+    const n=fresh.length;
+    const flash = n>0
+      ? `Profile updated — ${n} new ${n===1?"person":"people"} surfaced from how you work and what you're navigating.`
+      : `Profile updated. As more people add their answers, deeper matches will appear here.`;
+    this.setState({ interview:null, flash });
+    clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
+  }
+
+  buildLayout(people){
+    const norm=t=>this.norm(t), GA=Math.PI*(3-Math.sqrt(5));
+    // sectors are kept only for the pills + optional on-click territory reveal — they no longer drive the layout
+    const secMap=new Map();
+    people.forEach(p=>(p.tags||[]).forEach(t=>{ if(!t)return; const n=norm(t); if(!secMap.has(n)) secMap.set(n,{key:n,label:t,people:[]}); secMap.get(n).people.push(p); }));
+    const sectors=[...secMap.values()];
+    // color each territory by its family's hue, shaded by size (biggest = darkest → lightest).
+    // Similar territories therefore land on similar colors; unmapped ones fall back to neutral grey.
+    const FAMDEF=this.FAMILIES, FAM=this.SECTOR_FAMILY, byFam={};
+    sectors.forEach(s=>{ const fid=FAM[s.key]; s.family=fid||null;
+      if(fid){ (byFam[fid]=byFam[fid]||[]).push(s); }
+      else { s.hue=40; s.nodeL=0.62; s.nodeC=0.012; s.familyLabel="Other"; s.color="oklch(0.62 0.012 40)"; s.familyColor="oklch(0.62 0.012 40)"; } });
+    Object.keys(byFam).forEach(fid=>{
+      const fam=FAMDEF[fid], list=byFam[fid].sort((a,b)=>b.people.length-a.people.length), nL=list.length;
+      list.forEach((s,i)=>{
+        const L = nL<=1 ? 0.60 : (0.53 + 0.18*(i/(nL-1)));   // spread lightness across the family
+        s.hue=fam.hue; s.nodeL=L; s.nodeC=0.135; s.familyLabel=fam.label;
+        s.color=`oklch(${L.toFixed(3)} 0.135 ${fam.hue})`;
+        s.familyColor=`oklch(0.60 0.14 ${fam.hue})`;
+      });
+    });
+
+    // one node per person; teammates share a venture name
+    const ventMap=new Map();
+    people.forEach(p=>{ const key=(p.venture&&p.venture.trim())?norm(p.venture):("solo_"+p.id); if(!ventMap.has(key)) ventMap.set(key,{name:(p.venture&&p.venture.trim())||p.name}); });
+    const nodes=people.map(p=>{ const vk=(p.venture&&p.venture.trim())?norm(p.venture):("solo_"+p.id);
+      return { id:p.id, person:p, x:0, y:0, ventureName:ventMap.get(vk).name, program:(p.programs||[])[0], status:p.status, tags:p.tags||[], name:p.name }; });
+
+    // seed on a phyllotaxis spiral, then let the affinity forces arrange them
+    const W=Math.max(1500, 168*Math.sqrt(nodes.length));
+    nodes.forEach((nd,i)=>{ const a=i*GA, r=W*0.44*Math.sqrt((i+0.5)/nodes.length); nd.x=W/2+Math.cos(a)*r; nd.y=W/2+Math.sin(a)*r; });
+
+    const aff=this.computeAffinity(nodes);
+    this.affAdj=aff.adj;
+    this.runForce(nodes, aff.edges, W);
+
+    // The layout has no axes, so its orientation is arbitrary — it tends to settle as a
+    // tall narrow cloud, which then has to shrink to fit a wide screen. Rotate the finished
+    // cloud so its longest axis lies horizontally (principal axis of the point spread).
+    // This is a rigid rotation: every distance between people is preserved exactly, but the
+    // map fills the viewport instead of a narrow vertical strip.
+    if(nodes.length>2){
+      let mx=0,my=0; nodes.forEach(n=>{ mx+=n.x; my+=n.y; }); mx/=nodes.length; my/=nodes.length;
+      let sxx=0,syy=0,sxy=0;
+      nodes.forEach(n=>{ const dx=n.x-mx, dy=n.y-my; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; });
+      const theta=0.5*Math.atan2(2*sxy, sxx-syy);   // direction of greatest spread
+      const cos=Math.cos(theta), sin=Math.sin(theta);
+      nodes.forEach(n=>{ const dx=n.x-mx, dy=n.y-my;
+        n.x=mx+dx*cos+dy*sin;      // rotate by -theta
+        n.y=my-dx*sin+dy*cos; });
+    }
+
+    // normalize to positive coords
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    nodes.forEach(n=>{ minX=Math.min(minX,n.x);maxX=Math.max(maxX,n.x);minY=Math.min(minY,n.y);maxY=Math.max(maxY,n.y); });
+    const pad=150, offX=-minX+pad, offY=-minY+pad;
+    nodes.forEach(n=>{ n.x+=offX; n.y+=offY; });
+    const byId={}; nodes.forEach(n=>byId[n.id]=n);
+
+    // sector centroid + radius from where its members actually landed (for the on-click territory reveal)
+    secMap.forEach(s=>{ let x=0,y=0,c=0; s.people.forEach(p=>{ const nd=byId[p.id]; if(nd){ x+=nd.x; y+=nd.y; c++; } }); c=c||1; s.cx=x/c; s.cy=y/c;
+      let rr=80; s.people.forEach(p=>{ const nd=byId[p.id]; if(nd) rr=Math.max(rr, Math.hypot(nd.x-s.cx, nd.y-s.cy)); }); s.discR=rr+40; });
+
+    // drawn backbone = each student's two strongest ties (materialized with coords + kind)
+    const bbSeen=new Set(), restLinks=[];
+    nodes.forEach(n=>{ (aff.adj[n.id]||[]).slice(0,2).forEach(e=>{ const k=[n.id,e.id].sort().join("|"); if(bbSeen.has(k))return; bbSeen.add(k); const o=byId[e.id]; if(!o)return; restLinks.push({ aid:n.id, bid:e.id, x1:n.x,y1:n.y,x2:o.x,y2:o.y, kind:e.kind, w:e.w }); }); });
+
+    // Teammates share their outside connections: if one member draws a line to an outside
+    // node, every teammate draws it too, so a project's people read as one connected unit
+    // rather than scattered dots that each happen to link elsewhere.
+    const teamMates={};
+    { const byVn={}; nodes.forEach(n=>{ if(n.ventureName && !/^solo/i.test(n.ventureName)) (byVn[n.ventureName]=byVn[n.ventureName]||[]).push(n.id); });
+      Object.values(byVn).forEach(g=>{ if(g.length>1&&g.length<=6) g.forEach(id=>{ teamMates[id]=g.filter(x=>x!==id); }); }); }
+    const isMate=(a,b)=>teamMates[a]&&teamMates[a].includes(b);
+    const extra=[];
+    restLinks.forEach(l=>{
+      [[l.aid,l.bid],[l.bid,l.aid]].forEach(([m,other])=>{
+        const mates=teamMates[m]; if(!mates||isMate(m,other)) return;   // only propagate ties to outside nodes
+        mates.forEach(mate=>{
+          if(isMate(mate,other)) return;
+          const k=[mate,other].sort().join("|"); if(bbSeen.has(k)) return; bbSeen.add(k);
+          const om=byId[mate], oo=byId[other]; if(!om||!oo) return;
+          extra.push({ aid:mate, bid:other, x1:om.x,y1:om.y,x2:oo.x,y2:oo.y, kind:l.kind, w:l.w });
+        });
+      });
+    });
+    restLinks.push(...extra);
+    this.restLinks=restLinks;
+
+    // how many drawn connections each person has — sizes their dot, so the people who
+    // hold the network together read as hubs at a glance (counted on the drawn backbone,
+    // so the size matches the lines actually visible rather than a hidden score)
+    const deg={}; restLinks.forEach(l=>{ deg[l.aid]=(deg[l.aid]||0)+1; deg[l.bid]=(deg[l.bid]||0)+1; });
+    nodes.forEach(n=>{ n.degree=deg[n.id]||0; });
+    this.maxDeg = nodes.reduce((m,n)=>Math.max(m,n.degree),0);   // reference for node-size scaling
+
+    return { sectors, nodes, clusters:this.buildClusters(nodes), world:{ w:(maxX-minX)+pad*2, h:(maxY-minY)+pad*2 } };
+  }
+
+  // ---------- view transform ----------
+  applyView(animate){ const w=this.worldRef.current; if(!w) return; w.style.transition = animate ? "transform .62s cubic-bezier(.4,0,.2,1)" : "none"; w.style.transform=`translate(${this.view.tx}px,${this.view.ty}px) scale(${this.view.scale})`; }
+  fitView(animate){ const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect(); const {w,h}=this.state.world; const s=Math.min(r.width/w, r.height/h)*0.94; this.view.scale=s; this.view.tx=(r.width-w*s)/2; this.view.ty=(r.height-h*s)/2; this.applyView(animate); this.setState({zoom:s}); }
+  zoomAt(cx,cy,factor){ const v=this.view; const ns=Math.max(0.12,Math.min(3.4,v.scale*factor)); const k=ns/v.scale; v.tx=cx-(cx-v.tx)*k; v.ty=cy-(cy-v.ty)*k; v.scale=ns; this.applyView(); if(Math.abs(ns-(this.state.zoom||1))>0.02) this.setState({zoom:ns}); }
+  onWheel(e){ e.preventDefault(); const st=this.stageRef.current.getBoundingClientRect(); this.zoomAt(e.clientX-st.left, e.clientY-st.top, e.deltaY<0?1.12:1/1.12); }
+  onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); if(!moved && this.state.mode==="general" && this.state.detailId) this.setState({detailId:null, hoverId:null}); }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
+
+  selectSelf(id){
+    this.setState({ selfId:id, selfQuery:"", stanfordNote:false, detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
+      this.frameNetwork(id, true);
+      // first sign-in: lead straight into the profile interview (once per person on this device)
+      const n=this.byId[id]; if(!n||n.person.enriched) return;
+      let seen={}; try{ seen=JSON.parse(localStorage.getItem("ecoatlas_onboarded_v1")||"{}")||{}; }catch(e){}
+      const k=this.profileKey(n);
+      if(!seen[k]){ seen[k]=1; try{ localStorage.setItem("ecoatlas_onboarded_v1", JSON.stringify(seen)); }catch(e){}
+        setTimeout(()=>{ if(this.state.selfId===id && !this.state.interview) this.openInterview(true); }, 650); }
+    });
+  }
+
+  zoomToNode(id){
+    const n=this.byId[id], st=this.stageRef.current; if(!n||!st) return;
+    const r=st.getBoundingClientRect(), sc=1.5;
+    this.view.scale=sc; this.view.tx=r.width/2 - n.x*sc; this.view.ty=r.height/2 - n.y*sc;
+    this.applyView(); this.setState({ zoom:sc, hoverId:id });
+  }
+
+  openDetailCentered(id){
+    const n=this.byId[id], st=this.stageRef.current;
+    if(n&&st){ const r=st.getBoundingClientRect(), sc=Math.max(this.view.scale,1.1);
+      this.view.scale=sc; this.view.tx=r.width/2 - n.x*sc; this.view.ty=r.height/2 - n.y*sc; this.applyView(); }
+    this.setState({ detailId:id, hoverId:id, zoom:this.view.scale });
+  }
+
+  // keywords describing what a person is navigating (their challenges + project focus).
+  // Generic startup verbs/nouns are stripped — two founders both "delivering" or "scaling"
+  // isn't a shared challenge; two founders both stuck on "fermentation" or "utilities" is.
+  challengeKw(person){
+    if(!this._chSW) this._chSW=new Set(["starting","started","starts","delivers","deliver","delivering","getting","making","makes","made","using","uses","used","building","builds","built","creating","creates","create","developing","develops","developed","working","works","worked","providing","provides","provide","enabling","enables","enable","helping","helps","helped","improving","improves","improve","allowing","allows","allow","bringing","brings","designed","designs","design","focused","focuses","aims","aimed","seeks","seeking","platform","platforms","technology","technologies","solution","solutions","company","companies","business","businesses","startup","startups","venture","ventures","product","products","project","projects","market","markets","industry","industries","system","systems","process","processes","approach","approaches","world","people","team","teams","launch","launching","launched","currently","challenge","challenges","challenging","problem","problems","opportunity","opportunities","impact","service","services","customer","customers","early","stage","model","models","develop","growth","growing"]);
+    const ch=(person.challenges||[]).map(c=>c.text).join(" ");
+    return this.keywords(ch+" "+(person.focus||"")).filter(w=>!this._chSW.has(w));
+  }
+  // how many people use each challenge/focus word — common words ("starting", "supply") are
+  // filler, rare ones ("fermentation") mark a genuinely shared wall. Cached; saveProfile clears it.
+  chalDf(){
+    if(this._chalDf) return this._chalDf;
+    const df={}; const nodes=this.state.nodes;
+    nodes.forEach(nd=>{ new Set(this.challengeKw(nd.person)).forEach(w=>{ df[w]=(df[w]||0)+1; }); });
+    this._chalDf={ df, n:nodes.length||1 };
+    return this._chalDf;
+  }
+  egoData(self){
+    const RC=this.REASON_COLOR;
+    const myTags=(self.tags||[]).map(t=>this.norm(t));
+    const myAsk=this.keywords(self.person.asks), myOff=this.keywords(self.person.offers);
+    // ---- signals from the profile interview (empty until the student fills it out) ----
+    const myApp=new Set((self.person.approaches||[]).map(a=>this.norm(a)));
+    const myChal=this.challengeKw(self.person);
+    const myBring=this.keywords(self.person.brings), mySeek=this.keywords(self.person.seeks);
+    return this.state.nodes.filter(o=>o.id!==self.id).map(o=>{
+      const co = o.ventureName===self.ventureName && self.ventureName && !/^solo/i.test(o.ventureName);
+      const shared = (o.tags||[]).filter(t=>myTags.includes(this.norm(t)));
+      const helpKw = o.person.offers?this.keywords(o.person.offers).filter(w=>myAsk.includes(w)):[];
+      const giveKw = o.person.asks?this.keywords(o.person.asks).filter(w=>myOff.includes(w)):[];
+      const sim=this.jaccard(self.tags,o.tags);
+      // deeper signals
+      const appShared = (o.person.approaches||[]).filter(a=>myApp.has(this.norm(a)));   // same way of working
+      // same wall: only distinctive words count — a word shared by less than ~6% of the room
+      // ("fermentation", "utilities") marks a real shared challenge; common filler ("starting",
+      // "supply") never does. Rarest word first, so the displayed reason is the sharpest one.
+      let chalShared=[];
+      if(myChal.length){
+        const {df,n}=this.chalDf(), cap=Math.max(3, n*0.04);
+        chalShared = this.challengeKw(o.person).filter(w=>myChal.includes(w) && (df[w]||0)<=cap);
+        // one rare word in common is coincidence; two or more is a shared wall. Longest word
+        // shown, since the longest of the rare overlaps tends to be the most specific.
+        chalShared = chalShared.length>=2 ? chalShared.sort((a,b)=>b.length-a.length) : [];
+      }
+      const bringHelp = (mySeek.length && o.person.brings) ? this.keywords(o.person.brings).filter(w=>mySeek.includes(w)).sort((a,b)=>b.length-a.length) : []; // they know what you seek
+      const giveHelp  = (myBring.length && o.person.seeks) ? this.keywords(o.person.seeks).filter(w=>myBring.includes(w)).sort((a,b)=>b.length-a.length) : [];  // you know what they seek
+      const crossSector = shared.length===0;   // a match with no shared sector is the surprising kind
+      const surprise = crossSector && (appShared.length||chalShared.length) ? 1 : 0;
+      const score=(co?1000:0)+shared.length*10+helpKw.length*6+giveKw.length*4+sim*2
+        + appShared.length*8 + chalShared.length*5 + bringHelp.length*7 + giveHelp.length*5 + surprise*6;
+      let reason,rColor,rKind;
+      // priority: teammates, then the deeper cross-sector links (the point of the interview),
+      // then ask/offer & knowledge exchange, then shared sector, then loose relation.
+      if(co){ reason="Teammate · "+o.ventureName; rColor=RC.team; rKind="team"; }
+      else if(appShared.length && crossSector){ reason="You both work through "+appShared[0].toLowerCase(); rColor=RC.approach; rKind="approach"; }
+      else if(chalShared.length && crossSector){ reason="Both wrestling with "+chalShared[0]; rColor=RC.challenge; rKind="challenge"; }
+      else if(helpKw.length){ reason="Can help you with "+helpKw[0]; rColor=RC.help; rKind="help"; }
+      else if(bringHelp.length){ reason="Knows "+bringHelp[0]+", which you're after"; rColor=RC.help; rKind="help"; }
+      else if(appShared.length){ reason="Similar approach: "+appShared[0].toLowerCase(); rColor=RC.approach; rKind="approach"; }
+      else if(chalShared.length){ reason="Shared challenge: "+chalShared[0]; rColor=RC.challenge; rKind="challenge"; }
+      else if(shared.length){ reason="Both working in "+shared[0]; rColor=RC.sector; rKind="sector"; }
+      else if(giveKw.length){ reason="You can help with "+giveKw[0]; rColor=RC.give; rKind="give"; }
+      else if(giveHelp.length){ reason="You know "+giveHelp[0]+", which they're after"; rColor=RC.give; rKind="give"; }
+      else { reason="Related work"; rColor=RC.rel; rKind="rel"; }
+      return { o, score, reason, rColor, rKind, hk:helpKw, gk:giveKw, shared, surprise };
+    }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
+  }
+  frameNetwork(id, animate){
+    const self=this.byId[id]; if(!self) return;
+    const ids=new Set([id]);
+    this.egoData(self).forEach(c=>ids.add(c.o.id));
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    ids.forEach(i=>{ const n=this.byId[i]; if(!n)return; minX=Math.min(minX,n.x);maxX=Math.max(maxX,n.x);minY=Math.min(minY,n.y);maxY=Math.max(maxY,n.y); });
+    const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect();
+    const pad=150, w=(maxX-minX)+pad*2, h=(maxY-minY)+pad*2;
+    const sc=Math.max(0.32, Math.min(r.width/w, r.height/h, 1.15));
+    this.view.scale=sc; this.view.tx=r.width/2-((minX+maxX)/2)*sc; this.view.ty=r.height/2-((minY+maxY)/2)*sc;
+    this.applyView(animate); this.setState({zoom:sc});
+  }
+  // frame the view around an arbitrary set of students (used when a sector is selected)
+  frameNodes(ids, animate){
+    const list=[...ids].map(i=>this.byId[i]).filter(Boolean);
+    const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect();
+    if(!list.length){ this.fitView(animate); return; }
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    list.forEach(n=>{ minX=Math.min(minX,n.x);maxX=Math.max(maxX,n.x);minY=Math.min(minY,n.y);maxY=Math.max(maxY,n.y); });
+    const pad=110, w=(maxX-minX)+pad*2, h=(maxY-minY)+pad*2;
+    const sc=Math.max(0.3, Math.min(r.width/w, r.height/h, 1.5));
+    this.view.scale=sc; this.view.tx=r.width/2-((minX+maxX)/2)*sc; this.view.ty=r.height/2-((minY+maxY)/2)*sc;
+    this.applyView(animate); this.setState({zoom:sc});
+  }
+  // toggle a sector filter — its members light up in the sector color, everyone else dims
+  toggleSector(key){
+    const set=new Set(this.state.activeSectors); set.has(key)?set.delete(key):set.add(key);
+    this.setState({activeSectors:[...set], detailId:null, listCollapsed:false});
+  }
+
+  // ---------- filters ----------
+  matches(node){
+    const s=this.state;
+    if(s.programFilter && !(node.person.programs||[]).includes(s.programFilter)) return false;
+    if(s.statusFilter && node.status!==s.statusFilter) return false;
+    if(s.activeSectors.length && !s.activeSectors.some(sk=>node.tags.map(t=>this.norm(t)).includes(sk))) return false;
+    if(s.searchQuery){ const hay=[node.name,node.ventureName,...(node.tags||[]),node.person.focus||"",node.person.asks||"",node.person.offers||""].join(" ").toLowerCase(); if(!s.searchQuery.split(/\s+/).filter(Boolean).every(t=>hay.includes(t))) return false; }
+    return true;
+  }
+
+  neighbors(node,limit){
+    const adj=(this.affAdj&&this.affAdj[node.id])||[];
+    if(adj.length) return adj.slice(0,limit).map(e=>({ o:this.byId[e.id], co:e.kind==="team", kind:e.kind, w:e.w })).filter(r=>r.o);
+    return this.state.nodes.filter(o=>o.id!==node.id)
+      .map(o=>({ o, sim:this.jaccard(node.tags,o.tags), co:o.ventureName===node.ventureName && node.ventureName }))
+      .filter(r=>r.sim>0||r.co)
+      .sort((a,b)=>(b.co?1:0)-(a.co?1:0)||b.sim-a.sim)
+      .slice(0,limit);
+  }
+
+  keywords(text){ const SW=new Set(["with","that","this","from","have","about","would","your","their","into","also","some","them","they","been","being","only","just","like","when","what","will","help","happy","contacts","connections","connection","intros","intro","looking"]); return [...new Set((text||"").toLowerCase().match(/[a-z]{4,}/g)||[])].filter(w=>!SW.has(w)); }
+  linkedin(name){ return "https://www.linkedin.com/search/results/people/?keywords="+encodeURIComponent(name+" Stanford"); }
+  esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+  toggleBookmark(id){
+    const n=this.byId[id]; if(!n) return; const key=this.norm(n.name);
+    const bm={...this.state.bookmarks};
+    if(bm[key]) delete bm[key];
+    else bm[key]={ name:n.name, venture:n.ventureName, programs:n.person.programs, year:n.person.year, status:n.status, tags:n.tags, focus:n.person.focus||"", linkedin:n.person.linkedin||"", id:n.id };
+    try{ localStorage.setItem("ecoatlas_bookmarks_v1", JSON.stringify(bm)); }catch(e){}
+    this.setState({bookmarks:bm});
+  }
+
+  // short, readable phrase from a free-text asks/offers field
+  snippet(text, words){
+    if(!text) return "";
+    let t=text.replace(/\s+/g," ").trim();
+    const m=t.match(/^[^.!?]{0,150}[.!?]/);
+    if(m) t=m[0];
+    const w=t.split(" ");
+    if(w.length>(words||18)) t=w.slice(0,words||18).join(" ")+"…";
+    return t.replace(/[\s.,;:]+$/,"").trim();
+  }
+
+  generateIntro(self, t){
+    const first=t.name.split(" ")[0]; const selfName=self?self.name:"[your name]"; const selfFirst=self?self.name.split(" ")[0]:"[your name]";
+    const selfVenture=self&&self.ventureName?self.ventureName:"my venture";
+    const shared=self?t.tags.filter(x=>self.tags.map(y=>this.norm(y)).includes(this.norm(x))):[];
+    const sharedStr=shared.slice(0,2).join(" and "); const tv=t.ventureName||"your project";
+    const selfAlum=self&&self.status==="alum", tAlum=t.status==="alum";
+
+    // the specific reciprocity between the two people — what each can offer the other
+    let theyHelpMe=false, iHelpThem=false;
+    let theirOffer="", theirAsk="", myOffer="", myAsk="";
+    if(self){
+      const myAskKw=this.keywords(self.person.asks), myOffKw=this.keywords(self.person.offers);
+      theyHelpMe = !!(t.person.offers && this.keywords(t.person.offers).some(w=>myAskKw.includes(w)));
+      iHelpThem  = !!(t.person.asks   && this.keywords(t.person.asks).some(w=>myOffKw.includes(w)));
+      theirOffer=this.snippet(t.person.offers); theirAsk=this.snippet(t.person.asks);
+      myOffer=this.snippet(self.person.offers); myAsk=this.snippet(self.person.asks);
+    }
+
+    let intro,hook,why="",ask,subject;
+    if(selfAlum&&!tAlum){
+      intro=`I'm ${selfName}, a Stanford Ecopreneurship alum${self.ventureName?" (I worked on "+self.ventureName+")":""}.`;
+      hook=shared.length?`I came across ${tv} in the Ecopreneurship Network — we're both in ${sharedStr}, close to what I worked on.`:`I came across ${tv} in the Ecopreneurship Network and thought it looked really promising.`;
+      if(iHelpThem&&theirAsk) why=` You mentioned you're looking for ${theirAsk} — that's something I can help with directly${myOffer?`, and more broadly I can offer ${myOffer}`:""}.`;
+      else if(myOffer) why=` If it's useful, I can offer ${myOffer}.`;
+      ask=`Happy to share what I learned or make introductions — want to grab 20 minutes?`;
+      subject=`Happy to help — from a fellow Ecopreneurship founder`;
+    } else if(tAlum){
+      intro=`I'm ${selfName}, working on ${selfVenture} through Stanford Ecopreneurship.`;
+      hook=`I came across your work on ${tv} in the Ecopreneurship Network, and as someone building in ${shared[0]||"a related space"}, your path is exactly the kind I'd love to learn from.`;
+      if(theyHelpMe&&theirOffer) why=` I saw you can help with ${theirOffer}${myAsk?`, which is right where I'm focused (I'm looking for ${myAsk})`:""} — I'd really value your perspective.`;
+      else if(myAsk) why=` Right now I'm especially trying to figure out ${myAsk}.`;
+      ask=`Would you be open to a quick 15-minute call so I could hear what you learned?`;
+      subject=`Stanford Ecopreneurship — would love your advice`;
+    } else {
+      intro=`I'm ${selfName}, working on ${selfVenture} through Stanford Ecopreneurship.`;
+      hook=shared.length?`I found you through the Ecopreneurship Network — we both show up under ${sharedStr}.`:`I found you through the Ecopreneurship Network and was really interested in ${tv}.`;
+      if(theyHelpMe&&iHelpThem) why=` It looks like a real two-way match: you can help with ${theirOffer||"what I'm working on"}, and in return I can offer ${myOffer||"what you're looking for"}.`;
+      else if(theyHelpMe) why=` You mentioned you can help with ${theirOffer||"an area I'm focused on"}${myAsk?`, which is exactly what I'm looking for right now (${myAsk})`:""}.`;
+      else if(iHelpThem) why=` I noticed you're looking for ${theirAsk||"help in an area I know"} — I think I can help there${myOffer?`: ${myOffer}`:""}.`;
+      else if(myOffer||myAsk) why=` For context,${myOffer?` I can offer ${myOffer}`:""}${myOffer&&myAsk?", and":""}${myAsk?` I'm currently looking for ${myAsk}`:""}.`;
+      ask=`Would you be open to a quick 15-minute chat in the next couple of weeks?`;
+      subject=`Stanford Ecopreneurship — ${selfVenture} ↔ ${tv}`;
+    }
+    return { subject, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
+  }
+
+  copyText(text, which){
+    const done=()=>{ this.setState({[which]:true}); setTimeout(()=>this.setState({[which]:false}),1600); };
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,done); } else done(); }catch(e){ done(); }
+  }
+
+  // ---------- render ----------
+  renderVals(){
+    const s=this.state, PC=this.PROGRAM_COLOR, self=s.selfId?this.byId[s.selfId]:null;
+    // theme: light (warm paper) or an Obsidian-style dark canvas. Only the map surface and
+    // its marks change — the sidebar and panels stay as they are.
+    const dark=s.dark;
+    const TH = dark
+      ? { stageBg:"radial-gradient(circle at 50% 35%,#242424,#191919)", neutral:"#c9c7c1", label:"#8f8d86", labelShadow:"#191919", edgeMul:1.35 }
+      : { stageBg:"radial-gradient(circle at 30% 20%,#fbfaf7,#f4f2ec)", neutral:"#2b2a27", label:"#8a8578", labelShadow:"#fbfaf7", edgeMul:1 };
+    const zoom=s.zoom||this.view.scale||1;
+    const secFont=Math.max(12,Math.min(58,13.5/zoom)), secCountFont=Math.max(10,Math.min(46,11/zoom));
+    const density=this.props.nameDensity||"balanced";
+    const showPersonLabels = zoom >= (density==="sparse"?1.15:(density==="dense"?0.5:0.82));
+    const selfMode = s.mode!=="general";
+    const namePrompt = selfMode && !self;
+    const anyFilter = !!(s.programFilter||s.statusFilter||s.activeSectors.length||s.searchQuery);
+    const selSet = new Set(s.activeSectors);
+    const secByKey = {}; s.sectors.forEach(x=>secByKey[x.key]=x);
+    // a person's dot color = their primary (first) territory's family shade. Used on the map and
+    // in every side panel so the same person is one consistent color everywhere. forDark lifts the
+    // lightness for the dark canvas; panels stay light so they pass forDark=false.
+    const personFill=(node, forDark=dark)=>{
+      const key=(node.tags&&node.tags.length)?this.norm(node.tags[0]):null;
+      const sec=key&&secByKey[key];
+      if(!sec||sec.nodeL==null) return forDark?"#8f8d86":"#8a877f";
+      const L=forDark?Math.min(0.82,sec.nodeL+0.08):sec.nodeL;
+      return `oklch(${L.toFixed(3)} ${sec.nodeC} ${sec.hue})`;
+    };
+    const matchedIds = new Set();
+    s.nodes.forEach(n=>{ if(this.matches(n)) matchedIds.add(n.id); });
+
+    // self ego network — lines derive from the same ranked matches shown in the panel
+    const egoActive = !!self && !s.showFullMap;
+    const egoMapView = egoActive && s.egoLayout==="map";
+    const egoFocus = egoActive && s.egoLayout!=="map";
+    const egoCands = self ? this.egoData(self) : null;
+    // people-first: students and their connections are the map at every zoom (sectors only appear when clicked)
+    const zoomedIn = zoom >= 0.58;
+    const showDots = true;
+    const kindColor={ team:"#33312c", recip:"#33312c", desc:"#33312c", sector:"#33312c" };
+    let highlight=null, links=[], reciprocitySet=new Set();
+    if(self){
+      highlight=new Set([self.id]);
+      egoCands.forEach(c=>{
+        highlight.add(c.o.id);
+        if(c.rKind==="help"||c.rKind==="give") reciprocitySet.add(c.o.id);
+        links.push({ key:"eg-"+c.o.id, x1:self.x,y1:self.y,x2:c.o.x,y2:c.o.y, color:c.rColor,
+          w:c.rKind==="team"?3.2:2.2, dash:(c.rKind==="help"||c.rKind==="give")?"6 4":"" });
+      });
+    }
+    const hoverNode = (s.hoverId && (!self || s.hoverId!==self.id)) ? this.byId[s.hoverId] : null;
+    // in browse, clicking a person pins their network highlighted (until you click elsewhere);
+    // hovering someone else still previews their network on top of the pin
+    const pinnedNode = (s.mode==="general" && s.detailId) ? this.byId[s.detailId] : null;
+    const activeNode = hoverNode || pinnedNode;
+    if(activeNode){
+      if(!highlight) highlight=new Set();
+      highlight.add(activeNode.id);
+      this.neighbors(activeNode,7).forEach(r=>{ highlight.add(r.o.id); const col=kindColor[r.kind]||"#8C1515"; links.push({ key:"h-"+activeNode.id+"-"+r.o.id, x1:activeNode.x,y1:activeNode.y,x2:r.o.x,y2:r.o.y, color:col, w:1.8, dash:r.kind==="recip"?"1.8 4":"" }); });
+    }
+    const focusNode = activeNode || self || null;
+    const dimOp = self ? 0.05 : 0.16;   // background map fades further back when a student/hover is active
+
+    // the student connection backbone — each person's strongest ties, colored by why they connect
+    // every connection is one neutral grey; ask↔offer is the same colour but dotted
+    const EDGE = "128,123,114";
+    let restView=[];
+    if(s.showConnections && showDots && !(self && !s.showFullMap) && this.restLinks){
+      const soften = highlight ? 0.5 : 1;
+      // with a territory selected the surviving network is the point — draw it bolder
+      // instead of leaving the same faint web that reads as background texture
+      const focused = s.activeSectors.length>0 && !highlight;
+      restView = this.restLinks.filter(l=>matchedIds.has(l.aid)&&matchedIds.has(l.bid)).map(l=>{
+        const dim = highlight && !(highlight.has(l.aid)&&highlight.has(l.bid));
+        const op = Math.min(0.9, 0.42*(dim?0.3:1)*soften*(focused?2.2:1)*TH.edgeMul).toFixed(2);
+        const w = 1.3*(focused?1.8:1);
+        let color=`rgba(${EDGE},${op})`;
+        // a selected territory still lights its own same-sector edges in its colour
+        if(l.kind==="sector" && selSet.size){
+          const at=new Set(((this.byId[l.aid]||{}).tags||[]).map(t=>this.norm(t))), bt=new Set(((this.byId[l.bid]||{}).tags||[]).map(t=>this.norm(t)));
+          const sk=[...selSet].find(k=>at.has(k)&&bt.has(k)), sec=sk&&secByKey[sk];
+          if(sec) color=`oklch(0.58 0.15 ${sec.hue} / ${op})`;
+        }
+        return { key:"r"+l.aid+"-"+l.bid, x1:l.x1,y1:l.y1,x2:l.x2,y2:l.y2,
+          color, w, dash:l.kind==="recip"?"1.6 4":"" };
+      });
+    }
+
+    // ---------- ego view: two layouts — anchored Map view + centered Focus view ----------
+    let ego=null, egoPanel=null, focus=null;
+    const egoLabelText=c=>{
+      const selfTags0=self?(self.tags||[]).map(t=>this.norm(t)):[];
+      if(c.rKind==="team") return "Teammate";
+      if(c.rKind==="approach") return "Same approach";
+      if(c.rKind==="challenge") return "Same challenge";
+      if(c.rKind==="help") return "Can help you";
+      if(c.rKind==="give") return "You can help";
+      if(c.rKind==="sector") return c.o.tags.find(t=>selfTags0.includes(this.norm(t)))||"Shared sector";
+      return "Related";
+    };
+    if(egoMapView){
+      const zc=zoom;
+      const labelText=egoLabelText;
+      const linkLabels=egoCands.map(c=>{
+        const dx=c.o.x-self.x, dy=c.o.y-self.y, len=Math.hypot(dx,dy)||1, off=16;
+        const mx=self.x+dx*0.56 + (-dy/len)*off, my=self.y+dy*0.56 + (dx/len)*off;
+        return { key:"ll-"+c.o.id, text:labelText(c),
+          style:`position:absolute;left:${mx}px;top:${my}px;transform:translate(-50%,-50%) scale(${1/zc});transform-origin:center;font-size:10px;font-weight:600;color:${c.rColor};background:rgba(250,249,246,.95);border:1px solid ${c.rColor}55;padding:2px 7px;border-radius:7px;white-space:nowrap;pointer-events:none;z-index:8;box-shadow:0 1px 4px rgba(0,0,0,.08);` };
+      });
+      ego={
+        marker:"◆ You are here",
+        selfMarkerStyle:`position:absolute;left:${self.x}px;top:${self.y-24}px;transform:translate(-50%,-100%) scale(${1/zc});transform-origin:center bottom;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:#8C1515;background:rgba(253,246,246,.96);border:1px solid #e0b3b3;padding:3px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:9;box-shadow:0 2px 7px rgba(0,0,0,.13);`,
+        linkLabels,
+        headerTitle:"Your neighborhood",
+        headerSub:`${self.name}${self.ventureName?" · "+self.ventureName:""}`
+      };
+      const mkEgoRow=(c)=>{ const o=c.o, alum=o.status==="alum", base=personFill(o,false), hov=s.hoverId===o.id, saved=!!s.bookmarks[this.norm(o.name)];
+        return { id:o.id, name:o.name, venture:o.ventureName||"Independent",
+          meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
+          reason:c.reason,
+          reasonStyle:`display:inline-block;font-size:10px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:7px;padding:2px 7px;margin-top:7px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
+          rowStyle:`border:1px solid ${hov?"#8C1515":"#ece8de"};background:${hov?"#fdf6f6":"#fff"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s,border-color .12s;`,
+          enter:()=>this.setState({hoverId:o.id}), leave:()=>this.setState(st2=>st2.hoverId===o.id?{hoverId:null}:null),
+          click:()=>this.setState({hoverId:o.id}),
+          view:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.openDetailCentered(o.id); },
+          reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); },
+          save:(e)=>{ e.stopPropagation(); this.toggleBookmark(o.id); }, saveIcon:saved?"★":"☆",
+          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:7px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e3e0d8"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
+      };
+      const isAlum=c=>c.o.status==="alum";
+      // "Deeper connections" = the non-obvious matches the interview unlocks (same approach / same challenge)
+      const deeper=egoCands.filter(c=>(c.rKind==="approach"||c.rKind==="challenge") && !isAlum(c)).map(mkEgoRow);
+      const help=egoCands.filter(c=>c.rKind==="help" && !isAlum(c)).map(mkEgoRow);
+      const give=egoCands.filter(c=>c.rKind==="give" && !isAlum(c)).map(mkEgoRow);
+      const shared=egoCands.filter(c=>(c.rKind==="team"||c.rKind==="sector"||c.rKind==="rel") && !isAlum(c)).map(mkEgoRow);
+      // alumni get their own section: any alumni already in the ranked matches, topped up
+      // with the most relevant other alumni (shared sectors, or their work touches your asks)
+      // reason wording for alumni: name the concrete link between THIS student and
+      // THIS alum — their shared sector, or the student's own ask phrase that the
+      // alum's project touches. Never generic filler.
+      const askBits=String(self.person.asks||"").split(/[,;\n•·]|(?:^|\s)-\s/).map(t=>t.trim()).filter(Boolean);
+      const askFragFor=kw=>{
+        let frag=askBits.find(b=>this.keywords(b).includes(kw))||kw;
+        frag=frag.replace(/^(intro(duction)?s?\s+to|connections?\s+(to|with|in)|contacts?\s+(in|with|at)|looking\s+for|needs?|would\s+love|help\s+with|tips\s+(for|on|and)|advice\s+(on|about)|access\s+to)\s+/i,"").replace(/[.\s]+$/,"").trim();
+        if(frag && frag.length<=42) return frag;
+        // phrase too long for a chip: shrink to a two-word window around the keyword
+        // ("power companies", "best practices") rather than the bare keyword
+        const SW=new Set(["the","a","an","to","of","for","and","with","in","on","at","or","my","our","your"]);
+        const ws=frag.split(/\s+/), i=ws.findIndex(w=>this.keywords(w).includes(kw));
+        if(i>0 && !SW.has(ws[i-1].toLowerCase())) return ws[i-1]+" "+ws[i];
+        if(i>=0 && i<ws.length-1 && !SW.has(ws[i+1].toLowerCase())) return ws[i]+" "+ws[i+1];
+        return kw;
+      };
+      const alumReason=(o,sharedT,kw)=>{
+        if(sharedT.length) return sharedT.length>1?`Built ${o.ventureName||"their venture"} across ${sharedT[0]} & ${sharedT[1]}`:`Took ${o.ventureName||"their venture"} through ${sharedT[0]} before you`;
+        if(kw.length) return `${o.ventureName||"Their project"} dealt with ${askFragFor(kw[0])}`;
+        return `Ground covered in ${((o.tags||[])[0])||"your area"}`;
+      };
+      const alumEgo=egoCands.filter(isAlum).map(c=>(c.rKind==="help"||c.rKind==="team")?c:{ ...c, rColor:"#8a6d3b", reason:alumReason(c.o, c.shared||[], []) });
+      const seenIds=new Set([self.id, ...egoCands.map(c=>c.o.id)]);
+      const myTags2=(self.tags||[]).map(t=>this.norm(t));
+      const myAsk2=this.keywords(self.person.asks);
+      const alumExtra=s.nodes.filter(o=>o.status==="alum" && !seenIds.has(o.id)).map(o=>{
+        const sharedT=(o.tags||[]).filter(t=>myTags2.includes(this.norm(t)));
+        const kw=this.keywords(o.person.focus||"").filter(w=>myAsk2.includes(w)).sort((a,b)=>b.length-a.length);
+        const score=sharedT.length*10+kw.length*4+this.jaccard(self.tags,o.tags)*2;
+        return { o, score, reason:alumReason(o,sharedT,kw), rColor:"#8a6d3b", rKind:"alum", hk:[], gk:[], shared:sharedT };
+      }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,Math.max(0,3-alumEgo.length));
+      const alumniRows=[...alumEgo, ...alumExtra].map(mkEgoRow);
+      const groups=[];
+      if(deeper.length) groups.push({ key:"deeper", label:"Deeper connections", hint:"same approach or challenge, often across sectors", count:deeper.length, rows:deeper });
+      if(help.length) groups.push({ key:"help", label:"Who can help you", hint:"they offer your ask", count:help.length, rows:help });
+      if(give.length) groups.push({ key:"give", label:"Who you can help", hint:"you offer their ask", count:give.length, rows:give });
+      if(shared.length) groups.push({ key:"shared", label:"Shared focus", hint:"same sectors or venture", count:shared.length, rows:shared });
+      if(alumniRows.length) groups.push({ key:"alumni", label:"Alumni to connect with", hint:"they've worked your ground", count:alumniRows.length, rows:alumniRows });
+      const totalRows=deeper.length+help.length+give.length+shared.length+alumniRows.length;
+      egoPanel={ title:`People you should meet, ${self.name.split(" ")[0]}`, sub: totalRows?`${totalRows} strong matches, ranked for you`:"No strong matches yet — add more to your asks & offers", groups, total:totalRows,
+        enriched:!!self.person.enriched,
+        enrichLabel: (function(f){ return f>=5?"Edit my answers":(f>0?`Finish your profile · ${f} of 5`:"✨ Improve my matches →"); })(this.profileFilled(self.person)),
+        enrichBtnStyle: this.profileFilled(self.person)>=5
+          ? `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#0f766e;background:#fff;border:1px solid #bfe0d9;border-radius:8px;padding:7px 12px;cursor:pointer;`
+          : `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(15,118,110,.25);`,
+        onEnrich:()=>this.openInterview() };
+    } else if(egoFocus){
+      const kinds=["approach","challenge","help","sector","team","rel","give"];
+      const ordered=[]; kinds.forEach(k=>egoCands.filter(c=>c.rKind===k).forEach(c=>ordered.push(c)));
+      const n=ordered.length||1, rx=(n<=4?30:39), ry=(n<=4?30:34), cy=57;
+      const pos=i=>{ const a=(-90 + 180/n + i*360/n)*Math.PI/180; return { x:50+rx*Math.cos(a), y:cy+ry*Math.sin(a) }; };
+      const people=ordered.map((c,i)=>{
+        const {x,y}=pos(i), o=c.o, alum=o.status==="alum", base=personFill(o,false), saved=!!s.bookmarks[this.norm(o.name)];
+        return { id:o.id, name:o.name, venture:o.ventureName||"—",
+          meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
+          reason:c.reason,
+          reasonStyle:`display:block;font-size:10px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:7px;padding:3px 7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
+          posStyle:`position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:152px;background:#fffefb;border:1px solid #e6e2d9;border-radius:11px;box-shadow:0 10px 26px rgba(40,36,28,.16);padding:10px;z-index:4;`,
+          reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); },
+          view:()=>this.setState({detailId:o.id}),
+          save:(e)=>{ e.stopPropagation(); this.toggleBookmark(o.id); }, saveIcon:saved?"★":"☆",
+          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:8px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e3e0d8"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
+      });
+      const lines=ordered.map((c,i)=>{ const {x,y}=pos(i); return { key:"fl"+i, x2:x, y2:y, color:c.rColor, dash:(c.rKind==="help"||c.rKind==="give")?"4 3":"" }; });
+      const lineLabels=ordered.map((c,i)=>{ const {x,y}=pos(i); const dx=x-50, dy=y-cy, len=Math.hypot(dx,dy)||1, off=4.5;
+        const lx=50+dx*0.5+(-dy/len)*off, ly=cy+dy*0.5+(dx/len)*off;
+        return { key:"fll"+i, text:egoLabelText(c), style:`position:absolute;left:${lx}%;top:${ly}%;transform:translate(-50%,-50%);font-size:9.5px;font-weight:600;color:${c.rColor};background:rgba(250,249,246,.96);border:1px solid ${c.rColor}44;padding:1px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:6;` };
+      });
+      const initials=self.name.split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+      focus={ cy,
+        title:`People you should talk to, ${self.name.split(" ")[0]}`,
+        subtitle: ordered.length?`${ordered.length} strongest matches · closest first, grouped by why`:"No strong matches yet — add to your asks & offers",
+        selfStyle:`position:absolute;left:50%;top:${cy}%;transform:translate(-50%,-50%);width:168px;text-align:center;z-index:8;pointer-events:none;background:#fffefb;border:1px solid #e6e2d9;border-radius:15px;padding:14px 12px 13px;box-shadow:0 8px 26px rgba(40,36,28,.15);`,
+        selfDotStyle:`width:52px;height:52px;border-radius:50%;background:${personFill(self,false)};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:3px solid #fffefb;animation:atlasPulse 2s ease-out infinite;margin:0 auto;`,
+        selfInitials:initials, selfName:self.name, selfMeta:self.ventureName||"",
+        people, lines, lineLabels };
+    }
+
+    const audiences=[["general","Browse"],["student","Student"]].map(([m,label])=>({
+      // entering Student clears Browse's search/filters — its sidebar is hidden there,
+      // so stale filters would silently dim the map with no way to clear them
+      label, onClick:()=>this.setState(m==="general"
+        ? {mode:m, selfId:null, detailId:null}
+        : {mode:m, selfId:s.selfId, detailId:null, searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], listCollapsed:false}),
+      style:`font-size:12px;font-weight:600;white-space:nowrap;padding:7px 15px;border:none;cursor:pointer;${s.mode===m?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`
+    }));
+
+    // territories stay hidden until a sector is clicked — then just a small label sits over its members (who light up in the sector color)
+    const regions = s.activeSectors.length
+      ? s.sectors.filter(sec=>s.activeSectors.includes(sec.key)).map(sec=>({
+          key:sec.key, label:sec.label, count:sec.people.length,
+          blobStyle:`display:none;`,
+          labelStyle:`position:absolute;left:${sec.cx}px;top:${sec.cy}px;transform:translate(-50%,-50%);font-size:${secFont}px;font-weight:700;letter-spacing:.01em;color:oklch(0.38 0.09 ${sec.hue});white-space:nowrap;cursor:pointer;text-shadow:0 1px 2px #fdfcf9,0 0 4px #fdfcf9,0 0 8px #fdfcf9;user-select:none;z-index:6;`,
+          countStyle:`display:inline-block;margin-left:5px;font-weight:600;font-size:${secCountFont}px;color:oklch(0.55 0.055 ${sec.hue});`,
+          onClick:(e)=>{ e.stopPropagation(); this.toggleSector(sec.key); },
+          onEnter:()=>{}, onLeave:()=>{}
+        }))
+      : [];
+
+    const nodesView=s.nodes.map(n=>{
+      const matched=matchedIds.has(n.id);
+      const isSelf=self&&n.id===self.id;
+      const hi = highlight ? highlight.has(n.id) : true;
+      const isRecip=reciprocitySet.has(n.id);
+      let op = 1;
+      if(!matched) op=0.035;
+      else if(highlight && !hi) op=dimOp;
+      const isFocus = focusNode && n.id===focusNode.id;
+      const alum=n.status==="alum";
+      // node fill = the person's primary territory, colored by its sector family (first listed tag).
+      // Similar territories share a hue, so the map reads as a few broad color regions; territory
+      // selection still isolates members by fading everyone else (op, below) and lighting its own edges.
+      const base = personFill(n);
+      const inHoverSector = s.hoverSector && (n.tags||[]).map(t=>this.norm(t)).includes(s.hoverSector);
+      const nodeVisible = showDots || inHoverSector;
+      // members of a selected territory grow a little so the surviving network reads clearly
+      const inSelSector = matched && s.activeSectors.length>0 && !highlight;
+      // sqrt so a very well-connected person reads as a hub without swamping the map
+      // scale by connection count, normalized to the busiest person: leaves ~12px, top hubs
+      // ~40px — a clear difference without the big hubs overlapping their neighbours
+      const dmax=Math.max(6, this.maxDeg||9);
+      const t=Math.min(1,(n.degree||0)/dmax);
+      const baseSize=12+Math.pow(t,0.68)*28;
+      const size=isSelf?baseSize+6:(isFocus?baseSize+5:((highlight&&hi&&self)?baseSize+2:(inSelSector?baseSize+4:baseSize)));
+      const ring = dark ? "#191919" : "#fffefb";   // dot's rim reads against the canvas
+      // all nodes filled — current vs alumni is a filter, not a visual encoding on the map
+      let dot = `width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2px solid ${ring};box-shadow:0 1px 3px rgba(0,0,0,${dark?.4:.18});`;
+      if(isSelf) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid ${ring};animation:atlasPulse 2s ease-out infinite;`;
+      else if(isRecip) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2.5px solid #1c2f5e;box-shadow:0 1px 4px rgba(28,47,94,.3);`;
+      const overlap = s.activeSectors.length>=2 && s.activeSectors.every(sk=>(n.tags||[]).map(t=>this.norm(t)).includes(sk));
+      if(overlap && !isSelf && !isRecip) dot+=`outline:2px solid #8C1515;outline-offset:2px;box-shadow:0 0 0 1px #fffefb,0 0 10px rgba(140,21,21,.5);`;
+      const emphatic = isFocus||isSelf;
+      const labelVisible = emphatic || (highlight&&hi) || (showPersonLabels && (highlight?hi:true) && matched);
+      const labelFont = emphatic ? Math.max(12, 12.5/zoom) : 11;
+      return {
+        id:n.id, name:n.name,
+        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(matched?10:1))};transition:opacity .2s;pointer-events:${matched?"auto":"none"};`,
+        dotStyle:dot,
+        labelStyle:`margin-top:2px;font-size:${labelFont}px;font-weight:${emphatic?700:500};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,.88);padding:0 3px;border-radius:3px;line-height:1.2;max-width:${emphatic?340:150}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${emphatic?"0 1px 4px rgba(0,0,0,.12)":"none"};display:${labelVisible?"block":"none"};`,
+        onEnter:()=>{ if(!self) this.setState({hoverId:n.id}); else this.setState({hoverId:n.id}); },
+        onLeave:()=>this.setState({hoverId:null}),
+        onClick:(e)=>{ e.stopPropagation(); this.setState({detailId:n.id}); }
+      };
+    });
+
+    // sector chips
+    // territory picker, grouped by color family (each family a header + its shaded territory chips)
+    const mkChip=sec=>{ const active=s.activeSectors.includes(sec.key);
+      return { label:sec.label, count:sec.people.length,
+        dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;background:${sec.color};`,
+        style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:11px;border:1px solid ${active?"#8C1515":"#e3e0d8"};background:${active?"#8C1515":"#fff"};color:${active?"#fff":"#2e2d29"};border-radius:999px;padding:4px 9px;cursor:pointer;`,
+        onClick:()=>this.toggleSector(sec.key) }; };
+    const chipsByFam={}; s.sectors.forEach(sec=>{ const fid=sec.family||"other"; (chipsByFam[fid]=chipsByFam[fid]||[]).push(sec); });
+    const famOrder=Object.entries(this.FAMILIES).sort((a,b)=>a[1].order-b[1].order).map(e=>e[0]).concat("other");
+    const sectorGroups=famOrder.filter(fid=>chipsByFam[fid]&&chipsByFam[fid].length).map(fid=>{
+      const fam=this.FAMILIES[fid], list=chipsByFam[fid].sort((a,b)=>b.people.length-a.people.length);
+      return { label: fam?fam.label:"Other",
+        headerStyle:`display:flex;align-items:center;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#8a877f;font-weight:700;margin:3px 0 5px;`,
+        dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:${list[0].familyColor};`,
+        chips:list.map(mkChip) };
+    });
+
+    // map legend = the 6 color families (23 shades won't fit legibly)
+    const familyLegend=Object.entries(this.FAMILIES).sort((a,b)=>a[1].order-b[1].order)
+      .map(([fid,f])=>({ label:f.label, dotStyle:`display:inline-block;width:11px;height:11px;border-radius:50%;background:oklch(0.60 0.14 ${f.hue});margin-right:7px;vertical-align:middle;` }));
+
+    // status line
+    const visCount=[...matchedIds].length;
+    const statusLine = anyFilter ? `${visCount} of ${s.nodes.length} students shown` : `${s.nodes.length} students · ${this.restLinks?this.restLinks.length:0} connections`;
+    // at-a-glance overview for the intro card
+    const progSet=new Set(); s.nodes.forEach(n=>(n.person.programs||[]).forEach(p=>{ if(p) progSet.add(p); }));
+    const overviewLine = `${s.nodes.length} people · ${progSet.size} programs · ${s.sectors.length} focus areas`;
+    // sector-family region labels — one per family, at the centre of that family's members.
+    // Only when browsing the whole map (no self, filter, or search), so the six broad regions
+    // read cleanly without competing with a selection's own labels.
+    const showClusters = !egoActive && !namePrompt && !(self&&!s.showFullMap) && s.activeSectors.length===0 && !s.searchQuery;
+    const clusFont=Math.max(12,Math.min(46,14/zoom));
+    const clusterLabels = showClusters ? (s.clusters||[]).map(c=>({
+      label:c.label, count:"",
+      style:`position:absolute;left:${c.cx}px;top:${c.cy}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:600;color:${dark?"#b9b6ad":"#78756b"};white-space:nowrap;pointer-events:none;z-index:4;letter-spacing:.01em;text-shadow:0 1px 2px ${dark?"#191919":"#faf9f6"},0 0 6px ${dark?"#191919":"#faf9f6"},0 0 11px ${dark?"#191919":"#faf9f6"};`,
+      countStyle:`display:none;`,
+    })) : [];
+
+    // ---------- results panel (live list of matching people) ----------
+    const resultsPanel = !egoActive && (s.activeSectors.length>0 || !!s.searchQuery);
+    const panelOpen = resultsPanel && !s.listCollapsed;
+    let results=null;
+    if(resultsPanel){
+      const matched=[...matchedIds].map(id=>this.byId[id]).filter(Boolean);
+      const yearNum=o=>{ const m=(""+(o.person.year||"")).match(/\d{4}/); return m?+m[0]:0; };
+      // "Best match" = how squarely someone sits in what you asked for: how many of the
+      // selected territories they cover (and how much of their work those account for),
+      // plus where your search terms land — a name/venture hit outranks a passing mention.
+      const qTerms=(s.searchQuery||"").split(/\s+/).filter(Boolean);
+      const relScore=o=>{
+        let sc=0;
+        if(s.activeSectors.length){
+          const tg=(o.tags||[]).map(t=>this.norm(t));
+          const hits=s.activeSectors.filter(sk=>tg.includes(sk)).length;
+          sc += hits*100;
+          if(tg.length) sc += (hits/tg.length)*25;   // less scattered across other sectors
+        }
+        if(qTerms.length){
+          const name=(o.name||"").toLowerCase(), ven=(o.ventureName||"").toLowerCase();
+          const tags=(o.tags||[]).join(" ").toLowerCase();
+          const text=[o.person.focus||"",o.person.asks||"",o.person.offers||""].join(" ").toLowerCase();
+          qTerms.forEach(t=>{
+            if(ven.includes(t)) sc+=40;
+            if(tags.includes(t)) sc+=30;
+            if(name.includes(t)) sc+=20;
+            if(text.includes(t)) sc+=8;
+          });
+        }
+        return sc;
+      };
+      const cmp = {
+        match:(a,b)=>(relScore(b)-relScore(a))||a.name.localeCompare(b.name),
+        name:(a,b)=>a.name.localeCompare(b.name),
+        year:(a,b)=>(yearNum(b)-yearNum(a))||a.name.localeCompare(b.name)
+      }[s.sortBy] || ((a,b)=>(relScore(b)-relScore(a))||a.name.localeCompare(b.name));
+      const mkRow=(o, spanning)=>{
+        const alum=o.status==="alum", base=personFill(o,false), hov=s.hoverId===o.id;
+        return {
+          id:o.id, name:o.name, venture:o.ventureName||"Independent", spanning:!!spanning,
+          meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
+          sectors:(o.tags||[]).map(t=>{ const sel=s.activeSectors.includes(this.norm(t)); return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?"#8C1515":"#e3e0d8"};color:${sel?"#8C1515":"#6b6a65"};background:${sel?"#8c15150d":"#fff"};` }; }),
+          rowStyle:spanning
+            ? `border:1px solid ${hov?"#8C1515":"#e0b3b3"};border-left:3px solid #8C1515;background:${hov?"#fbf1f1":"#fdf6f6"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`
+            : `border:1px solid ${hov?"#d8c9b0":"#ece8de"};background:${hov?"#fdfaf3":"#fff"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`,
+          badgeStyle:`display:${spanning?"inline-block":"none"};white-space:nowrap;font-size:9.5px;font-weight:700;letter-spacing:.02em;color:#8C1515;background:#8c15150f;border:1px solid #e0b3b3;border-radius:6px;padding:2px 7px;margin-top:7px;`,
+          enter:()=>this.setState({hoverId:o.id}),
+          leave:()=>this.setState(st2=>st2.hoverId===o.id?{hoverId:null}:null),
+          click:()=>this.openDetailCentered(o.id),
+          reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); }
+        };
+      };
+      const selLabels=s.activeSectors.map(k=>{ const x=s.sectors.find(y=>y.key===k); return x?x.label:k; });
+      const normalHeader=`display:flex;align-items:center;gap:7px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#6b6a65;margin:12px 2px 8px;`;
+      let groups;
+      if(s.activeSectors.length>=2){
+        const hasAll=o=>{ const tg=(o.tags||[]).map(t=>this.norm(t)); return s.activeSectors.every(sk=>tg.includes(sk)); };
+        const spanNodes=matched.filter(hasAll);
+        const spanIds=new Set(spanNodes.map(o=>o.id));
+        groups=[];
+        if(spanNodes.length){
+          groups.push({ key:"__span", label:"In all: "+selLabels.join(" + "), count:spanNodes.length, showHeader:true,
+            headerStyle:`display:flex;align-items:center;gap:7px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#8C1515;margin:4px 2px 9px;`,
+            rows:spanNodes.slice().sort(cmp).map(o=>mkRow(o,true)) });
+        }
+        s.activeSectors.forEach(sk=>{ const sec=s.sectors.find(x=>x.key===sk);
+          const rows=matched.filter(o=>!spanIds.has(o.id) && (o.tags||[]).map(t=>this.norm(t)).includes(sk)).sort(cmp).map(o=>mkRow(o,false));
+          groups.push({ key:sk, label:(sec?sec.label:sk)+" only", count:rows.length, showHeader:true, headerStyle:normalHeader, rows });
+        });
+      } else {
+        groups=[{ key:"all", label:"", count:matched.length, showHeader:false, headerStyle:"", rows:matched.slice().sort(cmp).map(o=>mkRow(o,false)) }];
+      }
+      const n=matched.length, ppl=n===1?"person":"people";
+      const spanCount = (s.activeSectors.length>=2 && groups[0] && groups[0].key==="__span") ? groups[0].count : 0;
+      let countLine, subLine;
+      if(s.activeSectors.length){ countLine=`${n} ${ppl} in ${selLabels.join(" + ")}`; subLine = spanCount?`${spanCount} span all ${s.activeSectors.length} · click a name to find them on the map`:(s.searchQuery?`matching “${s.searchQuery}” · click a name to find them on the map`:"Click a name to find them on the map"); }
+      else { countLine=`${n} ${ppl} matching “${s.searchQuery}”`; subLine="Click a name to find them on the map"; }
+      results={ countLine, subLine, groups, total:n };
+    }
+
+    // detail
+    let detail=null;
+    if(s.detailId && this.byId[s.detailId]){
+      const n=this.byId[s.detailId], p=n.person, showContact=selfMode&&n.status==="current";
+      const nbAll=this.neighbors(n,10);
+      const teamNbs=nbAll.filter(r=>r.co);
+      const closeNbs=nbAll.filter(r=>!r.co).slice(0,4);
+      const whyShared=r=>r.kind==="recip"?"ask ↔ offer match":r.kind==="desc"?"similar project":(r.o.tags.filter(t=>n.tags.map(x=>this.norm(x)).includes(this.norm(t))).join(", ")||"related");
+      const bm=!!s.bookmarks[this.norm(n.name)];
+      detail={
+        name:n.name,
+        panelStyle:`position:absolute;right:18px;top:74px;bottom:18px;width:344px;background:#fffefb;border:1px solid #e3e0d8;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);padding:20px;overflow-y:auto;z-index:30;animation:atlasFade .18s ease;`,
+        sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
+        tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e3e0d8;border-radius:8px;padding:2px 8px;" })),
+        hasCohorts:(p.cohorts||[]).length>0,
+        cohorts:(p.cohorts||[]).map(c=>({ label:`${c.program}${c.year?" · "+c.year:""}${c.venture?" — "+c.venture:""}`, dotStyle:`display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;background:${PC[(c.program||"").split("+")[0]]||"#999"};` })),
+        hasFocus:!!p.focus, focus:p.focus,
+        hasAsks:showContact&&!!p.asks, asks:p.asks,
+        hasOffers:showContact&&!!p.offers, offers:p.offers,
+        hasContact:showContact&&!!p.email, contact:p.email||"", contactHref:p.email?"mailto:"+p.email:"",
+        hasTeammates:teamNbs.length>0, teammates:teamNbs.map(r=>({ name:r.o.name, shared:r.o.ventureName||"same venture", onClick:()=>this.openDetailCentered(r.o.id) })),
+        hasNeighbors:closeNbs.length>0, neighbors:closeNbs.map(r=>({ name:r.o.name, shared:whyShared(r), onClick:()=>this.openDetailCentered(r.o.id) })),
+        linkedin:n.person.linkedin||this.linkedin(n.name),
+        reach:()=>this.setState({reachId:n.id, reachCopied:false}),
+        toggleBookmark:()=>this.toggleBookmark(n.id),
+        bookmarkLabel: bm?"★ Saved":"☆ Save",
+        bookmarkStyle:`font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid ${bm?"#c9a227":"#e3e0d8"};background:${bm?"#fdf6e0":"#fff"};color:${bm?"#8a6d00":"#2e2d29"};`
+      };
+    }
+
+    // reach modal
+    let reach=null;
+    if(s.reachId && this.byId[s.reachId]){
+      const t=this.byId[s.reachId]; const intro=this.generateIntro(self,t);
+      const liUrl=t.person.linkedin||this.linkedin(t.name);
+      // in the login-gated student view, email (when shared) is the lowest-friction channel —
+      // it becomes the primary action, prefilled from the edited subject/message
+      const hasEmail = selfMode && t.status==="current" && !!(t.person.email||"").trim();
+      reach={
+        name:t.name,
+        sub:`${t.ventureName?t.ventureName+" · ":""}${t.status==="alum"?"Alumni":"Current"} · ${(t.person.programs||[]).join(", ")}. Edit it, then ${hasEmail?"send it by email or LinkedIn":"copy and send on LinkedIn"}.`,
+        showSelfTip:!self,
+        subject:intro.subject, body:intro.body,
+        hasEmail, email:(t.person.email||"").trim(),
+        emailLabel:`✉ Email ${t.name.split(" ")[0]}`,
+        sendEmail:()=>{ const subj=this.reachSubjRef.current?this.reachSubjRef.current.value:intro.subject;
+          const body=this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body;
+          location.href=`mailto:${(t.person.email||"").trim()}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; },
+        primaryLabel: `Connect with ${t.name.split(" ")[0]} on LinkedIn`,
+        primaryHref: liUrl,
+        primaryStyle: hasEmail
+          ? `font-size:13px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e0b3b3;border-radius:9px;padding:9px 15px;text-decoration:none;`
+          : `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border-radius:9px;padding:9px 15px;text-decoration:none;`,
+        onPrimary: ()=>{},
+        copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
+        copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
+      };
+    }
+
+    // catalog
+    const catEntries=Object.entries(s.bookmarks).map(([k,snap])=>{ const live=this.byId[snap.id]; return {k, snap, node:live}; });
+    const catalogEntries=catEntries.map(({k,snap,node})=>({
+      name:snap.name, meta:`${(snap.programs||[]).join(", ")}${snap.year?" · "+snap.year:""} · ${snap.status==="alum"?"Alumni":"Current"}`,
+      line:`${snap.venture||""}${snap.tags&&snap.tags.length?" · "+snap.tags.join(", "):""}`,
+      linkedin:snap.linkedin||this.linkedin(snap.name),
+      reach: node?()=>this.setState({catalogOpen:false, reachId:node.id, reachCopied:false}):()=>{},
+      remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); const bm={...this.state.bookmarks}; delete bm[k]; try{localStorage.setItem("ecoatlas_bookmarks_v1",JSON.stringify(bm));}catch(e2){} this.setState({bookmarks:bm}); }
+    }));
+    const catCount=Object.keys(s.bookmarks).length;
+
+    // self picker
+    const selfSuggestions = s.selfQuery.trim().length>=2 ? s.nodes.filter(n=>{
+        const q=s.selfQuery.toLowerCase();
+        if(s.mode==="alumni") return n.status==="alum"&&n.name.toLowerCase().includes(q);
+        return n.name.toLowerCase().includes(q);
+      }).slice(0,6).map(n=>({ name:n.name, sub:`${n.ventureName} · ${(n.person.programs||[]).join(", ")}`, onClick:()=>this.selectSelf(n.id) })) : [];
+
+    // ---------- profile interview (conversational, streamlined) ----------
+    let interview=null;
+    if(s.interview){
+      const iv=s.interview, steps=this.INTERVIEW_STEPS, step=steps[iv.idx], a=iv.answers;
+      const label={ challenge:"Challenge", who:"Who it affects", approaches:"How you work", brings:"What you bring", seeks:"What you're after" };
+      const transcript=[];
+      for(let i=0;i<iv.idx;i++){ const st0=steps[i], key=st0.key;
+        let val = key==="approaches" ? (a.approaches||[]).join(" · ") : (a[key]||"");
+        transcript.push({ key:"tq"+i, agent:st0.agent, answer: val || "(skipped)" });
+      }
+      const approachOptions = this.APPROACHES.map(lbl=>{ const on=(a.approaches||[]).includes(lbl);
+        return { label:lbl, onClick:()=>this.toggleApproach(lbl),
+          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?"#0f766e":"#e3e0d8"};background:${on?"#0f766e":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
+      interview={
+        welcome: !!iv.welcome,
+        welcomeText: self ? `Welcome, ${self.name.split(" ")[0]}. A few quick questions and the map will find people you'd never bump into otherwise — different projects, same way of working. Skip anything; edit later.` : "",
+        kicker: self ? `Profile · ${self.name.split(" ")[0]}` : "Profile",
+        progress:`${iv.idx+1} of ${steps.length}`,
+        agent: step.agent,
+        stepKey: step.key,
+        isMulti: step.type==="multi",
+        isLong: step.type==="long",
+        isShort: step.type==="short",
+        placeholder: step.ph||"",
+        currentValue: (step.type==="long"||step.type==="short") ? (a[step.key]||"") : "",
+        onType:(e)=>this.interviewType(e.target.value),
+        approachOptions,
+        transcript,
+        canBack: iv.idx>0,
+        backStyle:`font-size:12.5px;font-weight:600;color:${iv.idx>0?"#6b6a65":"#c9c6be"};background:none;border:none;cursor:${iv.idx>0?"pointer":"default"};`,
+        nextLabel: iv.idx<steps.length-1 ? "Next" : "Finish & update my map",
+        chipLabel: label[step.key]||"",
+        onNext:()=>this.interviewNext(), onBack:()=>this.interviewBack(), onSkip:()=>this.interviewSkip(), onClose:()=>this.closeInterview(),
+      };
+    }
+
+    return {
+      loading:s.loading, worldW:s.world.w, worldH:s.world.h,
+      svgStyle:`position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:5;`,
+      interview, flash:s.flash,
+      audiences, regions, nodesView, links:restView.concat(links), sectorGroups, familyLegend,
+      // cluster names: only in the full-map browse view, and stood down while a territory
+      // or search is active so they don't compete with that selection's own labels
+      clusterLabels, overviewLine,
+      filtersOpen:s.filtersOpen, toggleFilters:()=>this.setState(st=>({filtersOpen:!st.filtersOpen})),
+      filterCountLabel: (s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0) ? ` · ${(s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0)} active` : "",
+      filtersCaretStyle:`display:inline-block;transition:transform .15s;transform:rotate(${s.filtersOpen?180:0}deg);color:#9b978d;`,
+      stanfordNote:s.stanfordNote, onStanford:()=>this.setState({stanfordNote:true}),
+      showConnections:s.showConnections,
+      toggleConnections:()=>this.setState(st=>({showConnections:!st.showConnections})),
+      resultsPanel:panelOpen, reopenTab: (resultsPanel || !!egoPanel) && s.listCollapsed,
+      reopenLabel: egoPanel ? `Show matches (${egoPanel.total})` : `Show list (${results?results.total:0})`,
+      closeList:()=>this.setState({listCollapsed:true}),
+      openList:()=>this.setState({listCollapsed:false}),
+      results, sortBy:s.sortBy,
+      onSort:e=>this.setState({sortBy:e.target.value}),
+      statusLine,
+      ego, egoActive, egoPanel: (egoPanel && !s.listCollapsed) ? egoPanel : null, focus, namePrompt,
+      egoFocus, egoMapView, egoLayout:s.egoLayout,
+      egoHeaderSub: self?`${self.name}${self.ventureName?" · "+self.ventureName:""}`:"",
+      egoChipTitle: egoMapView?"Your neighborhood":"People you should talk to",
+      // filters/territories sidebar is a Browse tool; Student/Alumni views run without it
+      showSidebar: s.mode==="general",
+      egoToolbarLabel: egoMapView?`Map view · ${self?self.name:""} in the territories`:`Focus view · people ${self?self.name.split(" ")[0]:"you"} should talk to`,
+      egoViewHint: s.egoLayout==="map"?"Placed in their real sectors on the atlas":"Centered on you — clearest for who to meet",
+      mapJump: (s.selfId && s.showFullMap) ? (()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); })) : (()=>this.setState({showFullMap:true}, ()=>this.fitView(true))),
+      mapJumpLabel: (s.selfId && s.showFullMap) ? "◂ Back to my network" : "See the full map ◹",
+      seeFullMapStyle: (s.selfId && s.showFullMap)
+        ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;"
+        : "width:100%;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;",
+      setFocus:()=>this.setState({egoLayout:"focus"}),
+      setMapView:()=>this.setState({egoLayout:"map"}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
+      focusTabStyle:`font-size:11.5px;font-weight:600;white-space:nowrap;padding:6px 13px;border:none;cursor:pointer;${s.egoLayout!=="map"?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`,
+      mapTabStyle:`font-size:11.5px;font-weight:600;white-space:nowrap;padding:6px 13px;border:none;cursor:pointer;${s.egoLayout==="map"?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`,
+      namePromptKicker: s.mode==="alumni"?"Alumni view":"Student view",
+      stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};`,
+      dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
+      themeToggleLabel: dark?"☀ Light":"☾ Dark",
+      showHelpCard: !egoActive && !namePrompt && !(self && s.showFullMap),
+      helpOpen: s.helpOpen!==false,
+      helpToggleLabel: s.helpOpen!==false ? "Hide" : "How to read this map",
+      toggleHelp:()=>this.setState(st=>({helpOpen: st.helpOpen===false})),
+      atlasControls: !egoActive && !namePrompt,
+      showBackToEgo: !!self && s.showFullMap,
+      backToEgo:()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
+      exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
+      browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
+      searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
+      onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false}),
+      onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
+      onStatus:e=>this.setState({statusFilter:e.target.value, listCollapsed:false}),
+      clearSectors:e=>{ e.preventDefault(); this.setState({activeSectors:[], listCollapsed:false}); },
+      clearSectorsStyle: s.activeSectors.length?"color:#8C1515;":"color:#c8c4ba;pointer-events:none;",
+      // territories collapse into a dropdown — 20+ chips open by default crowds the sidebar
+      sectorMenuOpen: s.sectorMenuOpen,
+      toggleSectorMenu:()=>this.setState(st=>({sectorMenuOpen:!st.sectorMenuOpen})),
+      sectorSummary: (()=>{
+        const n=s.activeSectors.length;
+        if(!n) return "All territories";
+        if(n===1){ const x=s.sectors.find(y=>y.key===s.activeSectors[0]); return x?x.label:"1 selected"; }
+        return `${n} territories selected`;
+      })(),
+      sectorMenuButtonStyle:`display:flex;align-items:center;gap:6px;width:100%;padding:7px 9px;border:1px solid ${s.activeSectors.length?"#8C1515":"#e3e0d8"};border-radius:8px;font-size:12.5px;background:#fff;color:${s.activeSectors.length?"#8C1515":"#2e2d29"};font-weight:${s.activeSectors.length?"600":"400"};cursor:pointer;text-align:left;`,
+      sectorCaretStyle:`flex:none;font-size:10px;color:#9b978d;transform:rotate(${s.sectorMenuOpen?180:0}deg);transition:transform .15s;`,
+      stageRef:this.stageRef, worldRef:this.worldRef,
+      onWheel:e=>this.onWheel(e), onPanStart:e=>this.onPanStart(e),
+      zoomIn:()=>{ const r=this.stageRef.current.getBoundingClientRect(); this.zoomAt(r.width/2,r.height/2,1.25); },
+      zoomOut:()=>{ const r=this.stageRef.current.getBoundingClientRect(); this.zoomAt(r.width/2,r.height/2,1/1.25); },
+      fitView:()=>this.fitView(),
+      // self mode
+      selfMode, hasSelf:!!self, noSelf:!self,
+      selfName:self?self.name:"", selfVentureSuffix:self&&self.ventureName?` (${self.ventureName})`:"",
+      selfPromptTitle: s.mode==="alumni"?"See who you can help":"See who you should meet",
+      selfPromptSub: s.mode==="alumni"?"Sign in to light up your place on the map and get personalized intros to current students.":"Sign in to get your personalized map, ranked matches, and warm intros.",
+      selfPlaceholder: s.mode==="alumni"?"Start typing your name (alumni)…":"Start typing your name…",
+      selfQuery:s.selfQuery, selfSuggestions,
+      onSelfInput:e=>this.setState({selfQuery:e.target.value}),
+      clearSelf:e=>{ e.preventDefault(); this.setState({selfId:null, selfQuery:"", detailId:null}, ()=>this.fitView()); },
+      // detail
+      detail, closeDetail:()=>this.setState({detailId:null}),
+      // reach
+      reach, reachSubjRef:this.reachSubjRef, reachBodyRef:this.reachBodyRef,
+      closeReach:()=>this.setState({reachId:null}),
+      closeReachBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({reachId:null}); },
+      // catalog
+      catalog:s.catalogOpen, catalogEntries, catCount, catEmpty:catCount===0,
+      openCatalog:()=>this.setState({catalogOpen:true, catCopied:false}),
+      closeCatalog:()=>this.setState({catalogOpen:false}),
+      closeCatalogBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({catalogOpen:false}); },
+      copyCatalog:()=>{ const txt="My Ecopreneurship Network catalog\n\n"+catalogEntries.map(c=>`• ${c.name} — ${c.line} (${c.meta})`).join("\n"); this.copyText(txt,"catCopied"); },
+      catCopiedStyle:`font-size:12px;color:#2f5c28;${s.catCopied?"":"display:none;"}`,
+      catBadgeStyle:`display:inline-block;min-width:17px;text-align:center;background:#8C1515;color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;padding:1px 6px;`,
+      catModalBadgeStyle:`display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:24px;height:24px;padding:0 7px;background:#8C1515;color:#fff;border-radius:12px;font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1;`
+    };
+  }
+}
+</script>
+</body>
+</html>
