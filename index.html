@@ -227,47 +227,9 @@
       <sc-if value="{{ egoActive }}" hint-placeholder-val="{{ false }}">
         <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #ece8de;">
           <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
-          <div style="display:inline-flex;border:1px solid #e3e0d8;border-radius:999px;overflow:hidden;background:#fff;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.06);">
-            <button onClick="{{ setFocus }}" style="{{ focusTabStyle }}">Focus</button>
-            <button onClick="{{ setMapView }}" style="{{ mapTabStyle }}">Map</button>
-          </div>
           <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
           <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
           <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
-        </div>
-      </sc-if>
-
-      <sc-if value="{{ focus }}" hint-placeholder-val="{{ false }}">
-        <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#fcfbf8,#f1efe9);z-index:11;overflow:hidden;animation:atlasFade .25s ease;">
-          <div style="position:absolute;left:0;right:0;top:44px;z-index:9;text-align:center;padding:0 18px;pointer-events:none;">
-            <div style="font-family:Newsreader,serif;font-size:18px;font-weight:600;color:#2e2d29;">{{ focus.title }}</div>
-            <div style="font-size:11.5px;color:#8a857a;margin-top:2px;">{{ focus.subtitle }}</div>
-          </div>
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;">
-            <sc-for list="{{ focus.lines }}" as="l" hint-placeholder-count="6">
-              <line x1="50" y1="{{ focus.cy }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="{{ l.color }}" stroke-width="1.5" stroke-dasharray="{{ l.dash }}" stroke-opacity="0.4" vector-effect="non-scaling-stroke" />
-            </sc-for>
-          </svg>
-          <div style="{{ focus.selfStyle }}">
-            <div style="{{ focus.selfDotStyle }}">{{ focus.selfInitials }}</div>
-            <div style="font-family:Newsreader,serif;font-weight:600;font-size:15px;margin-top:8px;color:#2e2d29;line-height:1.15;">{{ focus.selfName }}</div>
-            <div style="font-size:10.5px;color:#8a857a;margin-top:2px;line-height:1.25;">{{ focus.selfMeta }}</div>
-          </div>
-          <sc-for list="{{ focus.people }}" as="p" hint-placeholder-count="6">
-            <div style="{{ p.posStyle }}">
-              <div onClick="{{ p.view }}" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-                <span style="{{ p.dotStyle }}"></span>
-                <div style="font-weight:700;font-size:12.5px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
-              </div>
-              <div style="font-size:10px;color:#3a3833;margin:3px 0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.venture }}</div>
-              <div style="font-size:10px;color:#8a857a;margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.meta }}</div>
-              <div style="{{ p.reasonStyle }}">{{ p.reason }}</div>
-              <div style="display:flex;gap:5px;margin-top:8px;">
-                <button onClick="{{ p.reach }}" style="flex:1;font-size:11.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:6px 0;cursor:pointer;">Reach out</button>
-                <button onClick="{{ p.save }}" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
-              </div>
-            </div>
-          </sc-for>
         </div>
       </sc-if>
 
@@ -415,10 +377,14 @@
         <sc-if value="{{ detail.hasContact }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Contact</div><div style="font-size:13px;"><a href="{{ detail.contactHref }}" style="color:#8C1515;font-weight:600;text-decoration:none;">{{ detail.contact }}</a></div></div>
         </sc-if>
+        <sc-if value="{{ detail.hasStage }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;">Stage</span><span style="font-size:12px;font-weight:600;color:#5a453a;background:#f3ede4;border:1px solid #e6dccd;border-radius:8px;padding:3px 10px;">{{ detail.stage }}</span></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasCustomer }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#6b3fa0;font-weight:700;margin-bottom:3px;">Building for</div><div style="font-size:13px;line-height:1.55;">{{ detail.customer }}</div></div>
+        </sc-if>
         <sc-if value="{{ detail.hasChallenge }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Challenge they're navigating</div><div style="font-size:13px;line-height:1.55;">{{ detail.challenge }}</div>
-            <sc-if value="{{ detail.hasWho }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#8a857a;margin-top:3px;">Who bears it: {{ detail.who }}</div></sc-if>
-          </div>
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:3px;">Stuck on</div><div style="font-size:13px;line-height:1.55;">{{ detail.challenge }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasApproaches }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:5px;">How they work</div>
@@ -427,11 +393,11 @@
             </div>
           </div>
         </sc-if>
-        <sc-if value="{{ detail.hasBrings }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">What they bring</div><div style="font-size:13px;line-height:1.55;">{{ detail.brings }}</div></div>
-        </sc-if>
         <sc-if value="{{ detail.hasSeeks }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Looking to learn</div><div style="font-size:13px;line-height:1.55;">{{ detail.seeks }}</div></div>
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:3px;">Needs most right now</div><div style="font-size:13px;line-height:1.55;">{{ detail.seeks }}</div></div>
+        </sc-if>
+        <sc-if value="{{ detail.hasBrings }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:3px;">Can help another founder with</div><div style="font-size:13px;line-height:1.55;">{{ detail.brings }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasTeammates }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#3b5bdb;font-weight:700;margin-bottom:6px;">Teammates</div>
@@ -495,6 +461,13 @@
             <sc-if value="{{ interview.isMulti }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex;flex-wrap:wrap;gap:7px;">
                 <sc-for list="{{ interview.approachOptions }}" as="o" hint-placeholder-count="6">
+                  <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ interview.isStage }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{ interview.stageOptions }}" as="o" hint-placeholder-count="5">
                   <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
                 </sc-for>
               </div>
@@ -646,15 +619,17 @@ class Component extends DCLogic {
     // knowledge someone brings that another is seeking. Scripted here; a real LLM plugs in at
     // askAgent() and the save plugs in at persistProfile() — see /api docs in the repo.
     this.INTERVIEW_STEPS = [
-      { key:"challenge", type:"long",  agent:"What's a real challenge you're navigating right now? Something live, not hypothetical.", ph:"e.g. getting utilities to trust a new sensor enough to fund a paid pilot" },
-      { key:"who",       type:"short", agent:"Who feels the consequences of that most?", ph:"e.g. rural clinics that keep losing power" },
-      { key:"approaches",type:"multi", agent:"How do you tend to work a problem like that? Pick any that fit. This is what finds people in other sectors who think like you." },
-      { key:"brings",    type:"long",  agent:"What do you know or bring that others in the room might not?", ph:"a hard-won lesson, a skill, access, a way of seeing it" },
-      { key:"seeks",     type:"long",  agent:"What are you trying to figure out, or find help with?", ph:"a question you're stuck on, an intro you need" },
+      { key:"challenge", type:"long",  agent:"What are you stuck on right now? The one thing blocking you most this month.", ph:"e.g. getting a utility to trust our sensor enough to fund a paid pilot" },
+      { key:"customer",  type:"short", agent:"Who are you building this for? Be specific about your first customer or user.", ph:"e.g. grid operators, or smallholder coffee farmers — not \"the climate\"" },
+      { key:"stage",     type:"stage", agent:"Where are you? Pick the stage that fits best today." },
+      { key:"approaches",type:"multi", agent:"How do you tend to work a problem? Pick any that fit. This is what finds people in other sectors who think like you." },
+      { key:"seeks",     type:"long",  agent:"What do you need most in the next month?", ph:"an intro, a pilot site, a hire, a specific piece of advice" },
+      { key:"brings",    type:"long",  agent:"What could you help another founder with?", ph:"a skill, access, or a lesson you learned the hard way" },
     ];
     this.APPROACHES = ["Hardware / physical product","Software / AI / data","Scientific R&D","Policy & advocacy","Finance & capital","Community & co-design","Go-to-market / scaling","Behavior change","Measurement & standards","Infrastructure & operations","Education & storytelling","Partnerships & coalitions"];
+    this.STAGES = ["Just an idea","Building a prototype","Running a pilot","Early customers / revenue","Raising a round"];
     // reason palette (why two people match) — deeper kinds get their own colors
-    this.REASON_COLOR = { team:"#3b5bdb", help:"#1c2f5e", give:"#3f6fa8", approach:"#0f766e", challenge:"#a15c00", sector:"#6f6c64", rel:"#9a968c", alum:"#8a6d3b" };
+    this.REASON_COLOR = { team:"#3b5bdb", customer:"#6b3fa0", help:"#1c2f5e", give:"#3f6fa8", approach:"#0f766e", challenge:"#a15c00", stage:"#8a6d3b", sector:"#6f6c64", rel:"#9a968c", alum:"#8a6d3b" };
   }
 
   norm(t){ return (t||"").trim().toLowerCase().replace(/\s+/g," "); }
@@ -898,13 +873,15 @@ class Component extends DCLogic {
   // fold a saved answer set onto a person object so the matching engine can read it
   mergeProfile(person, name, data){
     if(!data) return;
-    if(data.challenge) person.challenges=[{text:data.challenge, whoBears:data.who||""}];
+    if(data.challenge) person.challenges=[{text:data.challenge}];
+    if(data.customer!=null) person.customer=data.customer;   // who they're building for (first customer/user)
+    if(data.stage!=null) person.stage=data.stage;            // idea / prototype / pilot / revenue / raising
     if(data.approaches) person.approaches=data.approaches;
     if(data.brings!=null) person.brings=data.brings;
     if(data.seeks!=null) person.seeks=data.seeks;
     if(data.focus!=null) person.focus=data.focus;   // the profile blurb (project description)
     // "enriched" means the interview was taken — a blurb-only edit must not flip it
-    if(data.challenge||data.approaches||data.brings||data.seeks) person.enriched=true;
+    if(data.challenge||data.approaches||data.brings||data.seeks||data.customer||data.stage) person.enriched=true;
   }
   applySavedProfiles(nodes){
     const store=this.loadProfiles();
@@ -928,15 +905,15 @@ class Component extends DCLogic {
     const p=self.person||{};
     const answers={
       challenge:(p.challenges&&p.challenges[0]&&p.challenges[0].text)||"",
-      who:(p.challenges&&p.challenges[0]&&p.challenges[0].whoBears)||"",
+      customer:p.customer||"", stage:p.stage||"",
       approaches:(p.approaches||[]).slice(),
       brings:p.brings||"", seeks:p.seeks||"",
     };
     this.setState({ interview:{ idx:0, answers, welcome:!!welcome }, detailId:null });
   }
-  // how many of the 5 interview topics a person has filled in (drives the panel nudge)
+  // how many of the 6 interview topics a person has filled in (drives the panel nudge)
   profileFilled(person){ const p=person||{}; const c=p.challenges&&p.challenges[0]||{};
-    return [c.text, c.whoBears, (p.approaches||[]).length?"y":"", p.brings, p.seeks].filter(x=>x&&(""+x).trim()).length; }
+    return [c.text, p.customer, p.stage, (p.approaches||[]).length?"y":"", p.seeks, p.brings].filter(x=>x&&(""+x).trim()).length; }
   closeInterview(){ this.setState({interview:null}); }
 
   // ---------- edit-my-profile (the blurb / project description, not the interview) ----------
@@ -969,15 +946,20 @@ class Component extends DCLogic {
       set.has(label)?set.delete(label):set.add(label);
       return { interview:{...st.interview, answers:{...st.interview.answers, approaches:[...set]}} }; });
   }
+  selectStage(label){   // single-select
+    this.setState(st=>{ if(!st.interview) return null; const cur=st.interview.answers.stage;
+      return { interview:{...st.interview, answers:{...st.interview.answers, stage: cur===label?"":label}} }; });
+  }
   finishInterview(iv){
     const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self){ this.setState({interview:null}); return; }
     const before=new Set(this.egoData(self).map(c=>c.o.id));
     this.saveProfile(self.id, iv.answers);
     const after=this.egoData(self);
-    const fresh=after.filter(c=>!before.has(c.o.id) || c.rKind==="approach" || c.rKind==="challenge");
+    const deep=new Set(["customer","approach","challenge","stage"]);
+    const fresh=after.filter(c=>!before.has(c.o.id) || deep.has(c.rKind));
     const n=fresh.length;
     const flash = n>0
-      ? `Profile updated — ${n} new ${n===1?"person":"people"} surfaced from how you work and what you're navigating.`
+      ? `Profile updated — ${n} new ${n===1?"person":"people"} surfaced from your customer, stage, and how you work.`
       : `Profile updated. As more people add their answers, deeper matches will appear here.`;
     this.setState({ interview:null, flash });
     clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
@@ -1143,6 +1125,8 @@ class Component extends DCLogic {
     const myApp=new Set((self.person.approaches||[]).map(a=>this.norm(a)));
     const myChal=this.challengeKw(self.person);
     const myBring=this.keywords(self.person.brings), mySeek=this.keywords(self.person.seeks);
+    const myCust=this.keywords(self.person.customer);          // who they're building for
+    const mySIdx=(this.STAGES||[]).indexOf(self.person.stage); // their stage, for "a step ahead"
     return this.state.nodes.filter(o=>o.id!==self.id).map(o=>{
       const co = o.ventureName===self.ventureName && self.ventureName && !/^solo/i.test(o.ventureName);
       const shared = (o.tags||[]).filter(t=>myTags.includes(this.norm(t)));
@@ -1164,14 +1148,18 @@ class Component extends DCLogic {
       }
       const bringHelp = (mySeek.length && o.person.brings) ? this.keywords(o.person.brings).filter(w=>mySeek.includes(w)).sort((a,b)=>b.length-a.length) : []; // they know what you seek
       const giveHelp  = (myBring.length && o.person.seeks) ? this.keywords(o.person.seeks).filter(w=>myBring.includes(w)).sort((a,b)=>b.length-a.length) : [];  // you know what they seek
+      const custShared = (myCust.length && o.person.customer) ? this.keywords(o.person.customer).filter(w=>myCust.includes(w)).sort((a,b)=>b.length-a.length) : []; // same customer/user
+      const oSIdx = (this.STAGES||[]).indexOf(o.person.stage);
+      const oneAhead = mySIdx>=0 && oSIdx>=0 && oSIdx===mySIdx+1;   // they're one stage further along
       const crossSector = shared.length===0;   // a match with no shared sector is the surprising kind
-      const surprise = crossSector && (appShared.length||chalShared.length) ? 1 : 0;
+      const surprise = crossSector && (appShared.length||chalShared.length||custShared.length) ? 1 : 0;
       const score=(co?1000:0)+shared.length*10+helpKw.length*6+giveKw.length*4+sim*2
-        + appShared.length*8 + chalShared.length*5 + bringHelp.length*7 + giveHelp.length*5 + surprise*6;
+        + custShared.length*9 + appShared.length*8 + chalShared.length*5 + bringHelp.length*7 + giveHelp.length*5 + surprise*6 + (oneAhead?4:0);
       let reason,rColor,rKind;
       // priority: teammates, then the deeper cross-sector links (the point of the interview),
       // then ask/offer & knowledge exchange, then shared sector, then loose relation.
       if(co){ reason="Teammate · "+o.ventureName; rColor=RC.team; rKind="team"; }
+      else if(custShared.length){ reason="Both building for "+custShared[0]; rColor=RC.customer; rKind="customer"; }
       else if(appShared.length && crossSector){ reason="You both work through "+appShared[0].toLowerCase(); rColor=RC.approach; rKind="approach"; }
       else if(chalShared.length && crossSector){ reason="Both wrestling with "+chalShared[0]; rColor=RC.challenge; rKind="challenge"; }
       else if(helpKw.length){ reason="Can help you with "+helpKw[0]; rColor=RC.help; rKind="help"; }
@@ -1181,6 +1169,7 @@ class Component extends DCLogic {
       else if(shared.length){ reason="Both working in "+shared[0]; rColor=RC.sector; rKind="sector"; }
       else if(giveKw.length){ reason="You can help with "+giveKw[0]; rColor=RC.give; rKind="give"; }
       else if(giveHelp.length){ reason="You know "+giveHelp[0]+", which they're after"; rColor=RC.give; rKind="give"; }
+      else if(oneAhead){ reason="A step ahead of you"; rColor=RC.stage; rKind="stage"; }
       else { reason="Related work"; rColor=RC.rel; rKind="rel"; }
       return { o, score, reason, rColor, rKind, hk:helpKw, gk:giveKw, shared, surprise };
     }).filter(c=>c.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
@@ -1344,8 +1333,8 @@ class Component extends DCLogic {
 
     // self ego network — lines derive from the same ranked matches shown in the panel
     const egoActive = !!self && !s.showFullMap;
-    const egoMapView = egoActive && s.egoLayout==="map";
-    const egoFocus = egoActive && s.egoLayout!=="map";
+    const egoMapView = egoActive;   // Map is the only ego view now (Focus view retired)
+    const egoFocus = false;
     const egoCands = self ? this.egoData(self) : null;
     // people-first: students and their connections are the map at every zoom (sectors only appear when clicked)
     const zoomedIn = zoom >= 0.58;
@@ -1404,10 +1393,12 @@ class Component extends DCLogic {
     const egoLabelText=c=>{
       const selfTags0=self?(self.tags||[]).map(t=>this.norm(t)):[];
       if(c.rKind==="team") return "Teammate";
+      if(c.rKind==="customer") return "Same customer";
       if(c.rKind==="approach") return "Same approach";
       if(c.rKind==="challenge") return "Same challenge";
       if(c.rKind==="help") return "Can help you";
       if(c.rKind==="give") return "You can help";
+      if(c.rKind==="stage") return "A step ahead";
       if(c.rKind==="sector") return c.o.tags.find(t=>selfTags0.includes(this.norm(t)))||"Shared sector";
       return "Related";
     };
@@ -1446,7 +1437,7 @@ class Component extends DCLogic {
       const give=egoCands.filter(c=>c.rKind==="give" && !isAlum(c)).map(mkEgoRow);
       // everyone else worth meeting — same approach, same challenge, shared sector, teammates —
       // in one "Connections" list (each card's reason chip still says why they matched)
-      const shared=egoCands.filter(c=>(c.rKind==="approach"||c.rKind==="challenge"||c.rKind==="team"||c.rKind==="sector"||c.rKind==="rel") && !isAlum(c)).map(mkEgoRow);
+      const shared=egoCands.filter(c=>(c.rKind==="customer"||c.rKind==="approach"||c.rKind==="challenge"||c.rKind==="stage"||c.rKind==="team"||c.rKind==="sector"||c.rKind==="rel") && !isAlum(c)).map(mkEgoRow);
       // alumni get their own section: any alumni already in the ranked matches, topped up
       // with the most relevant other alumni (shared sectors, or their work touches your asks)
       // reason wording for alumni: name the concrete link between THIS student and
@@ -1494,37 +1485,6 @@ class Component extends DCLogic {
           ? `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#0f766e;background:#fff;border:1px solid #bfe0d9;border-radius:8px;padding:7px 12px;cursor:pointer;`
           : `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(15,118,110,.25);`,
         onEnrich:()=>this.openInterview() };
-    } else if(egoFocus){
-      const kinds=["approach","challenge","help","sector","team","rel","give"];
-      const ordered=[]; kinds.forEach(k=>egoCands.filter(c=>c.rKind===k).forEach(c=>ordered.push(c)));
-      const n=ordered.length||1, rx=(n<=4?30:39), ry=(n<=4?30:34), cy=57;
-      const pos=i=>{ const a=(-90 + 180/n + i*360/n)*Math.PI/180; return { x:50+rx*Math.cos(a), y:cy+ry*Math.sin(a) }; };
-      const people=ordered.map((c,i)=>{
-        const {x,y}=pos(i), o=c.o, alum=o.status==="alum", base=personFill(o,false), saved=!!s.bookmarks[this.norm(o.name)];
-        return { id:o.id, name:o.name, venture:o.ventureName||"—",
-          meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
-          reason:c.reason,
-          reasonStyle:`display:block;font-size:10px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:7px;padding:3px 7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
-          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
-          posStyle:`position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);width:152px;background:#fffefb;border:1px solid #e6e2d9;border-radius:11px;box-shadow:0 10px 26px rgba(40,36,28,.16);padding:10px;z-index:4;`,
-          reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); },
-          view:()=>this.setState({detailId:o.id}),
-          save:(e)=>{ e.stopPropagation(); this.toggleBookmark(o.id); }, saveIcon:saved?"★":"☆",
-          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:8px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e3e0d8"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
-      });
-      const lines=ordered.map((c,i)=>{ const {x,y}=pos(i); return { key:"fl"+i, x2:x, y2:y, color:c.rColor, dash:(c.rKind==="help"||c.rKind==="give")?"4 3":"" }; });
-      const lineLabels=ordered.map((c,i)=>{ const {x,y}=pos(i); const dx=x-50, dy=y-cy, len=Math.hypot(dx,dy)||1, off=4.5;
-        const lx=50+dx*0.5+(-dy/len)*off, ly=cy+dy*0.5+(dx/len)*off;
-        return { key:"fll"+i, text:egoLabelText(c), style:`position:absolute;left:${lx}%;top:${ly}%;transform:translate(-50%,-50%);font-size:9.5px;font-weight:600;color:${c.rColor};background:rgba(250,249,246,.96);border:1px solid ${c.rColor}44;padding:1px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:6;` };
-      });
-      const initials=self.name.split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-      focus={ cy,
-        title:`People you should talk to, ${self.name.split(" ")[0]}`,
-        subtitle: ordered.length?`${ordered.length} strongest matches · closest first, grouped by why`:"No strong matches yet — add to your asks & offers",
-        selfStyle:`position:absolute;left:50%;top:${cy}%;transform:translate(-50%,-50%);width:168px;text-align:center;z-index:8;pointer-events:none;background:#fffefb;border:1px solid #e6e2d9;border-radius:15px;padding:14px 12px 13px;box-shadow:0 8px 26px rgba(40,36,28,.15);`,
-        selfDotStyle:`width:52px;height:52px;border-radius:50%;background:${personFill(self,false)};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:3px solid #fffefb;animation:atlasPulse 2s ease-out infinite;margin:0 auto;`,
-        selfInitials:initials, selfName:self.name, selfMeta:self.ventureName||"",
-        people, lines, lineLabels };
     }
 
     const audiences=[["general","Browse"],["student","Student"]].map(([m,label])=>({
@@ -1763,7 +1723,9 @@ class Component extends DCLogic {
         isSelf:isSelfDetail, notSelf:!isSelfDetail,
         selfBadge: isSelfDetail ? "This is your profile" : "",
         editProfile:()=>this.openProfileEdit(),
-        hasChallenge:!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"", hasWho:!!(ch0.whoBears&&ch0.whoBears.trim()), who:ch0.whoBears||"",
+        hasChallenge:!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"",
+        hasCustomer:!!(p.customer&&p.customer.trim()), customer:p.customer||"",
+        hasStage:!!(p.stage&&p.stage.trim()), stage:p.stage||"",
         hasApproaches:(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
         hasBrings:!!(p.brings&&p.brings.trim()), brings:p.brings||"",
         hasSeeks:!!(p.seeks&&p.seeks.trim()), seeks:p.seeks||"",
@@ -1837,7 +1799,7 @@ class Component extends DCLogic {
     let interview=null;
     if(s.interview){
       const iv=s.interview, steps=this.INTERVIEW_STEPS, step=steps[iv.idx], a=iv.answers;
-      const label={ challenge:"Challenge", who:"Who it affects", approaches:"How you work", brings:"What you bring", seeks:"What you're after" };
+      const label={ challenge:"Stuck on", customer:"Building for", stage:"Stage", approaches:"How you work", seeks:"Need", brings:"Can help with" };
       const transcript=[];
       for(let i=0;i<iv.idx;i++){ const st0=steps[i], key=st0.key;
         let val = key==="approaches" ? (a.approaches||[]).join(" · ") : (a[key]||"");
@@ -1846,20 +1808,24 @@ class Component extends DCLogic {
       const approachOptions = this.APPROACHES.map(lbl=>{ const on=(a.approaches||[]).includes(lbl);
         return { label:lbl, onClick:()=>this.toggleApproach(lbl),
           style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?"#0f766e":"#e3e0d8"};background:${on?"#0f766e":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
+      const stageOptions = this.STAGES.map(lbl=>{ const on=a.stage===lbl;
+        return { label:lbl, onClick:()=>this.selectStage(lbl),
+          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12.5px;border:1px solid ${on?"#8C1515":"#e3e0d8"};background:${on?"#8C1515":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:10px;padding:9px 14px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
       interview={
         welcome: !!iv.welcome,
-        welcomeText: self ? `Welcome, ${self.name.split(" ")[0]}. A few quick questions and the map will find people you'd never bump into otherwise: people with different projects who work the way you do. Skip anything, edit later.` : "",
+        welcomeText: self ? `Welcome, ${self.name.split(" ")[0]}. A few quick questions and the map will find people you'd never bump into otherwise: people building for the same customer, working the way you do, or a step ahead of you. Skip anything, edit later.` : "",
         kicker: self ? `Profile · ${self.name.split(" ")[0]}` : "Profile",
         progress:`${iv.idx+1} of ${steps.length}`,
         agent: step.agent,
         stepKey: step.key,
         isMulti: step.type==="multi",
+        isStage: step.type==="stage",
         isLong: step.type==="long",
         isShort: step.type==="short",
         placeholder: step.ph||"",
         currentValue: (step.type==="long"||step.type==="short") ? (a[step.key]||"") : "",
         onType:(e)=>this.interviewType(e.target.value),
-        approachOptions,
+        approachOptions, stageOptions,
         transcript,
         canBack: iv.idx>0,
         backStyle:`font-size:12.5px;font-weight:600;color:${iv.idx>0?"#6b6a65":"#c9c6be"};background:none;border:none;cursor:${iv.idx>0?"pointer":"default"};`,
@@ -1900,17 +1866,12 @@ class Component extends DCLogic {
       egoChipTitle: egoMapView?"Your neighborhood":"People you should talk to",
       // filters/territories sidebar is a Browse tool; Student/Alumni views run without it
       showSidebar: s.mode==="general",
-      egoToolbarLabel: egoMapView?`Map view · ${self?self.name:""} in the territories`:`Focus view · people ${self?self.name.split(" ")[0]:"you"} should talk to`,
-      egoViewHint: s.egoLayout==="map"?"Placed in their real sectors on the atlas":"Centered on you — clearest for who to meet",
+      egoToolbarLabel: `${self?self.name:""}${self&&self.ventureName?" · "+self.ventureName:""} — your network`,
       mapJump: (s.selfId && s.showFullMap) ? (()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); })) : (()=>this.setState({showFullMap:true}, ()=>this.fitView(true))),
       mapJumpLabel: (s.selfId && s.showFullMap) ? "◂ Back to my network" : "See the full map ◹",
       seeFullMapStyle: (s.selfId && s.showFullMap)
         ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;"
         : "width:100%;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;",
-      setFocus:()=>this.setState({egoLayout:"focus"}),
-      setMapView:()=>this.setState({egoLayout:"map"}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
-      focusTabStyle:`font-size:11.5px;font-weight:600;white-space:nowrap;padding:6px 13px;border:none;cursor:pointer;${s.egoLayout!=="map"?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`,
-      mapTabStyle:`font-size:11.5px;font-weight:600;white-space:nowrap;padding:6px 13px;border:none;cursor:pointer;${s.egoLayout==="map"?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`,
       namePromptKicker: s.mode==="alumni"?"Alumni view":"Student view",
       stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};`,
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
