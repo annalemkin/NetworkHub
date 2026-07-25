@@ -84,7 +84,8 @@
           </sc-for>
         </div>
         <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-          <option value="">Anything</option>
+          <option value="">See asks &amp; offers</option>
+          <option value="__all__">{{ exchangeAllLabel }}</option>
           <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
             <option value="{{ i.value }}">{{ i.label }}</option>
           </sc-for>
@@ -1438,7 +1439,8 @@ class Component extends DCLogic {
   hasExchange(node, item, dir){
     if(!item) return true;
     const side = (dir||this.state.exchangeDir)==="need" ? this.needsOf(node.person) : this.offersOf(node.person);
-    return side.tags.includes(item);
+    // "All" = anyone with something on this side, rather than one specific item
+    return item==="__all__" ? side.tags.length>0 : side.tags.includes(item);
   }
   matches(node){
     return this.matchesBase(node) && this.hasExchange(node, this.state.exchangeFilter);
@@ -2004,8 +2006,11 @@ class Component extends DCLogic {
       let countLine, subLine;
       if(s.activeSectors.length){ countLine=`${n} ${ppl} in ${selLabels.join(" + ")}`; subLine = spanCount?`${spanCount} span all ${s.activeSectors.length} · click a name to find them on the map`:(s.searchQuery?`matching “${s.searchQuery}” · click a name to find them on the map`:"Click a name to find them on the map"); }
       else if(s.searchQuery){ countLine=`${n} ${ppl} matching “${s.searchQuery}”`; subLine="Click a name to find them on the map"; }
-      else { countLine=`${n} ${ppl} ${s.exchangeDir==="need"?"looking for":"offering"} ${s.exchangeFilter.replace(/^Intros: /,"intros: ")}`;
-        subLine = s.exchangeDir==="need" ? "People you could help — click a name to find them on the map" : "Click a name to find them on the map"; }
+      else { const askSide=s.exchangeDir==="need";
+        countLine = s.exchangeFilter==="__all__"
+          ? `${n} ${ppl} with ${askSide?"an ask":"an offer"}`
+          : `${n} ${ppl} ${askSide?"looking for":"offering"} ${s.exchangeFilter.replace(/^Intros: /,"intros: ")}`;
+        subLine = askSide ? "People you could help — click a name to find them on the map" : "Click a name to find them on the map"; }
       results={ countLine, subLine, groups, total:n };
     }
 
@@ -2023,7 +2028,7 @@ class Component extends DCLogic {
       detail={
         name:n.name,
         isSelf:isSelfDetail, notSelf:!isSelfDetail,
-        selfBadge: isSelfDetail ? "This is your profile" : "",
+        selfBadge: isSelfDetail ? "Your profile" : "",
         editProfile:()=>this.openProfileEdit(),
         editExchange:()=>this.openExchangeEdit(),
         // interview answers are the signed-in experience — never shown on the public Browse view
@@ -2235,15 +2240,21 @@ class Component extends DCLogic {
       exchangeItems: (()=>{ const c=this.exchangeCounts();
         return this.EXCHANGE.filter(v=>c[v]>0 || v===s.exchangeFilter)
           .map(v=>({ value:v, label:`${v} (${c[v]||0})` })); })(),
+      exchangeAllLabel: (()=>{ let n=0;
+        s.nodes.forEach(x=>{ if(!this.matchesBase(x)) return;
+          const side = s.exchangeDir==="need" ? this.needsOf(x.person) : this.offersOf(x.person);
+          if(side.tags.length) n++; });
+        return `All ${s.exchangeDir==="need"?"asks":"offers"} (${n})`; })(),
       exchangeDirs: [{k:"offer",label:"Offering"},{k:"need",label:"Looking for"}].map(d=>{ const on=s.exchangeDir===d.k;
         return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, listCollapsed:false}),
           style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?"#8C1515":"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
       onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, listCollapsed:false}),
       clearExchange:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({exchangeFilter:"", detailId:null, listCollapsed:false}); },
       clearExchangeStyle: s.exchangeFilter ? "color:#8C1515;" : "color:#c9c6be;pointer-events:none;",
-      exchangeHint: s.exchangeFilter
-        ? (s.exchangeDir==="need" ? `People who need this — check whether you can help.` : `People offering this — the ones worth an intro.`)
-        : "",
+      exchangeHint: !s.exchangeFilter ? ""
+        : s.exchangeFilter==="__all__"
+          ? (s.exchangeDir==="need" ? "Everyone with an ask on the board." : "Everyone offering something.")
+          : (s.exchangeDir==="need" ? "People who need this — check whether you can help." : "People offering this — the ones worth an intro."),
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
       onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false}),
       onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
