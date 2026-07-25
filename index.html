@@ -215,9 +215,9 @@
       </sc-if>
 
       <sc-if value="{{ showHelpCard }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;left:16px;top:14px;background:rgba(255,254,251,.93);backdrop-filter:blur(4px);border:1px solid #e3e0d8;border-radius:11px;padding:11px 13px;max-width:292px;box-shadow:0 3px 12px rgba(0,0,0,.06);">
-          <div style="display:flex;align-items:baseline;gap:8px;">
-            <b style="color:#2e2d29;flex:1;font-size:12.5px;">{{ overviewLine }}</b>
+        <div style="{{ helpCardStyle }}">
+          <div style="display:flex;align-items:baseline;gap:14px;">
+            <b style="{{ overviewLineStyle }}">{{ overviewLine }}</b>
             <button onClick="{{ toggleHelp }}" style="flex:none;background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8C1515;cursor:pointer;white-space:nowrap;">{{ helpToggleLabel }}</button>
           </div>
           <sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ false }}">
@@ -2222,6 +2222,11 @@ class Component extends DCLogic {
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
       themeToggleLabel: dark?"☀ Light":"☾ Dark",
       showHelpCard: !egoActive && !namePrompt && !(self && s.showFullMap),
+      // Collapsed, the card is one line and gets the width to say it without wrapping;
+      // expanded, it narrows back to a comfortable reading measure for the bullets.
+      // min() keeps it inside the stage on small screens rather than overflowing.
+      helpCardStyle:`position:absolute;left:16px;top:14px;background:rgba(255,254,251,.93);backdrop-filter:blur(4px);border:1px solid #e3e0d8;border-radius:11px;padding:11px 14px;max-width:min(${s.helpOpen?"320px":"460px"}, calc(100% - 32px));box-shadow:0 3px 12px rgba(0,0,0,.06);`,
+      overviewLineStyle:`color:#2e2d29;flex:1;min-width:0;font-size:12.5px;line-height:1.35;${s.helpOpen?"":"white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"}`,
       // collapsed by default too: the count line is the useful part, the legend is on demand
       helpOpen: !!s.helpOpen,
       helpToggleLabel: s.helpOpen ? "Hide" : "How to read this map",
