@@ -289,13 +289,12 @@
             <button onClick="{{ closeList }}" title="Collapse list" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
           <div style="font-size:11.5px;color:#6b6a65;margin-top:3px;line-height:1.35;">{{ results.subLine }}</div>
-          <div style="display:flex;align-items:center;gap:7px;margin-top:11px;">
-            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#9b978d;font-weight:700;">Sort</span>
-            <select value="{{ sortBy }}" onChange="{{ onSort }}" style="flex:1;padding:6px 7px;border:1px solid #e3e0d8;border-radius:8px;font-size:12px;background:#fff;">
-              <option value="match">Best match</option>
-              <option value="name">Name (A–Z)</option>
-              <option value="year">Year (newest)</option>
-            </select>
+          <div style="position:relative;margin-top:11px;">
+            <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:#9b978d;pointer-events:none;">⌕</span>
+            <input type="text" value="{{ resultsQuery }}" onInput="{{ onResultsSearch }}" placeholder="{{ resultsSearchPlaceholder }}" style="width:100%;padding:6px 26px 6px 24px;border:1px solid #e3e0d8;border-radius:8px;font-size:12px;background:#fff;outline:none;" />
+            <sc-if value="{{ resultsQuery }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ clearResultsSearch }}" title="Clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:14px;line-height:1;color:#9b978d;cursor:pointer;padding:2px 4px;">×</button>
+            </sc-if>
           </div>
         </div>
         <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
@@ -668,7 +667,7 @@ class Component extends DCLogic {
     this.state = {
       loading:true, people:[], sectors:[], nodes:[], clusters:[], world:{w:1600,h:1000},
       hoverId:null, detailId:null, mode:(props.defaultMode||"general"), selfId:null, selfQuery:"",
-      searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], sortBy:"match", sectorMenuOpen:false,
+      searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], sortBy:"match", sectorMenuOpen:false, resultsQuery:"",
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
@@ -1421,7 +1420,7 @@ class Component extends DCLogic {
   // toggle a sector filter — its members light up in the sector color, everyone else dims
   toggleSector(key){
     const set=new Set(this.state.activeSectors); set.has(key)?set.delete(key):set.add(key);
-    this.setState({activeSectors:[...set], detailId:null, listCollapsed:false});
+    this.setState({activeSectors:[...set], detailId:null, listCollapsed:false, resultsQuery:""});
   }
 
   // ---------- filters ----------
@@ -1932,7 +1931,14 @@ class Component extends DCLogic {
     const panelOpen = resultsPanel && !s.listCollapsed;
     let results=null;
     if(resultsPanel){
-      const matched=[...matchedIds].map(id=>this.byId[id]).filter(Boolean);
+      // the panel's own search narrows the list in place; the map keeps showing the full
+      // result set, so this reads as "find someone in here", not another filter
+      const rq=(s.resultsQuery||"").trim().toLowerCase();
+      const matched=[...matchedIds].map(id=>this.byId[id]).filter(Boolean).filter(o=>{
+        if(!rq) return true;
+        const hay=[o.name,o.ventureName,...(o.tags||[]),o.person.focus||"",o.person.asks||"",o.person.offers||""].join(" ").toLowerCase();
+        return rq.split(/\s+/).every(t=>hay.includes(t));
+      });
       const yearNum=o=>{ const m=(""+(o.person.year||"")).match(/\d{4}/); return m?+m[0]:0; };
       // "Best match" = how squarely someone sits in what you asked for: how many of the
       // selected territories they cover (and how much of their work those account for),
@@ -2174,6 +2180,10 @@ class Component extends DCLogic {
       openList:()=>this.setState({listCollapsed:false}),
       results, sortBy:s.sortBy,
       onSort:e=>this.setState({sortBy:e.target.value}),
+      resultsQuery: s.resultsQuery||"",
+      resultsSearchPlaceholder: "Search this list…",
+      onResultsSearch:e=>this.setState({resultsQuery:e.target.value}),
+      clearResultsSearch:()=>this.setState({resultsQuery:""}),
       statusLine,
       ego, egoActive, egoPanel: (egoPanel && !s.listCollapsed) ? egoPanel : null, focus, namePrompt,
       egoFocus, egoMapView, egoLayout:s.egoLayout,
@@ -2246,17 +2256,17 @@ class Component extends DCLogic {
           if(side.tags.length) n++; });
         return `All ${s.exchangeDir==="need"?"asks":"offers"} (${n})`; })(),
       exchangeDirs: [{k:"offer",label:"Offering"},{k:"need",label:"Looking for"}].map(d=>{ const on=s.exchangeDir===d.k;
-        return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, listCollapsed:false}),
+        return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, listCollapsed:false, resultsQuery:""}),
           style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?"#8C1515":"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
-      onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, listCollapsed:false}),
-      clearExchange:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({exchangeFilter:"", detailId:null, listCollapsed:false}); },
+      onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, listCollapsed:false, resultsQuery:""}),
+      clearExchange:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({exchangeFilter:"", detailId:null, listCollapsed:false, resultsQuery:""}); },
       clearExchangeStyle: s.exchangeFilter ? "color:#8C1515;" : "color:#c9c6be;pointer-events:none;",
       exchangeHint: !s.exchangeFilter ? ""
         : s.exchangeFilter==="__all__"
           ? (s.exchangeDir==="need" ? "Everyone with an ask on the board." : "Everyone offering something.")
           : (s.exchangeDir==="need" ? "People who need this — check whether you can help." : "People offering this — the ones worth an intro."),
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
-      onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false}),
+      onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false, resultsQuery:""}),
       onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
       onStatus:e=>this.setState({statusFilter:e.target.value, listCollapsed:false}),
       clearSectors:e=>{ e.preventDefault(); this.setState({activeSectors:[], listCollapsed:false}); },
