@@ -175,6 +175,9 @@
               <div style="{{ l.style }}">{{ l.text }}</div>
             </sc-for>
             <div style="{{ ego.selfMarkerStyle }}">{{ ego.marker }}</div>
+            <sc-if value="{{ ego.hasExplore }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ ego.exploreMarkerStyle }}">{{ ego.exploreMarker }}</div>
+            </sc-if>
           </sc-if>
 
         </div>
@@ -197,7 +200,6 @@
                 </sc-for>
               </div>
               <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-                <option value="">See asks &amp; offers</option>
                 <option value="__all__">{{ exchangeAllLabel }}</option>
                 <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
                   <option value="{{ i.value }}">{{ i.label }}</option>
@@ -270,6 +272,9 @@
         <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #ece8de;">
           <input type="text" value="{{ egoSearchVal }}" onInput="{{ onEgoSearch }}" placeholder="Find anyone…" style="flex:none;width:150px;padding:6px 11px;border:1px solid #e3e0d8;border-radius:999px;font-size:12px;background:#fff;" />
           <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
+          <sc-if value="{{ exploring }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ backToMyNetwork }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">◂ Back to my network</button>
+          </sc-if>
           <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
           <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
           <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
@@ -693,6 +698,8 @@ class Component extends DCLogic {
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
       exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{}, exchangePanelOpen:false,
+      exploreId:null,   // in Student view: whose network you've clicked into (null = your own)
+      pinId:null,       // in Browse: whose network stays lit after their profile is closed
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -1266,7 +1273,12 @@ class Component extends DCLogic {
   fitView(animate){ const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect(); const {w,h}=this.state.world; const s=Math.min(r.width/w, r.height/h)*0.94; this.view.scale=s; this.view.tx=(r.width-w*s)/2; this.view.ty=(r.height-h*s)/2; this.applyView(animate); this.setState({zoom:s}); }
   zoomAt(cx,cy,factor){ const v=this.view; const ns=Math.max(0.12,Math.min(3.4,v.scale*factor)); const k=ns/v.scale; v.tx=cx-(cx-v.tx)*k; v.ty=cy-(cy-v.ty)*k; v.scale=ns; this.applyView(); if(Math.abs(ns-(this.state.zoom||1))>0.02) this.setState({zoom:ns}); }
   onWheel(e){ e.preventDefault(); const st=this.stageRef.current.getBoundingClientRect(); this.zoomAt(e.clientX-st.left, e.clientY-st.top, e.deltaY<0?1.12:1/1.12); }
-  onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up); if(!moved && this.state.mode==="general" && this.state.detailId) this.setState({detailId:null, hoverId:null}); }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
+  onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
+    // empty-space click, two steps: first closes the profile (network stays pinned), second clears the pin
+    if(!moved && this.state.mode==="general"){
+      if(this.state.detailId) this.setState({detailId:null, hoverId:null});
+      else if(this.state.pinId) this.setState({pinId:null, hoverId:null});
+    } }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
 
   selectSelf(id){
     this.setState({ selfId:id, selfQuery:"", detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
@@ -1294,7 +1306,10 @@ class Component extends DCLogic {
     // in Student view the matches panel already occupies the right edge; collapse it so the
     // detail panel has room instead of overlapping it (the "Show matches" tab brings it back).
     const collapse = this.state.mode!=="general" ? { listCollapsed:true } : {};
-    this.setState({ detailId:id, hoverId:id, zoom:this.view.scale, ...collapse });
+    // in Student view, opening someone also walks into their network (opening yourself returns home)
+    const st0=this.state, inEgo = st0.mode!=="general" && st0.selfId && !st0.showFullMap;
+    const explore = inEgo ? { exploreId: (id===st0.selfId ? null : id) } : {};
+    this.setState({ detailId:id, hoverId:id, zoom:this.view.scale, ...collapse, ...explore });
   }
 
   // keywords describing what a person is navigating (their challenges + project focus).
@@ -1440,7 +1455,7 @@ class Component extends DCLogic {
   // toggle a sector filter — its members light up in the sector color, everyone else dims
   toggleSector(key){
     const set=new Set(this.state.activeSectors); set.has(key)?set.delete(key):set.add(key);
-    this.setState({activeSectors:[...set], detailId:null, listCollapsed:false, resultsQuery:""});
+    this.setState({activeSectors:[...set], detailId:null, pinId:null, listCollapsed:false, resultsQuery:""});
   }
 
   // ---------- filters ----------
@@ -1634,23 +1649,44 @@ class Component extends DCLogic {
     const zoomedIn = zoom >= 0.58;
     const showDots = true;
     const kindColor={ team:"#33312c", recip:"#33312c", desc:"#33312c", sector:"#33312c" };
+    // Student view: clicking a connection walks into THEIR network. Your own web stays on
+    // screen but recedes, so you can see how the two relate instead of losing your place.
+    const explore = (self && !s.showFullMap && s.exploreId && s.exploreId!==self.id) ? this.byId[s.exploreId] : null;
+    const exploreCands = explore ? this.egoData(explore) : null;
     let highlight=null, links=[], reciprocitySet=new Set();
     if(self){
       highlight=new Set([self.id]);
       egoCands.forEach(c=>{
         highlight.add(c.o.id);
         if(c.rKind==="help"||c.rKind==="give"||c.rKind==="mutual") reciprocitySet.add(c.o.id);
+        // hovering a connection thickens just that one line — no web, that's what clicking is for
+        const hov = s.hoverId===c.o.id;
+        const base = c.rKind==="team"?3.2:(c.rKind==="mutual"?3.4:2.2);
         // two-way matches read strongest on the map: thickest line, in the reciprocity colour
-        links.push({ key:"eg-"+c.o.id, x1:self.x,y1:self.y,x2:c.o.x,y2:c.o.y, color:c.rColor,
-          w:c.rKind==="team"?3.2:(c.rKind==="mutual"?3.4:2.2), dash:(c.rKind==="help"||c.rKind==="give")?"6 4":"" });
+        links.push({ key:"eg-"+c.o.id, x1:self.x,y1:self.y,x2:c.o.x,y2:c.o.y,
+          color: explore ? c.rColor+"2b" : c.rColor,     // yours recedes while you're in theirs
+          w: explore ? 1.4 : (hov ? base+1.6 : base), dash:(c.rKind==="help"||c.rKind==="give")?"6 4":"" });
+      });
+    }
+    if(explore && exploreCands){
+      highlight.add(explore.id);
+      exploreCands.forEach(c=>{
+        highlight.add(c.o.id);
+        const hov = s.hoverId===c.o.id;
+        const base = c.rKind==="team"?3.2:(c.rKind==="mutual"?3.4:2.2);
+        links.push({ key:"ex-"+c.o.id, x1:explore.x,y1:explore.y,x2:c.o.x,y2:c.o.y, color:c.rColor,
+          w: hov ? base+1.6 : base, dash:(c.rKind==="help"||c.rKind==="give")?"6 4":"" });
       });
     }
     const hoverNode = (s.hoverId && (!self || s.hoverId!==self.id)) ? this.byId[s.hoverId] : null;
-    // in browse, clicking a person pins their network highlighted (until you click elsewhere);
-    // hovering someone else still previews their network on top of the pin
-    const pinnedNode = (s.mode==="general" && s.detailId) ? this.byId[s.detailId] : null;
+    // in browse, clicking a person pins their network highlighted. The pin outlives the
+    // profile card: closing the card (× or a click on empty space) keeps the network lit,
+    // and a second empty-space click — or a filter change — clears it.
+    const pinnedNode = (s.mode==="general" && (s.detailId||s.pinId)) ? this.byId[s.detailId||s.pinId] : null;
     const activeNode = hoverNode || pinnedNode;
-    if(activeNode){
+    // Browse only: hovering fans out someone's neighbours. In Student view hover just
+    // emphasises the one person — walking into a network is a deliberate click.
+    if(activeNode && s.mode==="general"){
       if(!highlight) highlight=new Set();
       highlight.add(activeNode.id);
       this.neighbors(activeNode,7).forEach(r=>{ highlight.add(r.o.id); const col=kindColor[r.kind]||"#8C1515"; links.push({ key:"h-"+activeNode.id+"-"+r.o.id, x1:activeNode.x,y1:activeNode.y,x2:r.o.x,y2:r.o.y, color:col, w:1.8, dash:r.kind==="recip"?"1.8 4":"" }); });
@@ -1701,15 +1737,26 @@ class Component extends DCLogic {
     if(egoMapView){
       const zc=zoom;
       const labelText=egoLabelText;
-      const linkLabels=egoCands.map(c=>{
-        const dx=c.o.x-self.x, dy=c.o.y-self.y, len=Math.hypot(dx,dy)||1, off=16;
-        const mx=self.x+dx*0.56 + (-dy/len)*off, my=self.y+dy*0.56 + (dx/len)*off;
+      // while exploring someone else, label THEIR links — yours are receded, and stacking both
+      // sets of pills on one map is unreadable
+      const labelAnchor = explore || self;
+      const labelSource = (explore && exploreCands) ? exploreCands : egoCands;
+      const linkLabels=labelSource.map(c=>{
+        const dx=c.o.x-labelAnchor.x, dy=c.o.y-labelAnchor.y, len=Math.hypot(dx,dy)||1, off=16;
+        const mx=labelAnchor.x+dx*0.56 + (-dy/len)*off, my=labelAnchor.y+dy*0.56 + (dx/len)*off;
         return { key:"ll-"+c.o.id, text:labelText(c),
           style:`position:absolute;left:${mx}px;top:${my}px;transform:translate(-50%,-50%) scale(${1/zc});transform-origin:center;font-size:10px;font-weight:600;color:${c.rColor};background:rgba(250,249,246,.95);border:1px solid ${c.rColor}55;padding:2px 7px;border-radius:7px;white-space:nowrap;pointer-events:none;z-index:8;box-shadow:0 1px 4px rgba(0,0,0,.08);` };
       });
       ego={
         marker:"◆ You are here",
         selfMarkerStyle:`position:absolute;left:${self.x}px;top:${self.y-24}px;transform:translate(-50%,-100%) scale(${1/zc});transform-origin:center bottom;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:#8C1515;background:rgba(253,246,246,.96);border:1px solid #e0b3b3;padding:3px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:9;box-shadow:0 2px 7px rgba(0,0,0,.13);`,
+        // the person whose network you've walked into gets their own marker, so both anchors
+        // are legible at once: "you are here" and "this is whose web you're looking at"
+        hasExplore: !!explore,
+        exploreMarker: explore ? `◆ ${explore.name.split(" ")[0]}'s network` : "",
+        exploreMarkerStyle: explore
+          ? `position:absolute;left:${explore.x}px;top:${explore.y-26}px;transform:translate(-50%,-100%) scale(${1/zc});transform-origin:center bottom;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:#fff;background:#8C1515;border:1px solid #8C1515;padding:3px 9px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:10;box-shadow:0 2px 9px rgba(140,21,21,.35);`
+          : "display:none;",
         linkLabels,
         headerTitle:"Your neighborhood",
         headerSub:`${self.name}${self.ventureName?" · "+self.ventureName:""}`
@@ -1853,11 +1900,13 @@ class Component extends DCLogic {
       const dmax=Math.max(6, this.maxDeg||9);
       const t=Math.min(1,(n.degree||0)/dmax);
       const baseSize=12+Math.pow(t,0.68)*28;
-      const size=isSelf?baseSize+6:(isFocus?baseSize+5:((highlight&&hi&&self)?baseSize+2:(inSelSector?baseSize+4:baseSize)));
+      const isExplore = !!explore && n.id===explore.id;
+      const size=isExplore?baseSize+8:(isSelf?baseSize+6:(isFocus?baseSize+5:((highlight&&hi&&self)?baseSize+2:(inSelSector?baseSize+4:baseSize))));
       const ring = dark ? "#191919" : "#fffefb";   // dot's rim reads against the canvas
       // all nodes filled — current vs alumni is a filter, not a visual encoding on the map
       let dot = `width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2px solid ${ring};box-shadow:0 1px 3px rgba(0,0,0,${dark?.4:.18});`;
-      if(isSelf) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid ${ring};animation:atlasPulse 2s ease-out infinite;`;
+      if(isExplore) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid #8C1515;box-shadow:0 0 0 3px rgba(140,21,21,.18),0 2px 8px rgba(0,0,0,.2);`;
+      else if(isSelf) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid ${ring};animation:atlasPulse 2s ease-out infinite;`;
       else if(isRecip) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2.5px solid #1c2f5e;box-shadow:0 1px 4px rgba(28,47,94,.3);`;
       const overlap = s.activeSectors.length>=2 && s.activeSectors.every(sk=>(n.tags||[]).map(t=>this.norm(t)).includes(sk));
       if(overlap && !isSelf && !isRecip) dot+=`outline:2px solid #8C1515;outline-offset:2px;box-shadow:0 0 0 1px #fffefb,0 0 10px rgba(140,21,21,.5);`;
@@ -1875,7 +1924,11 @@ class Component extends DCLogic {
         labelStyle:`margin-top:3px;font-size:${labelFont}px;font-weight:${labelWeight};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,${strongLabel?.96:.88});padding:${strongLabel?"2px 7px":"0 3px"};border-radius:6px;line-height:1.2;max-width:${emphatic?340:180}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${strongLabel?"0 1px 6px rgba(0,0,0,.15)":"none"};display:${labelVisible?"block":"none"};`,
         onEnter:()=>{ if(!self) this.setState({hoverId:n.id}); else this.setState({hoverId:n.id}); },
         onLeave:()=>this.setState({hoverId:null}),
-        onClick:(e)=>{ e.stopPropagation(); this.setState({detailId:n.id}); }
+        onClick:(e)=>{ e.stopPropagation();
+          // Student view: a click walks into that person's network (clicking yourself goes home)
+          if(self && !s.showFullMap) this.setState({ detailId:n.id, hoverId:n.id, exploreId: n.id===self.id ? null : n.id });
+          else this.setState({detailId:n.id, pinId: s.mode==="general" ? n.id : s.pinId});
+        }
       };
     });
 
@@ -1954,10 +2007,18 @@ class Component extends DCLogic {
       // the panel's own search narrows the list in place; the map keeps showing the full
       // result set, so this reads as "find someone in here", not another filter
       const rq=(s.resultsQuery||"").trim().toLowerCase();
+      // Name and what they're asking for / offering — not the project blurb, which turned a
+      // two-letter query like "AI" into a match on "sustAInable". Terms match at word starts
+      // for the same reason.
+      const rqTerms = rq ? rq.split(/\s+/).filter(Boolean).map(t=>new RegExp("\\b"+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i")) : [];
       const matched=[...matchedIds].map(id=>this.byId[id]).filter(Boolean).filter(o=>{
-        if(!rq) return true;
-        const hay=[o.name,o.ventureName,...(o.tags||[]),o.person.focus||"",o.person.asks||"",o.person.offers||""].join(" ").toLowerCase();
-        return rq.split(/\s+/).every(t=>hay.includes(t));
+        if(!rqTerms.length) return true;
+        const p=o.person||{};
+        // effective vocabulary, not just stored picks — most people's asks/offers are still
+        // read from their board answer, and those labels are what the list shows
+        const hay=[o.name, o.ventureName, ...this.needsOf(p).tags, ...this.offersOf(p).tags,
+          p.asks||"", p.offers||"", p.seeks||"", p.brings||""].join(" ");
+        return rqTerms.every(re=>re.test(hay));
       });
       const yearNum=o=>{ const m=(""+(o.person.year||"")).match(/\d{4}/); return m?+m[0]:0; };
       // "Best match" = how squarely someone sits in what you asked for: how many of the
@@ -2237,6 +2298,9 @@ class Component extends DCLogic {
       exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
       browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
       viewProfile:()=>{ if(this.state.selfId) this.openDetailCentered(this.state.selfId); },
+      exploring: !!explore,
+      backToMyNetwork:()=>this.setState({exploreId:null, detailId:null, hoverId:null, listCollapsed:false},
+        ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
       egoSearchVal: s.egoSearch,
       onEgoSearch: e=>this.setState({egoSearch:e.target.value}),
       egoSearchOpen: egoActive && s.egoSearch.trim().length>=2 &&
@@ -2281,7 +2345,13 @@ class Component extends DCLogic {
       // starts collapsed to the pill — the map is the point; the filter opens on demand
       exchangePanelOpen: !!s.exchangePanelOpen,
       exchangePanelClosed: !s.exchangePanelOpen,
-      toggleExchangePanel:()=>this.setState(st=>({exchangePanelOpen: !st.exchangePanelOpen})),
+      // opening the panel is itself the request to browse asks & offers, so it lands on "All"
+      // rather than a placeholder row that filters nothing
+      toggleExchangePanel:()=>this.setState(st=>({
+        exchangePanelOpen: !st.exchangePanelOpen,
+        exchangeFilter: (!st.exchangePanelOpen && !st.exchangeFilter) ? "__all__" : st.exchangeFilter,
+        resultsQuery:"",
+      })),
       // hidden, the pill still names the active filter — hiding the panel must never hide
       // the fact that the map is filtered
       exchangePillLabel: s.exchangeFilter
@@ -2296,19 +2366,21 @@ class Component extends DCLogic {
           if(side.tags.length) n++; });
         return `All ${s.exchangeDir==="need"?"asks":"offers"} (${n})`; })(),
       exchangeDirs: [{k:"offer",label:"Offering"},{k:"need",label:"Looking for"}].map(d=>{ const on=s.exchangeDir===d.k;
-        return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, listCollapsed:false, resultsQuery:""}),
+        return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
           style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?"#8C1515":"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
-      onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, listCollapsed:false, resultsQuery:""}),
-      clearExchange:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({exchangeFilter:"", detailId:null, listCollapsed:false, resultsQuery:""}); },
+      onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
+      // Clear means "stop filtering": with no placeholder row to land on, the panel folds
+      // back to the pill so the select can never show a filter that isn't applied
+      clearExchange:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({exchangeFilter:"", exchangePanelOpen:false, detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}); },
       clearExchangeStyle: s.exchangeFilter ? "color:#8C1515;" : "color:#c9c6be;pointer-events:none;",
       exchangeHint: !s.exchangeFilter ? ""
         : s.exchangeFilter==="__all__"
           ? (s.exchangeDir==="need" ? "Everyone with an ask on the board." : "Everyone offering something.")
           : (s.exchangeDir==="need" ? "People who need this — check whether you can help." : "People offering this — the ones worth an intro."),
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
-      onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, listCollapsed:false, resultsQuery:""}),
-      onProgram:e=>this.setState({programFilter:e.target.value, listCollapsed:false}),
-      onStatus:e=>this.setState({statusFilter:e.target.value, listCollapsed:false}),
+      onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
+      onProgram:e=>this.setState({programFilter:e.target.value, pinId:null, listCollapsed:false}),
+      onStatus:e=>this.setState({statusFilter:e.target.value, pinId:null, listCollapsed:false}),
       clearSectors:e=>{ e.preventDefault(); this.setState({activeSectors:[], listCollapsed:false}); },
       clearSectorsStyle: s.activeSectors.length?"color:#8C1515;":"color:#c8c4ba;pointer-events:none;",
       // territories collapse into a dropdown — 20+ chips open by default crowds the sidebar
