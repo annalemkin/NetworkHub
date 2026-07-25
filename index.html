@@ -1274,10 +1274,17 @@ class Component extends DCLogic {
   zoomAt(cx,cy,factor){ const v=this.view; const ns=Math.max(0.12,Math.min(3.4,v.scale*factor)); const k=ns/v.scale; v.tx=cx-(cx-v.tx)*k; v.ty=cy-(cy-v.ty)*k; v.scale=ns; this.applyView(); if(Math.abs(ns-(this.state.zoom||1))>0.02) this.setState({zoom:ns}); }
   onWheel(e){ e.preventDefault(); const st=this.stageRef.current.getBoundingClientRect(); this.zoomAt(e.clientX-st.left, e.clientY-st.top, e.deltaY<0?1.12:1/1.12); }
   onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
-    // empty-space click, two steps: first closes the profile (network stays pinned), second clears the pin
-    if(!moved && this.state.mode==="general"){
-      if(this.state.detailId) this.setState({detailId:null, hoverId:null});
-      else if(this.state.pinId) this.setState({pinId:null, hoverId:null});
+    // empty-space click. Browse: two steps — first closes the profile (network stays pinned),
+    // second clears the pin. Student: one step back home — profile closes, explore exits,
+    // matches panel returns.
+    if(!moved){
+      const st2=this.state;
+      if(st2.mode==="general"){
+        if(st2.detailId) this.setState({detailId:null, hoverId:null});
+        else if(st2.pinId) this.setState({pinId:null, hoverId:null});
+      } else if(st2.selfId && (st2.detailId||st2.exploreId)){
+        this.setState({detailId:null, hoverId:null, exploreId:null, listCollapsed:false}, ()=>this.frameNetwork(st2.selfId, true));
+      }
     } }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
 
   selectSelf(id){
@@ -1859,8 +1866,8 @@ class Component extends DCLogic {
       // entering Student clears Browse's search/filters — its sidebar is hidden there,
       // so stale filters would silently dim the map with no way to clear them
       label, onClick:()=>this.setState(m==="general"
-        ? {mode:m, selfId:null, detailId:null}
-        : {mode:m, selfId:s.selfId, detailId:null, searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], listCollapsed:false}),
+        ? {mode:m, selfId:null, detailId:null, pinId:null}
+        : {mode:m, selfId:s.selfId, detailId:null, pinId:null, searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", exchangePanelOpen:false, resultsQuery:"", listCollapsed:false}),
       style:`font-size:12px;font-weight:600;white-space:nowrap;padding:7px 15px;border:none;cursor:pointer;${s.mode===m?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`
     }));
 
@@ -1882,8 +1889,11 @@ class Component extends DCLogic {
       const hi = highlight ? highlight.has(n.id) : true;
       const isRecip=reciprocitySet.has(n.id);
       let op = 1;
-      if(!matched) op=0.035;
-      else if(highlight && !hi) op=dimOp;
+      // membership in the lit network wins over the filter fade — otherwise a pinned
+      // person's lines point at invisible dots whenever a filter is active
+      if(highlight && hi) op=1;
+      else if(!matched) op=0.035;
+      else if(highlight) op=dimOp;
       const isFocus = focusNode && n.id===focusNode.id;
       const alum=n.status==="alum";
       // node fill = the person's primary territory, colored by its sector family (first listed tag).
@@ -1919,7 +1929,7 @@ class Component extends DCLogic {
       const strongLabel = emphatic || egoConn;
       return {
         id:n.id, name:n.name,
-        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(egoConn?20:(matched?10:1)))};transition:opacity .2s;pointer-events:${matched?"auto":"none"};`,
+        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(egoConn?20:(matched?10:1)))};transition:opacity .2s;pointer-events:${(matched||(highlight&&hi))?"auto":"none"};`,
         dotStyle:dot,
         labelStyle:`margin-top:3px;font-size:${labelFont}px;font-weight:${labelWeight};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,${strongLabel?.96:.88});padding:${strongLabel?"2px 7px":"0 3px"};border-radius:6px;line-height:1.2;max-width:${emphatic?340:180}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${strongLabel?"0 1px 6px rgba(0,0,0,.15)":"none"};display:${labelVisible?"block":"none"};`,
         onEnter:()=>{ if(!self) this.setState({hoverId:n.id}); else this.setState({hoverId:n.id}); },
@@ -2409,7 +2419,11 @@ class Component extends DCLogic {
       onSelfInput:e=>this.setState({selfQuery:e.target.value}),
       clearSelf:e=>{ e.preventDefault(); this.setState({selfId:null, selfQuery:"", detailId:null}, ()=>this.fitView()); },
       // detail
-      detail, closeDetail:()=>this.setState({detailId:null}),
+      // In Student view, closing a profile is "I'm done looking" — it exits their network
+      // too and lands you back home: your web framed, your matches panel open.
+      detail, closeDetail:()=>{ const st0=this.state;
+        if(st0.mode!=="general" && st0.selfId) this.setState({detailId:null, hoverId:null, exploreId:null, listCollapsed:false}, ()=>this.frameNetwork(st0.selfId, true));
+        else this.setState({detailId:null}); },
       // reach
       reach, reachSubjRef:this.reachSubjRef, reachBodyRef:this.reachBodyRef,
       closeReach:()=>this.setState({reachId:null}),
