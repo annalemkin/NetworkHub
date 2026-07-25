@@ -53,7 +53,9 @@
           <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.label }}</button>
         </sc-for>
       </div>
-      <button onClick="{{ openCatalog }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:7px 13px;cursor:pointer;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+      <sc-if value="{{ showHeaderCatalog }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ openCatalog }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:7px 13px;cursor:pointer;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+      </sc-if>
     </div>
   </header>
 
@@ -73,27 +75,11 @@
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:7px;">Search</div>
       <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" placeholder="solar, water, carbon, AI…" style="width:100%;padding:8px 9px;border:1px solid #e3e0d8;border-radius:8px;font-size:13px;" />
 
-      <div style="margin-top:18px;padding:12px;border:1px solid #e8dcdc;background:#fdfaf9;border-radius:11px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;">⇄ Asks &amp; offers</div>
-          <a href="#" onClick="{{ clearExchange }}" style="font-size:11px;font-weight:600;{{ clearExchangeStyle }}">Clear</a>
-        </div>
-        <div style="display:inline-flex;width:100%;border:1px solid #e3e0d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:6px;">
-          <sc-for list="{{ exchangeDirs }}" as="d" hint-placeholder-count="2">
-            <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
-          </sc-for>
-        </div>
-        <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-          <option value="">See asks &amp; offers</option>
-          <option value="__all__">{{ exchangeAllLabel }}</option>
-          <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
-            <option value="{{ i.value }}">{{ i.label }}</option>
-          </sc-for>
-        </select>
-        <sc-if value="{{ exchangeHint }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:6px;">{{ exchangeHint }}</div>
-        </sc-if>
-      </div>
+      <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:8px;width:100%;margin-top:18px;padding:11px 12px;border:1px solid #e8dcdc;background:#fdfaf9;border-radius:11px;cursor:pointer;text-align:left;">
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;flex:1;">★ My catalog</span>
+        <span style="{{ catBadgeStyle }}">{{ catCount }}</span>
+      </button>
+      <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:5px;">{{ catalogSidebarHint }}</div>
 
       <div style="display:flex;gap:8px;margin-top:16px;">
         <div style="flex:1;">
@@ -193,6 +179,40 @@
 
         </div>
       </div>
+
+      <sc-if value="{{ showExchangePanel }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;right:16px;top:14px;z-index:18;display:flex;flex-direction:column;align-items:flex-end;gap:7px;">
+          <sc-if value="{{ exchangePanelOpen }}" hint-placeholder-val="{{ true }}">
+            <div style="width:270px;background:rgba(255,254,251,.96);backdrop-filter:blur(5px);border:1px solid #e8dcdc;border-radius:12px;box-shadow:0 5px 20px rgba(40,36,28,.13);padding:12px 13px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;white-space:nowrap;">⇄ Asks &amp; offers</div>
+                <div style="display:flex;align-items:center;gap:10px;flex:none;">
+                  <a href="#" onClick="{{ clearExchange }}" style="font-size:11px;font-weight:600;{{ clearExchangeStyle }}">Clear</a>
+                  <button onClick="{{ toggleExchangePanel }}" title="Hide this panel" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6b6a65;cursor:pointer;white-space:nowrap;">Hide</button>
+                </div>
+              </div>
+              <div style="display:inline-flex;width:100%;border:1px solid #e3e0d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:6px;">
+                <sc-for list="{{ exchangeDirs }}" as="d" hint-placeholder-count="2">
+                  <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
+                </sc-for>
+              </div>
+              <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
+                <option value="">See asks &amp; offers</option>
+                <option value="__all__">{{ exchangeAllLabel }}</option>
+                <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
+                  <option value="{{ i.value }}">{{ i.label }}</option>
+                </sc-for>
+              </select>
+              <sc-if value="{{ exchangeHint }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:6px;">{{ exchangeHint }}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ exchangePanelClosed }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ toggleExchangePanel }}" style="{{ exchangePillStyle }}">{{ exchangePillLabel }}</button>
+          </sc-if>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ showHelpCard }}" hint-placeholder-val="{{ true }}">
         <div style="position:absolute;left:16px;top:14px;background:rgba(255,254,251,.93);backdrop-filter:blur(4px);border:1px solid #e3e0d8;border-radius:11px;padding:11px 13px;max-width:292px;box-shadow:0 3px 12px rgba(0,0,0,.06);">
@@ -672,7 +692,7 @@ class Component extends DCLogic {
       showConnections:true,
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
-      exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{},
+      exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{}, exchangePanelOpen:true,
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -2250,6 +2270,19 @@ class Component extends DCLogic {
       exchangeItems: (()=>{ const c=this.exchangeCounts();
         return this.EXCHANGE.filter(v=>c[v]>0 || v===s.exchangeFilter)
           .map(v=>({ value:v, label:`${v} (${c[v]||0})` })); })(),
+      // floats over the map (Browse only) rather than living in the sidebar
+      showExchangePanel: s.mode==="general" && !namePrompt,
+      exchangePanelOpen: s.exchangePanelOpen!==false,
+      exchangePanelClosed: s.exchangePanelOpen===false,
+      toggleExchangePanel:()=>this.setState(st=>({exchangePanelOpen: st.exchangePanelOpen===false})),
+      // hidden, the pill still names the active filter — hiding the panel must never hide
+      // the fact that the map is filtered
+      exchangePillLabel: s.exchangeFilter
+        ? `⇄ ${s.exchangeFilter==="__all__" ? (s.exchangeDir==="need"?"All asks":"All offers") : s.exchangeFilter.replace(/^Intros: /,"")}`
+        : "⇄ Asks & offers",
+      exchangePillStyle: `display:inline-flex;align-items:center;gap:6px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:${s.exchangeFilter?"#fff":"#8C1515"};background:${s.exchangeFilter?"#8C1515":"rgba(255,254,251,.96)"};border:1px solid ${s.exchangeFilter?"#8C1515":"#e8dcdc"};border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 3px 12px rgba(40,36,28,.12);`,
+      showHeaderCatalog: s.mode!=="general",   // in Browse it lives in the sidebar instead
+      catalogSidebarHint: catCount ? "Your shortlist to follow up with." : "Click ★ on anyone to save them here.",
       exchangeAllLabel: (()=>{ let n=0;
         s.nodes.forEach(x=>{ if(!this.matchesBase(x)) return;
           const side = s.exchangeDir==="need" ? this.needsOf(x.person) : this.offersOf(x.person);
