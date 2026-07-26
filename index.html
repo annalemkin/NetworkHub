@@ -334,7 +334,7 @@
                   <div style="font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
                   <button onClick="{{ p.reach }}" style="flex:none;white-space:nowrap;font-size:11px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3caca;border-radius:7px;padding:4px 9px;cursor:pointer;">Reach out</button>
                 </div>
-                <div style="font-size:11px;color:#3a3833;margin:4px 0 2px;">{{ p.venture }}</div>
+                <div style="{{ p.ventureStyle }}">{{ p.venture }}</div>
                 <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
                 <div style="{{ p.badgeStyle }}">◆ Spans every selected territory</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">
@@ -2061,13 +2061,24 @@ class Component extends DCLogic {
         name:(a,b)=>a.name.localeCompare(b.name),
         year:(a,b)=>(yearNum(b)-yearNum(a))||a.name.localeCompare(b.name)
       }[s.sortBy] || ((a,b)=>(relScore(b)-relScore(a))||a.name.localeCompare(b.name));
+      // browsing asks & offers: the row should say what they're offering / asking for,
+      // which is the thing you're scanning by — venture and sector are noise here
+      const exMode = !!s.exchangeFilter;
+      const exColor = s.exchangeDir==="need" ? "#a15c00" : "#0f766e";
       const mkRow=(o, spanning)=>{
         const alum=o.status==="alum", base=personFill(o,false), hov=s.hoverId===o.id;
+        const exTags = exMode ? (s.exchangeDir==="need" ? this.needsOf(o.person) : this.offersOf(o.person)).tags : [];
         return {
-          id:o.id, name:o.name, venture:o.ventureName||"Independent", spanning:!!spanning,
+          id:o.id, name:o.name, venture:exMode?"":(o.ventureName||"Independent"), spanning:!!spanning,
+          ventureStyle: exMode ? "display:none;" : "font-size:11px;color:#3a3833;margin:4px 0 2px;",
           meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
           dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
-          sectors:(o.tags||[]).map(t=>{ const sel=s.activeSectors.includes(this.norm(t)); return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?"#8C1515":"#e3e0d8"};color:${sel?"#8C1515":"#6b6a65"};background:${sel?"#8c15150d":"#fff"};` }; }),
+          // in asks/offers mode these chips carry the exchange instead of the sector; the one
+          // you filtered by is filled in, so you can see why this person is in the list
+          sectors: exMode
+            ? exTags.map(t=>{ const sel=s.exchangeFilter===t;
+                return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?exColor:exColor+"55"};color:${sel?"#fff":exColor};background:${sel?exColor:exColor+"12"};` }; })
+            : (o.tags||[]).map(t=>{ const sel=s.activeSectors.includes(this.norm(t)); return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?"#8C1515":"#e3e0d8"};color:${sel?"#8C1515":"#6b6a65"};background:${sel?"#8c15150d":"#fff"};` }; }),
           rowStyle:spanning
             ? `border:1px solid ${hov?"#8C1515":"#e0b3b3"};border-left:3px solid #8C1515;background:${hov?"#fbf1f1":"#fdf6f6"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`
             : `border:1px solid ${hov?"#d8c9b0":"#ece8de"};background:${hov?"#fdfaf3":"#fff"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`,
