@@ -337,7 +337,8 @@
                 <div style="{{ p.ventureStyle }}">{{ p.venture }}</div>
                 <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
                 <div style="{{ p.badgeStyle }}">◆ Spans every selected territory</div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">
+                <div style="{{ p.exLabelStyle }}">{{ p.exLabel }}</div>
+                <div style="{{ p.chipsWrapStyle }}">
                   <sc-for list="{{ p.sectors }}" as="t" hint-placeholder-count="2">
                     <span style="{{ t.style }}">{{ t.label }}</span>
                   </sc-for>
@@ -2071,6 +2072,12 @@ class Component extends DCLogic {
         return {
           id:o.id, name:o.name, venture:exMode?"":(o.ventureName||"Independent"), spanning:!!spanning,
           ventureStyle: exMode ? "display:none;" : "font-size:11px;color:#3a3833;margin:4px 0 2px;",
+          // name the side, so a row can't be misread as the opposite kind of chip
+          exLabel: exMode ? (s.exchangeDir==="need" ? "Asking:" : "Offering:") : "",
+          exLabelStyle: exMode
+            ? `display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:${exColor};margin-top:8px;`
+            : "display:none;",
+          chipsWrapStyle:`display:flex;flex-wrap:wrap;gap:4px;margin-top:${exMode?4:7}px;`,
           meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
           dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
           // in asks/offers mode these chips carry the exchange instead of the sector; the one
