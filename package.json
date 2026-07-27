@@ -1,0 +1,8 @@
+{
+  "name": "networkhub",
+  "private": true,
+  "description": "Public build of The Ecopreneurship Network — static map plus serverless API.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0"
+  }
+}
