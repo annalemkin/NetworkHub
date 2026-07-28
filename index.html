@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
 <style>
   *{box-sizing:border-box;}
   body{margin:0;background:#f7f5ef;color:#211f1a;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
@@ -21,6 +21,45 @@
   .atlas-scroll::-webkit-scrollbar-thumb{background:#dcd8cd;border-radius:6px;}
   @keyframes atlasFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   @keyframes atlasSlide{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:none;}}
+  /* ---- auth card: Clerk's controls restyled to the house system. Interaction states live
+     here because pseudo-classes can't be written inline; !important beats Clerk's injected
+     styles where they collide. Spacing scale: every vertical gap is a multiple of 8px. */
+  .cl-rootBox{width:100%;}
+  .cl-card{padding:0 !important;}
+  .cl-main{gap:16px !important;}
+  .cl-dividerRow{margin:0 !important;}
+  .cl-dividerText{font-size:11px !important;color:#9a968a !important;}
+  .cl-dividerLine{background:#e6e2d7 !important;}
+  .cl-form{gap:16px !important;}
+  .cl-formField{gap:8px !important;}
+  .cl-formFieldLabel{font-size:11.5px !important;font-weight:500 !important;color:#6f6c63 !important;}
+  .cl-input{min-height:0 !important;height:36px !important;padding:0 12px !important;font-size:13px !important;border:1px solid #d9d5c8 !important;border-radius:6px !important;background:#fff !important;color:#211f1a !important;box-shadow:none !important;transition:border-color .12s ease, box-shadow .12s ease;}
+  .cl-input::placeholder{font-size:12.5px;color:#a9a496;}
+  .cl-rootBox .cl-input:hover{border-color:#c6c1b1 !important;}
+  .cl-rootBox .cl-input:focus,.cl-rootBox .cl-input:focus-visible,.cl-rootBox .cl-input:focus-within{outline:none !important;border-color:#211f1a !important;box-shadow:0 0 0 3px rgba(33,31,26,.12) !important;}
+  .cl-formButtonPrimary{background:#8C1515 !important;border:1px solid #8C1515 !important;border-radius:999px !important;min-height:0 !important;height:38px !important;font-size:13px !important;font-weight:600 !important;box-shadow:none !important;transition:background .12s ease, box-shadow .12s ease, transform .06s ease;}
+  .cl-rootBox .cl-formButtonPrimary:hover{background:#7a1111 !important;border-color:#7a1111 !important;}
+  .cl-rootBox .cl-formButtonPrimary:active{background:#6c0f0f !important;transform:translateY(1px);}
+  .cl-rootBox .cl-formButtonPrimary:focus-visible{outline:none !important;box-shadow:0 0 0 2px #fffefa,0 0 0 4px rgba(140,21,21,.55) !important;}
+  .cl-rootBox .cl-formButtonPrimary:disabled{opacity:.45 !important;cursor:not-allowed;}
+  .cl-formButtonPrimary svg{display:none !important;}  /* Clerk's ▶ arrow */
+  .cl-socialButtonsBlockButton{border:1px solid #d9d5c8 !important;background:#fff !important;border-radius:999px !important;min-height:0 !important;height:38px !important;font-size:13px !important;font-weight:600 !important;color:#211f1a !important;box-shadow:none !important;transition:background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .06s ease;}
+  .cl-rootBox .cl-socialButtonsBlockButton:hover{background:#faf8f2 !important;border-color:#c6c1b1 !important;}
+  .cl-rootBox .cl-socialButtonsBlockButton:active{transform:translateY(1px);}
+  .cl-rootBox .cl-socialButtonsBlockButton:focus-visible{outline:none !important;box-shadow:0 0 0 2px #fffefa,0 0 0 4px rgba(33,31,26,.35) !important;}
+  .cl-formFieldInputShowPasswordButton{color:#9a968a !important;}
+  /* our own controls on the auth card share the same state language */
+  .atlas-quiet{transition:color .12s ease;}
+  .atlas-quiet:hover{color:#211f1a !important;}
+  .atlas-quiet:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(33,31,26,.18);border-radius:4px;}
+  .atlas-btn-primary{background:#8C1515;color:#fff;border:1px solid #8C1515;transition:background .12s ease, box-shadow .12s ease, transform .06s ease;}
+  .atlas-btn-primary:hover{background:#7a1111;border-color:#7a1111;}
+  .atlas-btn-primary:active{background:#6c0f0f;transform:translateY(1px);}
+  .atlas-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px #fffefa,0 0 0 4px rgba(140,21,21,.55);}
+  .atlas-btn-primary:disabled{opacity:.45;}
+  .atlas-field{border:1px solid #d9d5c8;background:#fff;color:#211f1a;transition:border-color .12s ease, box-shadow .12s ease;}
+  .atlas-field:hover{border-color:#c6c1b1;}
+  .atlas-field:focus,.atlas-field:focus-visible{outline:none;border-color:#211f1a;box-shadow:0 0 0 3px rgba(33,31,26,.12);}
   @keyframes atlasPulse{0%{box-shadow:0 0 0 0 rgba(140,21,21,.45);}70%{box-shadow:0 0 0 15px rgba(140,21,21,0);}100%{box-shadow:0 0 0 0 rgba(140,21,21,0);}}
 </style>
 <script src="data.js"></script>
@@ -285,25 +324,26 @@
       </sc-if>
 
       <sc-if value="{{ namePrompt }}" hint-placeholder-val="{{ false }}">
-        <div style="position:absolute;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 42%, rgba(251,250,247,.72), rgba(243,241,235,.92));animation:atlasFade .25s ease;">
-          <div style="width:100%;max-width:400px;text-align:center;background:#fffefb;border:1px solid #e6e2d9;border-radius:18px;box-shadow:0 22px 60px rgba(40,36,28,.17);padding:30px 28px 24px;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">{{ namePromptKicker }}</div>
-            <div style="font-family:Newsreader,serif;font-size:27px;font-weight:600;line-height:1.1;margin-top:8px;">{{ selfPromptTitle }}</div>
-            <div style="font-size:13px;color:#6b6a65;margin:8px 0 18px;line-height:1.5;">{{ selfPromptSub }}</div>
+        <div style="position:absolute;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 42%, rgba(250,248,242,.78), rgba(241,238,230,.94));animation:atlasFade .25s ease;">
+          <div style="width:100%;max-width:384px;text-align:center;background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.09);padding:32px 28px 24px;">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#9a968a;font-weight:600;">{{ namePromptKicker }}</div>
+            <div style="font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1.15;margin-top:8px;color:#211f1a;">{{ selfPromptTitle }}</div>
+            <div style="font-size:13px;color:#6f6c63;margin:8px 0 16px;line-height:1.5;">{{ selfPromptSub }}</div>
             <sc-if value="{{ clerkChecking }}" hint-placeholder-val="{{ false }}">
-              <div style="font-size:13px;color:#9b978d;padding:8px 0 2px;">Checking sign-in…</div>
+              <div style="font-size:13px;color:#9a968a;padding:8px 0;">Checking sign-in…</div>
             </sc-if>
             <sc-if value="{{ clerkSignInBox }}" hint-placeholder-val="{{ false }}">
-              <div ref="{{ clerkSignInRef }}" style="display:flex;justify-content:center;min-height:60px;"></div>
+              <div ref="{{ clerkSignInRef }}" style="display:flex;justify-content:center;min-height:48px;"></div>
+              <div style="margin-top:16px;font-size:12px;color:#6f6c63;">{{ loginTabHint }} <button onClick="{{ toggleLoginTab }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12px;font-weight:600;color:#211f1a;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">{{ loginTabLabel }}</button></div>
             </sc-if>
             <sc-if value="{{ linkAsk }}" hint-placeholder-val="{{ false }}">
-              <input type="text" value="{{ linkInput }}" onInput="{{ onLinkInput }}" placeholder="linkedin.com/in/your-name" style="width:100%;padding:13px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
-              <button onClick="{{ submitLink }}" style="margin-top:10px;font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;">Connect my account</button>
+              <input type="text" value="{{ linkInput }}" onInput="{{ onLinkInput }}" placeholder="linkedin.com/in/your-name" class="atlas-field" style="width:100%;height:36px;padding:0 12px;border-radius:6px;font-size:13px;text-align:center;" />
+              <button onClick="{{ submitLink }}" class="atlas-btn-primary" style="margin-top:16px;width:100%;font-size:13px;font-weight:600;height:38px;border-radius:999px;cursor:pointer;">Connect my account</button>
             </sc-if>
             <sc-if value="{{ clerkSignedInLine }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:12px;font-size:12px;color:#9b978d;">{{ clerkSignedInLine }} · <button onClick="{{ clerkSignOut }}" style="font-size:12px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Sign out</button></div>
+              <div style="margin-top:16px;font-size:12px;color:#9a968a;">{{ clerkSignedInLine }} · <button onClick="{{ clerkSignOut }}" class="atlas-quiet" style="font-size:12px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Sign out</button></div>
             </sc-if>
-            <div style="margin-top:14px;padding-top:13px;border-top:1px solid #ece8de;"><a href="#" onClick="{{ closeLogin }}" style="font-size:12.5px;font-weight:600;color:#8C1515;text-decoration:none;">← Back to the map</a></div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #ece8d7;"><a href="#" onClick="{{ closeLogin }}" class="atlas-quiet" style="font-size:12px;font-weight:600;color:#6f6c63;text-decoration:none;">← Back to the map</a></div>
           </div>
         </div>
       </sc-if>
@@ -710,6 +750,7 @@ class Component extends DCLogic {
       linkPhase:null,         // /api/link progress: null | "checking" | "linkedin" (ask for URL) | "queued" (pending review)
       linkInput:"",           // the LinkedIn URL being typed at the ask step
       cmdFocus:false,         // command-bar search focused → the jump-to-person dropdown shows
+      loginTab:"in",          // which Clerk controls the login card mounts: "in" (sign in) | "up" (create account)
       drawerOpen:true,        // the left filters drawer (full-bleed layout); collapses to a "Filters" chip
       showNames:true,         // map layer toggle: person-name labels at the current zoom rules
     };
@@ -840,7 +881,25 @@ class Component extends DCLogic {
   clerkInit(){
     const go=async ()=>{ try{
       if(typeof Clerk==="undefined"){ this.setState({clerkStatus:"failed"}); try{ console.warn("[Atlas] Clerk script did not load — name picker fallback"); }catch(e){} return; }
-      await Clerk.load({ ui:{ ClerkUI: window.__internal_ClerkUICtor } });
+      // theme Clerk's own card to the house style so it reads as ours, not a widget:
+      // Inter, ink primary, cream paper, hairline border, 8px card / 6px fields, pill buttons
+      await Clerk.load({ ui:{ ClerkUI: window.__internal_ClerkUICtor }, appearance:{
+        variables:{ fontFamily:"Inter, -apple-system, BlinkMacSystemFont, sans-serif", colorPrimary:"#8C1515", colorText:"#211f1a", colorForeground:"#211f1a", colorTextSecondary:"#6f6c63", colorMutedForeground:"#6f6c63", colorBackground:"#fffefa", colorInputBackground:"#ffffff", colorInput:"#ffffff", colorInputText:"#211f1a", borderRadius:"6px" },
+        elements:{
+          // Clerk contributes CONTROLS only — our page owns the card, heading, and copy.
+          // Its box, header ("Sign in to The Network" / "Welcome back!") and footer are
+          // stripped so the buttons sit directly on our card; we render our own sign-up link.
+          card:{ backgroundColor:"transparent", border:"none", borderRadius:"0", boxShadow:"none", padding:"0" },
+          cardBox:{ border:"none", borderRadius:"0", boxShadow:"none", backgroundColor:"transparent", padding:"0" },
+          rootBox:{ width:"100%" },
+          header:{ display:"none" },
+          headerTitle:{ display:"none" },
+          headerSubtitle:{ display:"none" },
+          footer:{ display:"none" },
+          socialButtonsBlockButton:{ borderRadius:"999px", border:"1px solid #e6e2d7", backgroundColor:"#ffffff" },
+          formButtonPrimary:{ borderRadius:"999px" },
+        },
+      } });
       Clerk.addListener(()=>this.syncClerk());   // fires on sign-in, sign-out, and user edits
       this.syncClerk();
       try{ console.info(`[Atlas] Clerk ready — ${Clerk.isSignedIn?"signed in":"signed out"}`); }catch(e){}
@@ -902,13 +961,20 @@ class Component extends DCLogic {
     this.setState({ mode:"student", searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", exchangePanelOpen:false, resultsQuery:"", listCollapsed:false, pinId:null }, ()=>this.selectSelf(n.id));
   }
   clerkSignOut(){ try{ if(typeof Clerk!=="undefined"&&Clerk.session) Clerk.signOut(); }catch(e){} }
-  // mount/unmount Clerk's sign-in card as its target div appears and disappears — the div
-  // is React-owned (sc-if), so ordinary lifecycle is the only safe place to touch it
+  // mount/unmount Clerk's sign-in OR sign-up controls as the target div appears, disappears,
+  // or the tab flips — the div is React-owned (sc-if), so lifecycle is the only safe place.
+  // Clerk's own header/footer are hidden (appearance), so our page supplies the heading and
+  // the link that flips between the two.
   maintainClerkUI(){
     if(typeof Clerk==="undefined"||this.state.clerkStatus!=="ready") return;
-    const el=this.clerkSignInRef.current;
-    if(this._signInEl&&(el!==this._signInEl||Clerk.user)){ try{ Clerk.unmountSignIn(this._signInEl); }catch(e){} this._signInEl=null; }
-    if(el&&!this._signInEl&&!Clerk.user){ Clerk.mountSignIn(el, { fallbackRedirectUrl: window.location.href }); this._signInEl=el; }
+    const el=this.clerkSignInRef.current, kind=this.state.loginTab==="up"?"up":"in";
+    const stale=this._signInEl&&(el!==this._signInEl||Clerk.user||this._mountedKind!==kind);
+    if(stale){ try{ this._mountedKind==="up"?Clerk.unmountSignUp(this._signInEl):Clerk.unmountSignIn(this._signInEl); }catch(e){} this._signInEl=null; this._mountedKind=null; }
+    if(el&&!this._signInEl&&!Clerk.user){
+      const opts={ fallbackRedirectUrl: window.location.href };
+      kind==="up" ? Clerk.mountSignUp(el, opts) : Clerk.mountSignIn(el, opts);
+      this._signInEl=el; this._mountedKind=kind;
+    }
   }
   componentDidUpdate(){ this.maintainClerkUI(); }
 
@@ -2669,13 +2735,17 @@ class Component extends DCLogic {
       clerkSignedInLine: s.clerkUser?(s.clerkUser.email?`Signed in as ${s.clerkUser.email}`:"Signed in"):"",
       clerkSignOut: ()=>this.clerkSignOut(),
       clerkSignInRef: this.clerkSignInRef,
-      closeLogin:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({loginOpen:false}); },
+      closeLogin:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({loginOpen:false, loginTab:"in"}); },
+      // our own sign-up affordance — Clerk's footer (which carried it) is hidden
+      loginTabHint: s.loginTab==="up" ? "Already have an account?" : "New here?",
+      loginTabLabel: s.loginTab==="up" ? "Sign in" : "Create an account",
+      toggleLoginTab:()=>this.setState(st=>({loginTab: st.loginTab==="up"?"in":"up"})),
       // identity linking (the /api/link handshake) — which face the overlay shows
       linkAsk: s.linkPhase==="linkedin",
       linkInput: s.linkInput,
       onLinkInput: e=>this.setState({linkInput:e.target.value}),
       submitLink: ()=>{ const v=this.state.linkInput.trim(); if(v) this.tryLink(v); },
-      selfPromptTitle: !s.clerkUser ? "Sign in"
+      selfPromptTitle: !s.clerkUser ? (s.loginTab==="up"?"Create an account":"Sign in")
         : s.linkPhase==="linkedin" ? "One more step"
         : s.linkPhase==="queued" ? "You're in the queue"
         : "You're signed in",
