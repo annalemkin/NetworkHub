@@ -800,17 +800,68 @@ class Component extends DCLogic {
   jaccard(a,b){ const A=new Set((a||[]).map(x=>this.norm(x))), B=new Set((b||[]).map(x=>this.norm(x))); if(!A.size||!B.size) return 0; let inter=0; A.forEach(x=>{if(B.has(x))inter++;}); return inter/(A.size+B.size-inter); }
 
   componentDidMount(){
+    // INTERIM: start the Reciprocity Board fetch first so fresh asks/offers can land before
+    // the one-and-only layout pass — matching and map edges are computed once, at init.
+    // The race caps the wait at 3.5s: typical sheet load is a few hundred ms, and if Google
+    // is slow or blocked we'd rather show the map with data.js values than a spinner.
+    const live=Promise.race([ this.fetchLiveExchange(), new Promise(r=>setTimeout(()=>r(null),3500)) ]);
     let tries=0;
     const grab=()=>{
       const F = (typeof FALLBACK_PEOPLE!=="undefined"&&FALLBACK_PEOPLE)||window.FALLBACK_PEOPLE;
       const A = (typeof ALUMNI_PEOPLE!=="undefined"&&ALUMNI_PEOPLE)||window.ALUMNI_PEOPLE;
-      if(F&&A){ this.init(this.mergePeople(F.concat(A))); return; }
+      if(F&&A){ live.then(map=>{ const people=this.mergePeople(F.concat(A)); const n=this.applyLiveExchange(people,map); if(n) try{ console.info(`[Atlas] live asks/offers: ${n} field(s) fresher than data.js`); }catch(e){} this.init(people); }); return; }
       if(tries++<40) setTimeout(grab,50);
       else this.setState({loading:false});
     };
     grab();
     try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
     try{ if(localStorage.getItem("ecoatlas_welcomed_v1")) this.setState({ welcomeDismissed:true }); }catch(e){}
+  }
+
+  // ---------- INTERIM: live asks & offers from the Reciprocity Board sheet ----------
+  // Fetched in the browser on every page load, so asks and offers stay current without
+  // anyone republishing the site. Scaffolding with a demolition date — once people post
+  // their own via /api/exchange (BACKEND.md), delete this whole section plus the `live`
+  // race in componentDidMount, and nothing else.
+  // It reads ONLY First Name / Last Name / My Asks / My Offers. The Email and Cell
+  // columns are never even indexed — the shared build stays personal-info-free until
+  // accounts ship. Row→person matching is the same deterministic rule as
+  // sync-reciprocity.mjs: exact normalized full name, no fuzziness ever.
+  parseCSV(t){ const rows=[]; let row=[],cell="",q=false;
+    for(let i=0;i<t.length;i++){ const c=t[i];
+      if(q){ if(c==='"'){ if(t[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=c; }
+      else { if(c==='"')q=true; else if(c===','){row.push(cell);cell="";}
+        else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
+        else if(c==='\r'){} else cell+=c; } }
+    if(cell.length||row.length){row.push(cell);rows.push(row);} return rows; }
+  async fetchLiveExchange(){
+    try{
+      // plain /export?format=csv, not gviz — gviz garbles this sheet's merged Instructions
+      // cell (see sync.js). The endpoint sends Access-Control-Allow-Origin: *, so a
+      // cross-origin browser fetch is fine as long as the sheet stays link-shared.
+      const res=await fetch("https://docs.google.com/spreadsheets/d/1bJmfs9hT7tqt1ZOdNMQZPV76JZ0V_S4mPUDImngyCyo/export?format=csv&gid=0",{cache:"no-store"});
+      if(!res.ok) return null;
+      const rows=this.parseCSV(await res.text());
+      const hIdx=rows.findIndex(r=>r.some(c=>/first name/i.test(c||""))); if(hIdx<0) return null;
+      const H=rows[hIdx].map(c=>(c||"").trim());
+      const ci=kw=>H.findIndex(h=>new RegExp(kw,"i").test(h));
+      const cF=ci("first name"), cL=ci("last name"), cA=ci("my asks|^ask"), cO=ci("my offers|^offer");
+      if(cF<0||cL<0||cA<0||cO<0) return null;
+      const map={};
+      rows.slice(hIdx+1).forEach(r=>{ const name=`${(r[cF]||"").trim()} ${(r[cL]||"").trim()}`.trim(); if(!name) return;
+        const ask=(r[cA]||"").replace(/\s*\n\s*/g," ").trim(), off=(r[cO]||"").replace(/\s*\n\s*/g," ").trim();
+        if(ask||off) map[this.norm(name)]={ask,off}; });
+      return Object.keys(map).length?map:null;
+    }catch(e){ return null; }   // any failure → keep the data.js snapshot; the map must never block on the sheet
+  }
+  // fold fresher sheet values onto the merged people — same semantics as sync-reciprocity.mjs:
+  // a non-empty sheet value wins, an empty one never erases what data.js already has
+  applyLiveExchange(people, live){
+    if(!live) return 0; let n=0;
+    people.forEach(p=>{ const row=live[this.norm(p.name)]; if(!row) return;
+      if(row.ask && row.ask!==p.asks){ p.asks=row.ask; n++; }
+      if(row.off && row.off!==p.offers){ p.offers=row.off; n++; } });
+    return n;
   }
 
   // ---------- affinity graph: what actually connects two students ----------
