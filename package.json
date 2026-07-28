@@ -3,6 +3,7 @@
   "private": true,
   "description": "Public build of The Ecopreneurship Network — static map plus serverless API.",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.110.0"
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@clerk/backend": "^2"
   }
 }

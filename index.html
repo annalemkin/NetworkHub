@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *{box-sizing:border-box;}
-  body{margin:0;background:#faf9f6;color:#2e2d29;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  body{margin:0;background:#f7f5ef;color:#211f1a;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
   a{color:#8C1515;}
   a:hover{color:#6f1010;}
   ::selection{background:#8C15151f;}
@@ -20,9 +20,16 @@
   .atlas-scroll::-webkit-scrollbar{width:9px;height:9px;}
   .atlas-scroll::-webkit-scrollbar-thumb{background:#dcd8cd;border-radius:6px;}
   @keyframes atlasFade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @keyframes atlasSlide{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:none;}}
   @keyframes atlasPulse{0%{box-shadow:0 0 0 0 rgba(140,21,21,.45);}70%{box-shadow:0 0 0 15px rgba(140,21,21,0);}100%{box-shadow:0 0 0 0 rgba(140,21,21,0);}}
 </style>
 <script src="data.js"></script>
+<!-- Clerk (accounts) — loaded from this app's own Frontend API domain, per the js-frontend
+     quickstart. The data attribute is the PUBLISHABLE key: designed to be public, safe in
+     this file (the publish gate allows pk_, blocks sk_). The secret key lives only in
+     .env.local and Vercel's settings, never here. App: The Network (fast-crawdad-79). -->
+<script defer crossorigin="anonymous" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js" type="text/javascript"></script>
+<script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmFzdC1jcmF3ZGFkLTc5LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js" type="text/javascript"></script>
 </helmet>
 <template id="__bundler_thumbnail" data-bg-color="#faf9f6">
   <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
@@ -40,106 +47,50 @@
     <text x="600" y="700" font-family="Georgia,serif" font-size="52" fill="#2e2d29" text-anchor="middle">The Ecopreneurship Network</text>
   </svg>
 </template>
-<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#faf9f6;">
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#faf9f6;position:relative;">
 
-  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 22px;border-bottom:1px solid #e3e0d8;background:#fffefb;z-index:20;flex-wrap:wrap;">
-    <div style="display:flex;align-items:baseline;gap:12px;min-width:0;">
-      <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;">The Ecopreneurship Network</div>
-      <div style="font-size:11px;color:#9a978d;font-weight:500;letter-spacing:.08em;white-space:nowrap;padding-left:12px;border-left:1px solid #e3e0d8;">2023–2026</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:14px;">
-      <div style="display:inline-flex;border:1px solid #e3e0d8;border-radius:999px;overflow:hidden;background:#fff;">
-        <sc-for list="{{ audiences }}" as="a" hint-placeholder-count="3">
-          <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.label }}</button>
-        </sc-for>
+  <sc-if value="{{ showCommandBar }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:20px;z-index:30;">
+      <div style="{{ cmdBarStyle }}">
+        <div style="padding:0 16px;font-family:Newsreader,serif;font-size:15.5px;font-weight:600;white-space:nowrap;">The Ecopreneurship Network</div>
+        <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
+        <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" onFocus="{{ onCmdFocus }}" onBlur="{{ onCmdBlur }}" placeholder="Search people, focus, ask…" style="width:240px;padding:12px 14px;border:none;font-size:12.5px;background:none;outline:none;color:#211f1a;" />
+        <sc-if value="{{ searchQuery }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearSearch }}" style="background:none;border:none;padding:0 12px 0 0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;">Clear</button>
+        </sc-if>
+        <sc-if value="{{ cmdStats }}" hint-placeholder-val="{{ false }}">
+          <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
+          <div style="padding:0 14px;font-size:11px;color:#6f6c63;font-weight:600;white-space:nowrap;">{{ cmdStats }}</div>
+        </sc-if>
+        <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
+        <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+        <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
+        <sc-if value="{{ cmdSignedOut }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ openLogin }}" style="background:none;border:none;padding:12px 16px;font-size:11.5px;font-weight:600;color:#211f1a;cursor:pointer;white-space:nowrap;">Log in</button>
+        </sc-if>
+        <sc-if value="{{ cmdAccount }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;padding:0 14px;height:52px;white-space:nowrap;">
+            <span onClick="{{ cmdAccount.onClick }}" title="{{ cmdAccount.title }}" style="{{ cmdAccount.avStyle }}">{{ cmdAccount.initials }}</span>
+            <span onClick="{{ cmdAccount.onClick }}" style="font-size:11.5px;font-weight:600;cursor:pointer;">{{ cmdAccount.first }}</span>
+            <button onClick="{{ clerkSignOut }}" style="background:none;border:none;padding:0 0 0 6px;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;">Sign out</button>
+          </div>
+        </sc-if>
       </div>
-      <sc-if value="{{ showHeaderCatalog }}" hint-placeholder-val="{{ false }}">
-        <button onClick="{{ openCatalog }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:7px 13px;cursor:pointer;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
-      </sc-if>
-    </div>
-  </header>
-
-  <div style="flex:1;display:flex;min-height:0;">
-
-    <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
-    <aside class="atlas-scroll" style="width:288px;flex:none;border-right:1px solid #e3e0d8;background:#fffefb;overflow-y:auto;padding:18px 18px 40px;">
-
-      <sc-if value="{{ hasSelf }}" hint-placeholder-val="{{ false }}">
-        <div style="border:1px solid #d8c9b0;background:#fdfaf3;border-radius:12px;padding:13px;margin-bottom:12px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#8C1515;margin-bottom:4px;">Viewing as you</div>
-          <div style="font-size:13px;">You're <b>{{ selfName }}</b><span style="color:#6b6a65;">{{ selfVentureSuffix }}</span></div>
-          <div style="margin-top:6px;"><a href="#" onClick="{{ clearSelf }}" style="font-size:11.5px;font-weight:600;">Not you? Change</a></div>
-        </div>
-      </sc-if>
-
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:7px;">Search</div>
-      <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" placeholder="solar, water, carbon, AI…" style="width:100%;padding:8px 9px;border:1px solid #e3e0d8;border-radius:8px;font-size:13px;" />
-
-      <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:8px;width:100%;margin-top:18px;padding:11px 12px;border:1px solid #e8dcdc;background:#fdfaf9;border-radius:11px;cursor:pointer;text-align:left;">
-        <span style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;flex:1;">★ My catalog</span>
-        <span style="{{ catBadgeStyle }}">{{ catCount }}</span>
-      </button>
-      <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:5px;">{{ catalogSidebarHint }}</div>
-
-      <div style="display:flex;gap:8px;margin-top:16px;">
-        <div style="flex:1;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Program</div>
-          <select value="{{ programFilter }}" onChange="{{ onProgram }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-            <option value="">All programs</option>
-            <option value="EcoSprint">EcoSprint</option>
-            <option value="EcoX">EcoX</option>
-            <option value="EcoSIF">EcoSIF</option>
-            <option value="EcoGlobal">EcoGlobal</option>
-            <option value="EcoRAMP">EcoRAMP</option>
-          </select>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin-bottom:6px;">Status</div>
-          <select value="{{ statusFilter }}" onChange="{{ onStatus }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
-            <option value="">Current + Alumni</option>
-            <option value="current">Current only</option>
-            <option value="alum">Alumni only</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 6px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;">Territories</div>
-        <a href="#" onClick="{{ clearSectors }}" style="font-size:11px;font-weight:600;{{ clearSectorsStyle }}">Clear</a>
-      </div>
-      <button onClick="{{ toggleSectorMenu }}" style="{{ sectorMenuButtonStyle }}">
-        <span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sectorSummary }}</span>
-        <span style="{{ sectorCaretStyle }}">▾</span>
-      </button>
-      <sc-if value="{{ sectorMenuOpen }}" hint-placeholder-val="{{ false }}">
-        <div class="atlas-scroll" style="margin-top:8px;max-height:300px;overflow-y:auto;padding:9px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;">
-          <sc-for list="{{ sectorGroups }}" as="g" hint-placeholder-count="6">
-            <div style="{{ g.headerStyle }}"><span style="{{ g.dotStyle }}"></span>{{ g.label }}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
-              <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="4">
-                <button onClick="{{ c.onClick }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.label }} <span style="opacity:.55;">{{ c.count }}</span></button>
-              </sc-for>
-            </div>
+      <sc-if value="{{ cmdResultsOpen }}" hint-placeholder-val="{{ false }}">
+        <div class="atlas-scroll" style="{{ cmdResultsStyle }}">
+          <sc-for list="{{ cmdResults }}" as="r" hint-placeholder-count="0">
+            <button onClick="{{ r.onClick }}" style="display:flex;gap:9px;align-items:center;width:100%;background:none;border:none;padding:8px 14px;font-size:12.5px;font-weight:500;color:#211f1a;cursor:pointer;text-align:left;">
+              <span style="{{ r.dotStyle }}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</span>
+              <span style="margin-left:auto;font-size:10.5px;color:#9a968a;white-space:nowrap;padding-left:10px;">{{ r.sub }}</span>
+            </button>
           </sc-for>
         </div>
       </sc-if>
+    </div>
+  </sc-if>
 
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;font-weight:700;margin:20px 0 8px;">Legend</div>
-      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;margin-bottom:5px;">Dot color · sector</div>
-      <div style="font-size:11.5px;line-height:1.7;color:#3a3833;display:flex;flex-direction:column;gap:3px;margin-bottom:15px;">
-        <sc-for list="{{ familyLegend }}" as="p" hint-placeholder-count="6">
-          <span><span style="{{ p.dotStyle }}"></span>{{ p.label }}</span>
-        </sc-for>
-      </div>
-      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;margin-bottom:3px;">Dot size</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#8a877f;margin-bottom:15px;">Bigger dot = more connections in the network.</div>
-      <div style="font-size:12px;line-height:1.85;color:#3a3833;">
-        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9a978d;font-weight:700;">Connections</div>
-        <div><span style="display:inline-block;width:22px;border-top:2px solid #807b72;margin-right:7px;vertical-align:middle;"></span>Shared focus</div>
-        <div><span style="display:inline-block;width:22px;border-top:2px dotted #807b72;margin-right:7px;vertical-align:middle;"></span>Ask ↔ offer match</div>
-      </div>
-    </aside>
-    </sc-if>
+  <div style="flex:1;display:flex;min-height:0;">
+
 
     <div style="{{ stageStyle }}">
       <div ref="{{ stageRef }}" onWheel="{{ onWheel }}" onPointerDown="{{ onPanStart }}" style="position:absolute;inset:0;cursor:grab;touch-action:none;">
@@ -183,23 +134,62 @@
         </div>
       </div>
 
-      <sc-if value="{{ showExchangePanel }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;right:16px;top:14px;z-index:18;display:flex;flex-direction:column;align-items:flex-end;gap:7px;">
-          <sc-if value="{{ exchangePanelOpen }}" hint-placeholder-val="{{ false }}">
-            <div style="width:270px;background:rgba(255,254,251,.96);backdrop-filter:blur(5px);border:1px solid #e8dcdc;border-radius:12px;box-shadow:0 5px 20px rgba(40,36,28,.13);padding:12px 13px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#8C1515;font-weight:700;white-space:nowrap;">⇄ Asks &amp; offers</div>
-                <div style="display:flex;align-items:center;gap:10px;flex:none;">
-                  <a href="#" onClick="{{ clearExchange }}" style="font-size:11px;font-weight:600;{{ clearExchangeStyle }}">Clear</a>
-                  <button onClick="{{ toggleExchangePanel }}" title="Hide this panel" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6b6a65;cursor:pointer;white-space:nowrap;">Hide</button>
+      <sc-if value="{{ showDrawer }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ drawerClosed }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ toggleDrawer }}" style="{{ drawerChipStyle }}">{{ drawerChipLabel }}</button>
+        </sc-if>
+        <sc-if value="{{ drawerOpenNow }}" hint-placeholder-val="{{ true }}">
+          <aside style="{{ drawerStyle }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;flex:none;">
+              <div style="{{ lblStyle }}">{{ drawerTitle }}</div>
+              <div style="display:flex;gap:10px;">
+                <sc-if value="{{ drawerHasActive }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ drawerClear }}" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;">Clear</button>
+                </sc-if>
+                <button onClick="{{ toggleDrawer }}" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;">Hide</button>
+              </div>
+            </div>
+            <div class="atlas-scroll" style="overflow-y:auto;padding-right:2px;margin-right:-2px;">
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;">
+                  <div style="{{ lblStyle }}margin-bottom:7px;">Program</div>
+                  <select value="{{ programFilter }}" onChange="{{ onProgram }}" style="{{ fieldStyle }}">
+                    <option value="">All programs</option>
+                    <option value="EcoSprint">EcoSprint</option>
+                    <option value="EcoX">EcoX</option>
+                    <option value="EcoSIF">EcoSIF</option>
+                    <option value="EcoGlobal">EcoGlobal</option>
+                    <option value="EcoRAMP">EcoRAMP</option>
+                  </select>
+                </div>
+                <div style="flex:1;">
+                  <div style="{{ lblStyle }}margin-bottom:7px;">Status</div>
+                  <select value="{{ statusFilter }}" onChange="{{ onStatus }}" style="{{ fieldStyle }}">
+                    <option value="">Everyone</option>
+                    <option value="current">Current</option>
+                    <option value="alum">Alumni</option>
+                  </select>
                 </div>
               </div>
-              <div style="display:inline-flex;width:100%;border:1px solid #e3e0d8;border-radius:8px;overflow:hidden;background:#fff;margin-bottom:6px;">
+              <div style="{{ lblStyle }}margin:16px 0 8px;">Families</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <sc-for list="{{ familyLegend }}" as="p" hint-placeholder-count="6">
+                  <button onClick="{{ p.onClick }}" style="{{ p.style }}"><span style="{{ p.dotStyle }}"></span>{{ p.label }}</button>
+                </sc-for>
+              </div>
+              <div style="{{ lblStyle }}margin:16px 0 8px;">Focus areas</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                <sc-for list="{{ drawerChips }}" as="c" hint-placeholder-count="8">
+                  <button onClick="{{ c.onClick }}" style="{{ c.style }}"><span style="{{ c.dotStyle }}"></span>{{ c.label }} <span style="opacity:.5;margin-left:4px;">{{ c.count }}</span></button>
+                </sc-for>
+              </div>
+              <div style="{{ lblStyle }}margin:16px 0 8px;">Asks &amp; offers</div>
+              <div style="display:inline-flex;width:100%;border:1px solid #e6e2d7;border-radius:6px;overflow:hidden;background:#fff;margin-bottom:6px;">
                 <sc-for list="{{ exchangeDirs }}" as="d" hint-placeholder-count="2">
                   <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
                 </sc-for>
               </div>
-              <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="width:100%;padding:7px 6px;border:1px solid #e3e0d8;border-radius:8px;font-size:12.5px;background:#fff;">
+              <select value="{{ exchangeFilter }}" onChange="{{ onExchangeFilter }}" style="{{ fieldStyle }}">
                 <option value="__all__">{{ exchangeAllLabel }}</option>
                 <sc-for list="{{ exchangeItems }}" as="i" hint-placeholder-count="16">
                   <option value="{{ i.value }}">{{ i.label }}</option>
@@ -208,37 +198,41 @@
               <sc-if value="{{ exchangeHint }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:11px;color:#8a877f;line-height:1.4;margin-top:6px;">{{ exchangeHint }}</div>
               </sc-if>
+              <div style="height:4px;"></div>
             </div>
-          </sc-if>
-          <sc-if value="{{ exchangePanelClosed }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ toggleExchangePanel }}" style="{{ exchangePillStyle }}">{{ exchangePillLabel }}</button>
-          </sc-if>
-        </div>
+          </aside>
+        </sc-if>
       </sc-if>
 
-      <sc-if value="{{ showHelpCard }}" hint-placeholder-val="{{ true }}">
-        <div style="{{ helpCardStyle }}">
-          <div style="display:flex;align-items:baseline;gap:14px;">
-            <b style="{{ overviewLineStyle }}">{{ overviewLine }}</b>
-            <button onClick="{{ toggleHelp }}" style="flex:none;background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#8C1515;cursor:pointer;white-space:nowrap;">{{ helpToggleLabel }}</button>
-          </div>
+      <sc-if value="{{ showMapFurniture }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;right:20px;top:88px;z-index:18;display:flex;gap:6px;">
+          <sc-for list="{{ layerPills }}" as="lp" hint-placeholder-count="3">
+            <button onClick="{{ lp.onClick }}" style="{{ lp.style }}">{{ lp.label }}</button>
+          </sc-for>
+        </div>
+        <div style="position:absolute;left:20px;bottom:20px;z-index:18;display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
           <sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9a978d;font-weight:700;margin:10px 0 6px;">How to read this</div>
-            <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#3a3833;line-height:1.35;">
-              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>Each dot is a person; its <b>color</b> is their sector.</span></div>
-              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span><b>Closer together</b> means more in common, like shared projects, similar work, or complementary asks and offers.</span></div>
-              <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>A <b>bigger dot</b> has more connections. Hover to highlight someone; click for their profile.</span></div>
+            <div style="{{ helpPopStyle }}">
+              <div style="{{ lblStyle }}margin-bottom:7px;">How to read the map</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px;color:#3a3833;line-height:1.35;">
+                <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>Each dot is a person; its <b>color</b> is their sector family — the neighborhoods group the same way.</span></div>
+                <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span><b>Closer together</b> means more in common, like shared projects, similar work, or complementary asks and offers.</span></div>
+                <div style="display:flex;gap:8px;"><span style="width:6px;height:6px;border-radius:50%;background:#b8b4a8;flex:none;margin-top:5px;"></span><span>A <b>bigger dot</b> has more connections. Click a dot for their profile.</span></div>
+              </div>
             </div>
           </sc-if>
+          <div style="{{ legendStripStyle }}">
+            <span style="display:inline-flex;align-items:center;gap:7px;"><span style="display:inline-block;width:22px;border-top:1.5px solid #807b72;"></span>shared focus</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;"><span style="display:inline-block;width:22px;border-top:1.5px dotted #807b72;"></span>ask ⇄ offer</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#b9b5a8;"></span>person</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;"><span style="display:inline-block;width:13px;height:13px;border-radius:50%;background:#b9b5a8;"></span>hub</span>
+            <button onClick="{{ toggleHelp }}" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ helpToggleLabel }}</button>
+          </div>
         </div>
       </sc-if>
 
       <sc-if value="{{ showBackToEgo }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ backToEgo }}" style="position:absolute;left:16px;top:14px;display:inline-flex;align-items:center;gap:6px;background:#8C1515;color:#fff;border:none;border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.25);">◂ Back to my network</button>
-      </sc-if>
-
-      <sc-if value="{{ showTerritoryToggle }}" hint-placeholder-val="{{ true }}">
-        <button onClick="{{ toggleTerritories }}" style="{{ territoryToggleStyle }}">{{ territoriesLabel }}</button>
       </sc-if>
 
       <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
@@ -257,10 +251,10 @@
       </sc-if>
 
       <sc-if value="{{ atlasControls }}" hint-placeholder-val="{{ true }}">
-      <div style="position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;">
-        <button onClick="{{ zoomIn }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);">+</button>
-        <button onClick="{{ zoomOut }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);">–</button>
-        <button onClick="{{ fitView }}" style="width:34px;height:34px;border:1px solid #e3e0d8;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.07);">⤢</button>
+      <div style="position:absolute;right:20px;bottom:20px;display:flex;border:1px solid #e6e2d7;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(33,31,26,.05),0 6px 18px rgba(33,31,26,.08);">
+        <button onClick="{{ zoomOut }}" style="width:31px;height:29px;border:none;border-right:1px solid #e6e2d7;background:rgba(250,248,242,.94);color:#211f1a;cursor:pointer;font-size:15px;">–</button>
+        <button onClick="{{ fitView }}" style="height:29px;border:none;border-right:1px solid #e6e2d7;background:rgba(250,248,242,.94);color:#211f1a;cursor:pointer;font-size:11px;font-weight:600;padding:0 12px;">Reset</button>
+        <button onClick="{{ zoomIn }}" style="width:31px;height:29px;border:none;background:rgba(250,248,242,.94);color:#211f1a;cursor:pointer;font-size:15px;">+</button>
       </div>
       </sc-if>
 
@@ -277,7 +271,9 @@
           </sc-if>
           <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
           <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
-          <button onClick="{{ clearSelf }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Not you? Change</button>
+          <sc-if value="{{ clerkSignedIn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clerkSignOut }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Sign out</button>
+          </sc-if>
         </div>
         <sc-if value="{{ egoSearchOpen }}" hint-placeholder-val="{{ false }}">
           <div class="atlas-scroll" style="position:absolute;top:46px;left:14px;z-index:24;width:250px;max-height:280px;overflow-y:auto;background:#fffefb;border:1px solid #e3e0d8;border-radius:11px;box-shadow:0 10px 30px rgba(40,36,28,.18);">
@@ -294,13 +290,20 @@
             <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">{{ namePromptKicker }}</div>
             <div style="font-family:Newsreader,serif;font-size:27px;font-weight:600;line-height:1.1;margin-top:8px;">{{ selfPromptTitle }}</div>
             <div style="font-size:13px;color:#6b6a65;margin:8px 0 18px;line-height:1.5;">{{ selfPromptSub }}</div>
-            <input type="text" value="{{ selfQuery }}" onInput="{{ onSelfInput }}" placeholder="{{ selfPlaceholder }}" style="width:100%;padding:13px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
-            <div style="margin-top:10px;text-align:left;">
-              <sc-for list="{{ selfSuggestions }}" as="s" hint-placeholder-count="0">
-                <div onClick="{{ s.onClick }}" style="padding:10px 12px;border:1px solid #ece8de;border-radius:10px;margin-bottom:6px;font-size:13.5px;cursor:pointer;background:#fff;"><b>{{ s.name }}</b> <span style="color:#6b6a65;">· {{ s.sub }}</span></div>
-              </sc-for>
-            </div>
-            <div style="margin-top:14px;padding-top:13px;border-top:1px solid #ece8de;"><a href="#" onClick="{{ browseAll }}" style="font-size:12.5px;font-weight:600;color:#8C1515;text-decoration:none;">Just exploring? Browse the whole map →</a></div>
+            <sc-if value="{{ clerkChecking }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;color:#9b978d;padding:8px 0 2px;">Checking sign-in…</div>
+            </sc-if>
+            <sc-if value="{{ clerkSignInBox }}" hint-placeholder-val="{{ false }}">
+              <div ref="{{ clerkSignInRef }}" style="display:flex;justify-content:center;min-height:60px;"></div>
+            </sc-if>
+            <sc-if value="{{ linkAsk }}" hint-placeholder-val="{{ false }}">
+              <input type="text" value="{{ linkInput }}" onInput="{{ onLinkInput }}" placeholder="linkedin.com/in/your-name" style="width:100%;padding:13px 15px;border:2px solid #d8c9b0;border-radius:11px;font-size:15px;text-align:center;outline:none;" />
+              <button onClick="{{ submitLink }}" style="margin-top:10px;font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;">Connect my account</button>
+            </sc-if>
+            <sc-if value="{{ clerkSignedInLine }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:12px;font-size:12px;color:#9b978d;">{{ clerkSignedInLine }} · <button onClick="{{ clerkSignOut }}" style="font-size:12px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Sign out</button></div>
+            </sc-if>
+            <div style="margin-top:14px;padding-top:13px;border-top:1px solid #ece8de;"><a href="#" onClick="{{ closeLogin }}" style="font-size:12.5px;font-weight:600;color:#8C1515;text-decoration:none;">← Back to the map</a></div>
           </div>
         </div>
       </sc-if>
@@ -409,9 +412,10 @@
 
     <sc-if value="{{ detail }}" hint-placeholder-val="{{ false }}">
       <div style="{{ detail.panelStyle }}" class="atlas-scroll">
-        <button onClick="{{ closeDetail }}" style="float:right;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
-        <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.15;padding-right:20px;">{{ detail.name }}</div>
-        <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;">{{ detail.sub }}</div>
+        <button onClick="{{ closeDetail }}" style="float:right;width:26px;height:26px;border:1px solid #e6e2d7;border-radius:6px;background:#fff;font-size:13px;line-height:1;color:#6f6c63;cursor:pointer;">×</button>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#9a968a;font-weight:700;">Selected person</div>
+        <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.15;padding-right:20px;margin-top:8px;">{{ detail.name }}</div>
+        <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;line-height:1.5;">{{ detail.sub }}</div>
         <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
           <div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0f5d52;background:rgba(15,118,110,.1);border:1px solid rgba(15,118,110,.25);border-radius:7px;padding:3px 9px;margin-bottom:11px;">{{ detail.selfBadge }}</div>
         </sc-if>
@@ -481,7 +485,7 @@
             <button onClick="{{ detail.editProfile }}" style="font-size:12.5px;font-weight:600;color:#0f766e;background:#fff;border:1px solid #bfe0d9;border-radius:8px;padding:8px 14px;cursor:pointer;">Edit my profile</button>
           </sc-if>
           <sc-if value="{{ detail.notSelf }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ detail.reach }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;">Reach out</button>
+            <button onClick="{{ detail.reach }}" style="width:100%;font-size:12px;font-weight:600;padding:10px 14px;border-radius:999px;cursor:pointer;background:#211f1a;color:#fff;border:1px solid #211f1a;">Request an intro</button>
           </sc-if>
           <button onClick="{{ detail.toggleBookmark }}" style="{{ detail.bookmarkStyle }}">{{ detail.bookmarkLabel }}</button>
           <a href="{{ detail.linkedin }}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
@@ -692,20 +696,29 @@ class Component extends DCLogic {
     super(props);
     this.state = {
       loading:true, people:[], sectors:[], nodes:[], clusters:[], world:{w:1600,h:1000},
-      hoverId:null, detailId:null, mode:(props.defaultMode||"general"), selfId:null, selfQuery:"",
+      hoverId:null, detailId:null, mode:(props.defaultMode||"general"), selfId:null, loginOpen:false,
       searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], sortBy:"match", sectorMenuOpen:false, resultsQuery:"",
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, showTerritories:false, welcomeDismissed:false, profileEdit:null, egoSearch:"",
+      interview:null, flash:null, filtersOpen:false, showTerritories:true, welcomeDismissed:false, profileEdit:null, egoSearch:"",
       exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{}, exchangePanelOpen:false,
       exploreId:null,   // in Student view: whose network you've clicked into (null = your own)
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
+      clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
+      clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
+      linkPhase:null,         // /api/link progress: null | "checking" | "linkedin" (ask for URL) | "queued" (pending review)
+      linkInput:"",           // the LinkedIn URL being typed at the ask step
+      cmdFocus:false,         // command-bar search focused → the jump-to-person dropdown shows
+      drawerOpen:true,        // the left filters drawer (full-bleed layout); collapses to a "Filters" chip
+      showNames:true,         // map layer toggle: person-name labels at the current zoom rules
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
     this.reachSubjRef = React.createRef();
     this.reachBodyRef = React.createRef();
+    this.clerkSignInRef = React.createRef();  // mount target for Clerk's sign-in card
+    this._signInEl = null;                    // element the card is currently mounted into (null = not mounted)
     this.view = { tx:0, ty:0, scale:1 };
     this.PROGRAM_COLOR = { EcoX:"#8C1515", EcoSprint:"#007C92", EcoSIF:"#B26F16", EcoGlobal:"#4C6B4F", EcoRAMP:"#6E4C9E" };
     // ---- sector color families -------------------------------------------------------------
@@ -816,7 +829,88 @@ class Component extends DCLogic {
     grab();
     try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
     try{ if(localStorage.getItem("ecoatlas_welcomed_v1")) this.setState({ welcomeDismissed:true }); }catch(e){}
+    this.clerkInit();
   }
+
+  // ---------- Clerk (accounts): real sign-in for the Student view ----------
+  // The CDN scripts in <helmet> are deferred, so window "load" is the earliest safe moment;
+  // if load already fired (this component mounts late), run immediately. Failure is
+  // deliberately non-fatal: clerkStatus "failed" falls back to the old name picker, so the
+  // map keeps working even if the auth CDN is unreachable.
+  clerkInit(){
+    const go=async ()=>{ try{
+      if(typeof Clerk==="undefined"){ this.setState({clerkStatus:"failed"}); try{ console.warn("[Atlas] Clerk script did not load — name picker fallback"); }catch(e){} return; }
+      await Clerk.load({ ui:{ ClerkUI: window.__internal_ClerkUICtor } });
+      Clerk.addListener(()=>this.syncClerk());   // fires on sign-in, sign-out, and user edits
+      this.syncClerk();
+      try{ console.info(`[Atlas] Clerk ready — ${Clerk.isSignedIn?"signed in":"signed out"}`); }catch(e){}
+    }catch(e){ this.setState({clerkStatus:"failed"}); try{ console.warn("[Atlas] Clerk failed to load:", (e&&e.message)||e); }catch(_){} } };
+    if(document.readyState==="complete") go(); else window.addEventListener("load", go);
+  }
+  // one flat snapshot of the Clerk user in state, so renderVals can branch without touching globals.
+  // profileKey prefers publicMetadata (server-set, the /api/link plan in BACKEND.md) and falls
+  // back to unsafeMetadata (the interim client-set value from the retired picker flow).
+  syncClerk(){
+    const u=(typeof Clerk!=="undefined"&&Clerk.user)||null;
+    const cu=u?{ id:u.id, first:u.firstName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
+    const wasIn=!!this.state.clerkUser;
+    this.setState({ clerkStatus:"ready", clerkUser:cu }, ()=>{
+      if(cu&&cu.profileKey) this.clerkAutoSelect();
+      // signed in but not yet linked to a person → ask the server to match them (once per account)
+      else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
+      // signed out — one site, one rule: no account, no personal view. Back to the public map.
+      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"" }); }
+    });
+  }
+  // ---- identity: /api/link matches the signed-in person server-side (BACKEND.md) ----
+  // Step 1 is an email match the browser never sees; step 2 sends only a LinkedIn URL the
+  // person typed; step 3 leaves them queued for Anna. The response carries a profile key
+  // or a status — never an email.
+  async tryLink(linkedin){
+    try{
+      this.setState({ linkPhase:"checking", loginOpen:true });
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/link",{ method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok }, body:JSON.stringify(linkedin?{linkedin}:{}) });
+      if(!r.ok) throw new Error("link_http_"+r.status);
+      const j=await r.json();
+      if(j.status==="linked"&&j.profileKey){
+        const cu={ ...this.state.clerkUser, profileKey:j.profileKey };
+        this._autoSelected=false;
+        this.setState({ clerkUser:cu, linkPhase:null, linkInput:"", loginOpen:false }, ()=>this.clerkAutoSelect());
+      }
+      else if(j.status==="needs_linkedin") this.setState({ linkPhase:"linkedin" });
+      else this.setState({ linkPhase:"queued" });
+    }catch(e){
+      // no backend here (local file, static mirror) or a hiccup — fail quiet, map stays usable
+      this.setState({ linkPhase:null, loginOpen:this.state.linkPhase!=="checking"?this.state.loginOpen:false });
+      try{ console.warn("[Atlas] account linking unavailable:", (e&&e.message)||e); }catch(_){}
+    }
+  }
+  // signing in IS entering your own view — fire once per page load / sign-in event, so an
+  // in-session "Browse everyone" detour isn't yanked back by Clerk's periodic listener calls
+  clerkAutoSelect(){
+    const s=this.state, cu=s.clerkUser;
+    if(this._autoSelected||!cu||!cu.profileKey||s.selfId||!s.nodes.length) return;
+    if(!s.nodes.some(x=>this.profileKey(x)===cu.profileKey)) return;
+    this._autoSelected=true; this.myMap();
+  }
+  // enter the signed-in person's own view — same filter reset the old Student tab did,
+  // because Browse's sidebar is hidden there and stale filters would silently dim the map
+  myMap(){
+    const cu=this.state.clerkUser; if(!cu||!cu.profileKey) return;
+    const n=this.state.nodes.find(x=>this.profileKey(x)===cu.profileKey); if(!n) return;
+    this.setState({ mode:"student", searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", exchangePanelOpen:false, resultsQuery:"", listCollapsed:false, pinId:null }, ()=>this.selectSelf(n.id));
+  }
+  clerkSignOut(){ try{ if(typeof Clerk!=="undefined"&&Clerk.session) Clerk.signOut(); }catch(e){} }
+  // mount/unmount Clerk's sign-in card as its target div appears and disappears — the div
+  // is React-owned (sc-if), so ordinary lifecycle is the only safe place to touch it
+  maintainClerkUI(){
+    if(typeof Clerk==="undefined"||this.state.clerkStatus!=="ready") return;
+    const el=this.clerkSignInRef.current;
+    if(this._signInEl&&(el!==this._signInEl||Clerk.user)){ try{ Clerk.unmountSignIn(this._signInEl); }catch(e){} this._signInEl=null; }
+    if(el&&!this._signInEl&&!Clerk.user){ Clerk.mountSignIn(el, { fallbackRedirectUrl: window.location.href }); this._signInEl=el; }
+  }
+  componentDidUpdate(){ this.maintainClerkUI(); }
 
   // ---------- INTERIM: live asks & offers from the Reciprocity Board sheet ----------
   // Fetched in the browser on every page load, so asks and offers stay current without
@@ -945,9 +1039,11 @@ class Component extends DCLogic {
   }
 
   // Fruchterman-Reingold force layout so strongly-connected students pull together into clusters
-  runForce(nodes, edges, W){
+  runForce(nodes, edges, W, anchors){
     const n=nodes.length; if(!n) return;
-    const k=0.85*Math.sqrt((W*W)/n), cx=W/2;
+    // with home regions on, the ideal spacing shrinks (×0.55): people pack into their
+    // neighborhood and the space BETWEEN neighborhoods stays open — the mock's whitespace
+    const k=0.85*Math.sqrt((W*W)/n)*(anchors?0.55:1), cx=W/2;
     const dxs=new Float64Array(n), dys=new Float64Array(n), idx={};
     nodes.forEach((nd,i)=>idx[nd.id]=i);
     let temp=W*0.11; const iters=260, cool=temp/(iters+1);
@@ -962,10 +1058,19 @@ class Component extends DCLogic {
       }
       edges.forEach(e=>{ const ai=idx[e.aid], bi=idx[e.bid], a=nodes[ai], b=nodes[bi];
         let dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy)||0.01;
-        const wgt=Math.min(e.w,6)/2.2, f=(d*d)/k*wgt, ux=dx/d, uy=dy/d;
+        // cross-family springs are damped hard (×0.15) when home regions are on — the
+        // quadratic spring at region distance would otherwise out-pull the anchors and
+        // collapse the six neighborhoods back into one blob. The tie still shows as a line
+        // and still tugs; it just can't move a person out of their neighborhood.
+        const cross=anchors&&anchors[a.id]&&anchors[b.id]&&anchors[a.id].fam!==anchors[b.id].fam;
+        const wgt=Math.min(e.w,6)/2.2*(cross?0.15:1), f=(d*d)/k*wgt, ux=dx/d, uy=dy/d;
         dxs[ai]-=ux*f; dys[ai]-=uy*f; dxs[bi]+=ux*f; dys[bi]+=uy*f;
       });
-      for(let i=0;i<n;i++){ const nd=nodes[i]; dxs[i]+=(cx-nd.x)*0.006; dys[i]+=(cx-nd.y)*0.006;
+      for(let i=0;i<n;i++){ const nd=nodes[i];
+        // gravity: toward the family's home region when anchors are on (0.02 holds six
+        // readable neighborhoods against the repulsion), else toward the centre as before
+        const an=(anchors&&anchors[nd.id])||null, gx=an?an.x:cx, gy=an?an.y:cx, g=an?0.035:0.006;
+        dxs[i]+=(gx-nd.x)*g; dys[i]+=(gy-nd.y)*g;
         let dd=Math.sqrt(dxs[i]*dxs[i]+dys[i]*dys[i])||0.01, lim=Math.min(dd,temp);
         nd.x+=dxs[i]/dd*lim; nd.y+=dys[i]/dd*lim;
         // keep everyone inside the frame (the constraint from the original Fruchterman-Reingold).
@@ -1077,6 +1182,7 @@ class Component extends DCLogic {
         if(attempts++<60) requestAnimationFrame(tryFit);
       };
       tryFit();
+      this.clerkAutoSelect();   // Clerk may have been ready before the nodes were
     });
   }
 
@@ -1249,20 +1355,48 @@ class Component extends DCLogic {
     const nodes=people.map(p=>{ const vk=(p.venture&&p.venture.trim())?norm(p.venture):("solo_"+p.id);
       return { id:p.id, person:p, x:0, y:0, ventureName:ventMap.get(vk).name, program:(p.programs||[])[0], status:p.status, tags:p.tags||[], name:p.name }; });
 
-    // seed on a phyllotaxis spiral, then let the affinity forces arrange them
+    // ---- family home regions (the spread-out map, owner's mock 2026-07-28) ----
+    // Each family gets an anchor, arranged wide like the approved mock: six readable
+    // neighborhoods instead of one mingled cloud. The anchors only decide where a
+    // neighborhood LIVES — real ties (teammates, ask⇄offer, similar work) still do all the
+    // local arranging, so "closer together" keeps meaning more in common within and across
+    // regions. Fractions of W, tuned against the mock's composition.
     const W=Math.max(1500, 168*Math.sqrt(nodes.length));
-    nodes.forEach((nd,i)=>{ const a=i*GA, r=W*0.44*Math.sqrt((i+0.5)/nodes.length); nd.x=W/2+Math.cos(a)*r; nd.y=W/2+Math.sin(a)*r; });
+    const ANCH={ energy:[0.15,0.30], ai:[0.44,0.20], industry:[0.76,0.26], land:[0.24,0.72], finance:[0.53,0.58], society:[0.80,0.76] };
+    const famOf=nd=>{ const k=(nd.tags&&nd.tags.length)?norm(nd.tags[0]):null; return (k&&FAM[k])||null; };
+    const anchors={};
+    nodes.forEach(nd=>{ const f=famOf(nd), a=f&&ANCH[f]; anchors[nd.id]=a?{x:a[0]*W,y:a[1]*W,fam:f}:{x:W/2,y:W/2,fam:null}; });
+    // seed each family on its own small phyllotaxis spiral around its anchor
+    const seedGroups={}; nodes.forEach(nd=>{ const f=famOf(nd)||"other"; (seedGroups[f]=seedGroups[f]||[]).push(nd); });
+    Object.values(seedGroups).forEach(g=>{ g.forEach((nd,i)=>{ const a=i*GA, r=W*0.13*Math.sqrt((i+0.5)/g.length); const an=anchors[nd.id]; nd.x=an.x+Math.cos(a)*r; nd.y=an.y+Math.sin(a)*r; }); });
 
     const aff=this.computeAffinity(nodes);
     this.affAdj=aff.adj;
-    this.runForce(nodes, aff.edges, W);
+    this.runForce(nodes, aff.edges, W, anchors);
 
-    // The layout has no axes, so its orientation is arbitrary — it tends to settle as a
-    // tall narrow cloud, which then has to shrink to fit a wide screen. Rotate the finished
-    // cloud so its longest axis lies horizontally (principal axis of the point spread).
-    // This is a rigid rotation: every distance between people is preserved exactly, but the
-    // map fills the viewport instead of a narrow vertical strip.
-    if(nodes.length>2){
+    // Pin each neighborhood onto its home anchor: a rigid per-family translation after the
+    // simulation. Inside a family, every distance is exactly what the real ties produced;
+    // between families, the composition is exactly the approved mock's — the springs can
+    // drift a whole group toward the middle during the sim, and this puts it back.
+    const famGroups={}; nodes.forEach(nd=>{ const f=(anchors[nd.id]&&anchors[nd.id].fam)||"other"; (famGroups[f]=famGroups[f]||[]).push(nd); });
+    Object.entries(famGroups).forEach(([f,g])=>{ const a=f!=="other"&&ANCH[f]; if(!a) return;
+      let gmx=0,gmy=0; g.forEach(nd=>{gmx+=nd.x;gmy+=nd.y;}); gmx/=g.length; gmy/=g.length;
+      // compact the neighborhood: scale radii so the 90th-percentile member sits within
+      // ~15% of the world — clumps with air between them, like the mock. Uniform scaling
+      // keeps every within-family relationship in proportion; the p90 (not the max) stops
+      // one straggler from crushing the whole group to a dot.
+      const radii=g.map(nd=>Math.hypot(nd.x-gmx, nd.y-gmy)).sort((x,y)=>x-y);
+      const p90=radii[Math.floor(radii.length*0.9)]||1, target=W*0.15;
+      const sc=p90>target ? target/p90 : 1;
+      const ax=a[0]*W, ay=a[1]*W;
+      g.forEach(nd=>{ nd.x=ax+(nd.x-gmx)*sc; nd.y=ay+(nd.y-gmy)*sc; });
+    });
+
+    // With family anchors the composition is designed, not arbitrary — the PCA rotation
+    // that used to level a random cloud would tilt the six neighborhoods off their mock
+    // positions, so it is skipped. (Kept for the anchor-less fallback path.)
+    const ANCHORED=true;
+    if(!ANCHORED && nodes.length>2){
       let mx=0,my=0; nodes.forEach(n=>{ mx+=n.x; my+=n.y; }); mx/=nodes.length; my/=nodes.length;
       let sxx=0,syy=0,sxy=0;
       nodes.forEach(n=>{ const dx=n.x-mx, dy=n.y-my; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; });
@@ -1276,7 +1410,10 @@ class Component extends DCLogic {
     // normalize to positive coords
     let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
     nodes.forEach(n=>{ minX=Math.min(minX,n.x);maxX=Math.max(maxX,n.x);minY=Math.min(minY,n.y);maxY=Math.max(maxY,n.y); });
-    const pad=150, offX=-minX+pad, offY=-minY+pad;
+    // extra headroom at the top: the command bar and layer pills float OVER the full-bleed
+    // map, so the topmost neighborhood (and its label) needs world-space above it or it
+    // renders underneath the chrome after fitView fills the stage
+    const pad=150, padTop=340, offX=-minX+pad, offY=-minY+padTop;
     nodes.forEach(n=>{ n.x+=offX; n.y+=offY; });
     const byId={}; nodes.forEach(n=>byId[n.id]=n);
 
@@ -1317,7 +1454,7 @@ class Component extends DCLogic {
     nodes.forEach(n=>{ n.degree=deg[n.id]||0; });
     this.maxDeg = nodes.reduce((m,n)=>Math.max(m,n.degree),0);   // reference for node-size scaling
 
-    return { sectors, nodes, clusters:this.buildClusters(nodes), world:{ w:(maxX-minX)+pad*2, h:(maxY-minY)+pad*2 } };
+    return { sectors, nodes, clusters:this.buildClusters(nodes), world:{ w:(maxX-minX)+pad*2, h:(maxY-minY)+padTop+pad } };
   }
 
   // ---------- view transform ----------
@@ -1340,7 +1477,7 @@ class Component extends DCLogic {
     } }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
 
   selectSelf(id){
-    this.setState({ selfId:id, selfQuery:"", detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
+    this.setState({ selfId:id, loginOpen:false, detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
       this.frameNetwork(id, true);
       // first sign-in: lead straight into the profile interview (once per person on this device)
       const n=this.byId[id]; if(!n||n.person.enriched) return;
@@ -1663,18 +1800,23 @@ class Component extends DCLogic {
   // ---------- render ----------
   renderVals(){
     const s=this.state, PC=this.PROGRAM_COLOR, self=s.selfId?this.byId[s.selfId]:null;
+    // ---- visual language (DECISIONS.md 2026-07-27): warm cream ground, near-black ink,
+    // tiny uppercase mono labels, ONE cardinal accent, pill buttons, consistent cards.
+    // Shared tokens so every floating card gets the same paper/border/radius/shadow.
+    const INK="#211f1a", MUT="#6f6c63", FAINT="#9a968a", LINE="#e6e2d7";
+    const CARD="background:rgba(255,254,250,.94);backdrop-filter:blur(5px);border:1px solid "+LINE+";border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.09);";
     // theme: light (warm paper) or an Obsidian-style dark canvas. Only the map surface and
     // its marks change — the sidebar and panels stay as they are.
     const dark=s.dark;
     const TH = dark
       ? { stageBg:"radial-gradient(circle at 50% 35%,#242424,#191919)", neutral:"#c9c7c1", label:"#8f8d86", labelShadow:"#191919", edgeMul:1.35 }
-      : { stageBg:"radial-gradient(circle at 30% 20%,#fbfaf7,#f4f2ec)", neutral:"#2b2a27", label:"#8a8578", labelShadow:"#fbfaf7", edgeMul:1 };
+      : { stageBg:"radial-gradient(circle at 30% 20%,#faf8f2,#f1eee6)", neutral:"#2b2a27", label:"#8a8578", labelShadow:"#faf8f2", edgeMul:1 };
     const zoom=s.zoom||this.view.scale||1;
     const secFont=Math.max(12,Math.min(58,13.5/zoom)), secCountFont=Math.max(10,Math.min(46,11/zoom));
     const density=this.props.nameDensity||"balanced";
     const showPersonLabels = zoom >= (density==="sparse"?1.15:(density==="dense"?0.5:0.82));
     const selfMode = s.mode!=="general";
-    const namePrompt = selfMode && !self;
+    const namePrompt = s.loginOpen;   // the old name-prompt overlay is now the login overlay — same card, same gating of the panels behind it
     const anyFilter = !!(s.programFilter||s.statusFilter||s.activeSectors.length||s.searchQuery);
     const selSet = new Set(s.activeSectors);
     const secByKey = {}; s.sectors.forEach(x=>secByKey[x.key]=x);
@@ -1762,9 +1904,13 @@ class Component extends DCLogic {
       // with a territory selected the surviving network is the point — draw it bolder
       // instead of leaving the same faint web that reads as background texture
       const focused = s.activeSectors.length>0 && !highlight;
+      // a tie that leaves its neighborhood is a long line across the spread map — real,
+      // but background: fade it well below the local ties so the six clumps stay the figure
+      const famOfId=id=>{ const nd=this.byId[id]; const k=(nd&&nd.tags&&nd.tags.length)?this.norm(nd.tags[0]):null; return (k&&this.SECTOR_FAMILY[k])||null; };
       restView = this.restLinks.filter(l=>matchedIds.has(l.aid)&&matchedIds.has(l.bid)).map(l=>{
         const dim = highlight && !(highlight.has(l.aid)&&highlight.has(l.bid));
-        const op = Math.min(0.9, 0.42*(dim?0.3:1)*soften*(focused?2.2:1)*TH.edgeMul).toFixed(2);
+        const cross = famOfId(l.aid)!==famOfId(l.bid);
+        const op = Math.min(0.9, 0.42*(dim?0.3:1)*(cross?0.28:1)*soften*(focused?2.2:1)*TH.edgeMul).toFixed(2);
         const w = 1.3*(focused?1.8:1);
         let color=`rgba(${EDGE},${op})`;
         // a selected territory still lights its own same-sector edges in its colour
@@ -1914,14 +2060,25 @@ class Component extends DCLogic {
         onEnrich:()=>this.openInterview() };
     }
 
-    const audiences=[["general","Browse"],["student","Student"]].map(([m,label])=>({
-      // entering Student clears Browse's search/filters — its sidebar is hidden there,
-      // so stale filters would silently dim the map with no way to clear them
-      label, onClick:()=>this.setState(m==="general"
-        ? {mode:m, selfId:null, detailId:null, pinId:null}
-        : {mode:m, selfId:s.selfId, detailId:null, pinId:null, searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", exchangePanelOpen:false, resultsQuery:"", listCollapsed:false}),
-      style:`font-size:12px;font-weight:600;white-space:nowrap;padding:7px 15px;border:none;cursor:pointer;${s.mode===m?"background:#8C1515;color:#fff;":"background:transparent;color:#2e2d29;"}`
-    }));
+    // one site, no view tabs — the header pill reflects the account instead: "Log in" when
+    // signed out; "My map" (only while browsing) + "Sign out" when signed in. Reuses the
+    // exact tab-button styling so nothing changes visually. The primary action is the
+    // screen's single cardinal accent; everything else stays a neutral pill.
+    const myNode = (s.clerkUser&&s.clerkUser.profileKey) ? s.nodes.find(x=>this.profileKey(x)===s.clerkUser.profileKey) : null;
+    // command bar (full-bleed direction): brand · search · stats · catalog · account. The
+    // bar is the only chrome above the map; signed in, the avatar chip leads to your map.
+    const cmdAccount = s.clerkUser ? {
+      first: s.clerkUser.first || (s.clerkUser.email||"").split("@")[0] || "You",
+      initials: ((s.clerkUser.first||s.clerkUser.email||"?")[0]||"?").toUpperCase(),
+      title: myNode ? "Open my map" : "Signed in",
+      onClick: ()=>this.myMap(),
+      avStyle:`width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.02em;cursor:pointer;background:${myNode?personFill(myNode):"#b9b5a8"};`,
+    } : null;
+    const cq=s.searchQuery.trim().toLowerCase();
+    const cmdResults = cq.length>=2 ? s.nodes.filter(n=>[n.name,n.ventureName,...(n.tags||[])].join(" ").toLowerCase().includes(cq)).slice(0,7)
+      .map(n=>({ name:n.name, sub:`${(n.tags||[])[0]||""}${n.ventureName?" · "+n.ventureName:""}`.slice(0,46),
+        dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:${personFill(n)};`,
+        onClick:()=>this.setState({ detailId:n.id, pinId:n.id, cmdFocus:false }) })) : [];
 
     // territories stay hidden until a sector is clicked — then just a small label sits over its members (who light up in the sector color)
     const regions = s.activeSectors.length
@@ -1948,9 +2105,9 @@ class Component extends DCLogic {
       else if(highlight) op=dimOp;
       const isFocus = focusNode && n.id===focusNode.id;
       const alum=n.status==="alum";
-      // node fill = the person's primary territory, colored by its sector family (first listed tag).
-      // Similar territories share a hue, so the map reads as a few broad color regions; territory
-      // selection still isolates members by fading everyone else (op, below) and lighting its own edges.
+      // colour returned 2026-07-28 (owner's call): with the six family neighborhoods, the
+      // hues now reinforce geography instead of substituting for it — each region reads as
+      // one colour family, shaded by territory
       const base = personFill(n);
       const inHoverSector = s.hoverSector && (n.tags||[]).map(t=>this.norm(t)).includes(s.hoverSector);
       const nodeVisible = showDots || inHoverSector;
@@ -1975,7 +2132,8 @@ class Component extends DCLogic {
       const emphatic = isFocus||isSelf;
       // a highlighted person in your network (Student view) — their name should read clearly
       const egoConn = !!self && highlight && hi && !emphatic;
-      const labelVisible = emphatic || (highlight&&hi) || (showPersonLabels && (highlight?hi:true) && matched);
+      // the Names layer pill can silence ambient labels; selection and hover always speak
+      const labelVisible = emphatic || (highlight&&hi) || (s.showNames!==false && showPersonLabels && (highlight?hi:true) && matched);
       const labelFont = emphatic ? Math.max(12.5, 13/zoom) : (egoConn ? Math.max(12.5, 13/zoom) : 11);
       const labelWeight = emphatic ? 700 : (egoConn ? 600 : 500);
       const strongLabel = emphatic || egoConn;
@@ -1998,9 +2156,14 @@ class Component extends DCLogic {
     // territory picker, grouped by color family (each family a header + its shaded territory chips)
     const mkChip=sec=>{ const active=s.activeSectors.includes(sec.key);
       return { label:sec.label, count:sec.people.length,
-        dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;background:${sec.color};`,
-        style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:11px;border:1px solid ${active?"#8C1515":"#e3e0d8"};background:${active?"#8C1515":"#fff"};color:${active?"#fff":"#2e2d29"};border-radius:999px;padding:4px 9px;cursor:pointer;`,
+        dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;flex:none;background:${sec.color};`,
+        style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:11px;border:1px solid ${active?INK:LINE};background:${active?INK:"#fff"};color:${active?"#fff":INK};border-radius:999px;padding:4px 9px;cursor:pointer;`,
         onClick:()=>this.toggleSector(sec.key) }; };
+    // the drawer's flat focus-area chips: every territory, biggest first, narrowed to the
+    // active families when any are lit (same behaviour as the prototype's drawer)
+    const activeFams=new Set(); Object.keys(this.FAMILIES).forEach(fid=>{ const keys=s.sectors.filter(x=>x.family===fid).map(x=>x.key); if(keys.length&&keys.every(k=>s.activeSectors.includes(k))) activeFams.add(fid); });
+    const drawerChips=[...s.sectors].filter(sec=>!activeFams.size||activeFams.has(sec.family)).sort((a,b)=>b.people.length-a.people.length).map(mkChip);
+    const drawerActive=(s.programFilter?1:0)+(s.statusFilter?1:0)+s.activeSectors.length+(s.exchangeFilter?1:0);
     const chipsByFam={}; s.sectors.forEach(sec=>{ const fid=sec.family||"other"; (chipsByFam[fid]=chipsByFam[fid]||[]).push(sec); });
     const famOrder=Object.entries(this.FAMILIES).sort((a,b)=>a[1].order-b[1].order).map(e=>e[0]).concat("other");
     const sectorGroups=famOrder.filter(fid=>chipsByFam[fid]&&chipsByFam[fid].length).map(fid=>{
@@ -2011,9 +2174,18 @@ class Component extends DCLogic {
         chips:list.map(mkChip) };
     });
 
-    // map legend = the 6 color families (23 shades won't fit legibly)
+    // the legend is a FILTER now, not a key — dots sit grey until a family is lit, so a
+    // colour key would explain nothing. Clicking a family toggles all of its territories.
     const familyLegend=Object.entries(this.FAMILIES).sort((a,b)=>a[1].order-b[1].order)
-      .map(([fid,f])=>({ label:f.label, dotStyle:`display:inline-block;width:11px;height:11px;border-radius:50%;background:oklch(0.60 0.14 ${f.hue});margin-right:7px;vertical-align:middle;` }));
+      .map(([fid,f])=>{
+        const keys=s.sectors.filter(x=>x.family===fid).map(x=>x.key);
+        const active=keys.length>0&&keys.every(k=>s.activeSectors.includes(k));
+        return { label:f.label,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;background:oklch(0.60 0.14 ${f.hue});margin-right:8px;flex:none;${active?"":"opacity:.75;"}`,
+          style:`display:flex;align-items:center;width:100%;text-align:left;font-size:12px;line-height:1;padding:6px 8px;border-radius:8px;cursor:pointer;border:1px solid ${active?LINE:"transparent"};background:${active?"#fff":"none"};color:${active?INK:MUT};font-weight:${active?600:500};`,
+          onClick:()=>{ const set=new Set(s.activeSectors); if(active) keys.forEach(k=>set.delete(k)); else keys.forEach(k=>set.add(k));
+            this.setState({activeSectors:[...set], detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}); } };
+      });
 
     // status line
     const visCount=[...matchedIds].length;
@@ -2026,7 +2198,7 @@ class Component extends DCLogic {
     // read cleanly without competing with a selection's own labels.
     // territory region labels are hidden at rest; the "See territories" toggle reveals them.
     const territoriesAvailable = !egoActive && !namePrompt && !(self&&!s.showFullMap) && s.activeSectors.length===0 && !s.searchQuery;
-    const clusFont=Math.max(12,Math.min(38,13/zoom));
+    const clusFont=Math.max(13,Math.min(30,14.5/zoom));
     // Position a label for EVERY family (all six), once: at the centre of where that family
     // concentrates most on the map, then spread any that would overlap so all stay legible.
     if(!this._famLabels && s.nodes.length && Object.keys(secByKey).length){
@@ -2056,8 +2228,10 @@ class Component extends DCLogic {
     }
     const clusterLabels = (territoriesAvailable && s.showTerritories && this._famLabels) ? this._famLabels.map(c=>({
       label:c.label, count:"",
-      // solid paper pill so the name reads clearly even where it sits over dots
-      style:`position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:600;color:${dark?"#eceae2":"#46443e"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;background:${dark?"rgba(24,24,22,.85)":"rgba(253,252,249,.92)"};border:1px solid ${dark?"#3d3b35":"#e0dacb"};padding:3px 12px;border-radius:9px;box-shadow:0 2px 9px rgba(0,0,0,${dark?.45:.12});`,
+      // bare serif text sitting directly in the map space, per the approved mock — the
+      // spread layout gives each label clear ground, so the paper pill is gone; a hint of
+      // paper text-shadow keeps it legible where an edge passes underneath
+      style:`position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:500;color:${dark?"#c9c7c1":"#5b584f"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;text-shadow:0 1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"},0 -1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"};`,
       countStyle:`display:none;`,
     })) : [];
 
@@ -2202,7 +2376,9 @@ class Component extends DCLogic {
         hasCustomer:selfMode&&!!(p.customer&&p.customer.trim()), customer:p.customer||"",
         hasStage:selfMode&&!!(p.stage&&p.stage.trim()), stage:p.stage||"",
         hasApproaches:selfMode&&(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
-        panelStyle:`position:absolute;right:18px;top:74px;bottom:18px;width:344px;background:#fffefb;border:1px solid #e3e0d8;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.14);padding:20px;overflow-y:auto;z-index:30;animation:atlasFade .18s ease;`,
+        // full-bleed layout: the person opens as a sheet flush to the right edge, not a
+        // floating card — full height, hairline left border, soft leftward shadow
+        panelStyle:`position:absolute;right:0;top:0;bottom:0;width:344px;background:rgba(255,254,250,.97);border-left:1px solid ${LINE};box-shadow:-18px 0 44px rgba(33,31,26,.07);padding:24px 26px;overflow-y:auto;z-index:31;animation:atlasSlide .22s cubic-bezier(.2,.7,.3,1);`,
         sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
         tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e3e0d8;border-radius:8px;padding:2px 8px;" })),
         hasCohorts:(p.cohorts||[]).length>0,
@@ -2262,13 +2438,6 @@ class Component extends DCLogic {
     }));
     const catCount=Object.keys(s.bookmarks).length;
 
-    // self picker
-    const selfSuggestions = s.selfQuery.trim().length>=2 ? s.nodes.filter(n=>{
-        const q=s.selfQuery.toLowerCase();
-        if(s.mode==="alumni") return n.status==="alum"&&n.name.toLowerCase().includes(q);
-        return n.name.toLowerCase().includes(q);
-      }).slice(0,6).map(n=>({ name:n.name, sub:`${n.ventureName} · ${(n.person.programs||[]).join(", ")}`, onClick:()=>this.selectSelf(n.id) })) : [];
-
     // ---------- profile interview (conversational, streamlined) ----------
     let interview=null;
     if(s.interview){
@@ -2321,14 +2490,25 @@ class Component extends DCLogic {
       loading:s.loading, worldW:s.world.w, worldH:s.world.h,
       svgStyle:`position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:5;`,
       interview, flash:s.flash,
-      audiences, regions, nodesView, links:restView.concat(links), sectorGroups, familyLegend,
+      regions, nodesView, links:restView.concat(links), sectorGroups, familyLegend,
+      // command bar
+      showCommandBar: s.mode==="general",
+      cmdBarStyle:`display:flex;align-items:center;overflow:hidden;${CARD}border-radius:8px;`,
+      // kept after discussion (2026-07-28): at rest it says the scale of the network, and
+      // while filtering it becomes the "42 of 196" feedback — one slot, two jobs
+      cmdStats: anyFilter ? `${visCount} of ${s.nodes.length}` : overviewLine,
+      clearSearch:()=>this.setState({searchQuery:""}),
+      onCmdFocus:()=>this.setState({cmdFocus:true}),
+      // the delay lets a click on a dropdown row land before the dropdown unmounts
+      onCmdBlur:()=>setTimeout(()=>this.setState({cmdFocus:false}),150),
+      cmdResults, cmdResultsOpen: !!s.cmdFocus && cmdResults.length>0,
+      cmdResultsStyle:`margin-top:6px;padding:6px 0;max-height:262px;overflow:auto;${CARD}border-radius:8px;`,
+      openLogin:()=>this.setState({loginOpen:true}),
+      cmdSignedOut: !s.clerkUser,
+      cmdAccount,
       // cluster names: only in the full-map browse view, and stood down while a territory
       // or search is active so they don't compete with that selection's own labels
-      clusterLabels, overviewLine,
-      showTerritoryToggle: territoriesAvailable,
-      toggleTerritories:()=>this.setState(st=>({showTerritories:!st.showTerritories})),
-      territoriesLabel: s.showTerritories?"Hide territories":"See territories",
-      territoryToggleStyle:`position:absolute;left:16px;bottom:16px;z-index:16;display:inline-flex;align-items:center;gap:7px;background:${s.showTerritories?"#2e2d29":"rgba(255,254,251,.94)"};color:${s.showTerritories?"#fff":"#2e2d29"};backdrop-filter:blur(4px);border:1px solid ${s.showTerritories?"#2e2d29":"#e3e0d8"};border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.09);`,
+      clusterLabels,
       filtersOpen:s.filtersOpen, toggleFilters:()=>this.setState(st=>({filtersOpen:!st.filtersOpen})),
       filterCountLabel: (s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0) ? ` · ${(s.programFilter?1:0)+(s.statusFilter?1:0)+(s.activeSectors.length?1:0)} active` : "",
       filtersCaretStyle:`display:inline-block;transition:transform .15s;transform:rotate(${s.filtersOpen?180:0}deg);color:#9b978d;`,
@@ -2357,17 +2537,20 @@ class Component extends DCLogic {
       seeFullMapStyle: (s.selfId && s.showFullMap)
         ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;"
         : "width:100%;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;",
-      namePromptKicker: s.mode==="alumni"?"Alumni view":"Student view",
+      namePromptKicker: "Account",
       stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};`,
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
       themeToggleLabel: dark?"☀ Light":"☾ Dark",
-      showHelpCard: !egoActive && !namePrompt && !(self && s.showFullMap),
-      // Collapsed, the card is one line and gets the width to say it without wrapping;
-      // expanded, it narrows back to a comfortable reading measure for the bullets.
-      // min() keeps it inside the stage on small screens rather than overflowing.
-      helpCardStyle:`position:absolute;left:16px;top:14px;background:rgba(255,254,251,.93);backdrop-filter:blur(4px);border:1px solid #e3e0d8;border-radius:11px;padding:11px 14px;max-width:min(${s.helpOpen?"320px":"460px"}, calc(100% - 32px));box-shadow:0 3px 12px rgba(0,0,0,.06);`,
-      overviewLineStyle:`color:#2e2d29;flex:1;min-width:0;font-size:12.5px;line-height:1.35;${s.helpOpen?"":"white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"}`,
-      // collapsed by default too: the count line is the useful part, the legend is on demand
+      // ---- map furniture (full-bleed layout): layer pills top-right, legend strip bottom-left ----
+      showMapFurniture: !egoActive && !namePrompt && s.mode==="general",
+      layerPills: [
+        { label:"Territories", on:s.showTerritories, onClick:()=>this.setState(st=>({showTerritories:!st.showTerritories})) },
+        { label:"Connections", on:s.showConnections, onClick:()=>this.setState(st=>({showConnections:!st.showConnections})) },
+        { label:"Names", on:s.showNames, onClick:()=>this.setState(st=>({showNames:!st.showNames})) },
+      ].map(p=>({ label:p.label, onClick:p.onClick,
+        style:`font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;${p.on?`background:${INK};color:#fff;border:1px solid ${INK};`:`background:rgba(250,248,242,.92);color:${MUT};border:1px solid ${LINE};`}` })),
+      legendStripStyle:`display:flex;align-items:center;gap:16px;font-size:11px;color:${MUT};padding:9px 14px;white-space:nowrap;${CARD}border-radius:8px;`,
+      helpPopStyle:`max-width:300px;padding:12px 14px;${CARD}border-radius:8px;`,
       helpOpen: !!s.helpOpen,
       helpToggleLabel: s.helpOpen ? "Hide" : "How to read this map",
       toggleHelp:()=>this.setState(st=>({helpOpen: !st.helpOpen})),
@@ -2419,26 +2602,22 @@ class Component extends DCLogic {
       exchangeItems: (()=>{ const c=this.exchangeCounts();
         return this.EXCHANGE.filter(v=>c[v]>0 || v===s.exchangeFilter)
           .map(v=>({ value:v, label:`${v} (${c[v]||0})` })); })(),
-      // floats over the map (Browse only) rather than living in the sidebar
-      showExchangePanel: s.mode==="general" && !namePrompt,
-      // starts collapsed to the pill — the map is the point; the filter opens on demand
-      exchangePanelOpen: !!s.exchangePanelOpen,
-      exchangePanelClosed: !s.exchangePanelOpen,
-      // opening the panel is itself the request to browse asks & offers, so it lands on "All"
-      // rather than a placeholder row that filters nothing
-      toggleExchangePanel:()=>this.setState(st=>({
-        exchangePanelOpen: !st.exchangePanelOpen,
-        exchangeFilter: (!st.exchangePanelOpen && !st.exchangeFilter) ? "__all__" : st.exchangeFilter,
-        resultsQuery:"",
-      })),
-      // hidden, the pill still names the active filter — hiding the panel must never hide
+      // ---- filters drawer (full-bleed layout): all filtering lives in one floating panel ----
+      showDrawer: s.mode==="general" && !namePrompt,
+      drawerOpenNow: !!s.drawerOpen,
+      drawerClosed: !s.drawerOpen,
+      toggleDrawer:()=>this.setState(st=>({drawerOpen:!st.drawerOpen})),
+      drawerTitle:`Filters${drawerActive?" · "+drawerActive:""}`,
+      drawerChipLabel:`Filters${drawerActive?" · "+drawerActive:""}`,
+      drawerHasActive: drawerActive>0,
+      // collapsed the drawer still counts its filters — hiding the panel must never hide
       // the fact that the map is filtered
-      exchangePillLabel: s.exchangeFilter
-        ? `⇄ ${s.exchangeFilter==="__all__" ? (s.exchangeDir==="need"?"All asks":"All offers") : s.exchangeFilter.replace(/^Intros: /,"")}`
-        : "⇄ Asks & offers",
-      exchangePillStyle: `display:inline-flex;align-items:center;gap:6px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:${s.exchangeFilter?"#fff":"#8C1515"};background:${s.exchangeFilter?"#8C1515":"rgba(255,254,251,.96)"};border:1px solid ${s.exchangeFilter?"#8C1515":"#e8dcdc"};border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 3px 12px rgba(40,36,28,.12);`,
-      showHeaderCatalog: s.mode!=="general",   // in Browse it lives in the sidebar instead
-      catalogSidebarHint: catCount ? "Your shortlist to follow up with." : "Click ★ on anyone to save them here.",
+      drawerClear:()=>this.setState({programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
+      drawerStyle:`position:absolute;left:20px;top:88px;bottom:76px;width:246px;z-index:19;display:flex;flex-direction:column;padding:15px 16px;overflow:hidden;${CARD}border-radius:8px;`,
+      drawerChipStyle:`position:absolute;left:20px;top:88px;z-index:19;padding:9px 14px;font-size:11.5px;font-weight:600;cursor:pointer;color:${INK};${CARD}border-radius:8px;`,
+      lblStyle:`font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:${FAINT};font-weight:700;`,
+      fieldStyle:`width:100%;padding:7px 9px;border:1px solid ${LINE};border-radius:6px;font-size:12px;background:#fff;color:${INK};`,
+      drawerChips,
       exchangeAllLabel: (()=>{ let n=0;
         s.nodes.forEach(x=>{ if(!this.matchesBase(x)) return;
           const side = s.exchangeDir==="need" ? this.needsOf(x.person) : this.offersOf(x.person);
@@ -2446,7 +2625,7 @@ class Component extends DCLogic {
         return `All ${s.exchangeDir==="need"?"asks":"offers"} (${n})`; })(),
       exchangeDirs: [{k:"offer",label:"Offering"},{k:"need",label:"Looking for"}].map(d=>{ const on=s.exchangeDir===d.k;
         return { label:d.label, onClick:()=>this.setState({exchangeDir:d.k, detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
-          style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?"#8C1515":"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
+          style:`flex:1;font-size:11.5px;font-weight:${on?"700":"600"};color:${on?"#fff":"#6b6a65"};background:${on?INK:"#fff"};border:none;padding:7px 4px;cursor:pointer;transition:all .12s;` }; }),
       onExchangeFilter:e=>this.setState({exchangeFilter:e.target.value, detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
       // Clear means "stop filtering": with no placeholder row to land on, the panel folds
       // back to the pill so the select can never show a filter that isn't applied
@@ -2471,7 +2650,7 @@ class Component extends DCLogic {
         if(n===1){ const x=s.sectors.find(y=>y.key===s.activeSectors[0]); return x?x.label:"1 selected"; }
         return `${n} territories selected`;
       })(),
-      sectorMenuButtonStyle:`display:flex;align-items:center;gap:6px;width:100%;padding:7px 9px;border:1px solid ${s.activeSectors.length?"#8C1515":"#e3e0d8"};border-radius:8px;font-size:12.5px;background:#fff;color:${s.activeSectors.length?"#8C1515":"#2e2d29"};font-weight:${s.activeSectors.length?"600":"400"};cursor:pointer;text-align:left;`,
+      sectorMenuButtonStyle:`display:flex;align-items:center;gap:6px;width:100%;padding:8px 10px;border:1px solid ${s.activeSectors.length?"#8C1515":LINE};border-radius:10px;font-size:12.5px;background:#fff;color:${s.activeSectors.length?"#8C1515":INK};font-weight:${s.activeSectors.length?"600":"400"};cursor:pointer;text-align:left;`,
       sectorCaretStyle:`flex:none;font-size:10px;color:#9b978d;transform:rotate(${s.sectorMenuOpen?180:0}deg);transition:transform .15s;`,
       stageRef:this.stageRef, worldRef:this.worldRef,
       onWheel:e=>this.onWheel(e), onPanStart:e=>this.onPanStart(e),
@@ -2481,12 +2660,31 @@ class Component extends DCLogic {
       // self mode
       selfMode, hasSelf:!!self, noSelf:!self,
       selfName:self?self.name:"", selfVentureSuffix:self&&self.ventureName?` (${self.ventureName})`:"",
-      selfPromptTitle: s.mode==="alumni"?"See who you can help":"Find your connections",
-      selfPromptSub: s.mode==="alumni"?"Find your name to light up your place on the map and get personalized intros to current students.":"Find your name to get your personalized map, ranked matches, and warm intros.",
-      selfPlaceholder: s.mode==="alumni"?"Start typing your name (alumni)…":"Start typing your name…",
-      selfQuery:s.selfQuery, selfSuggestions,
-      onSelfInput:e=>this.setState({selfQuery:e.target.value}),
-      clearSelf:e=>{ e.preventDefault(); this.setState({selfId:null, selfQuery:"", detailId:null}, ()=>this.fitView()); },
+      // the login overlay has three faces: checking, Clerk's sign-in card (signed out),
+      // and a signed-in-but-not-linked note. The name picker is gone — identity is a
+      // separate step (BACKEND.md: email match server-side, then LinkedIn, then manual).
+      clerkChecking: s.clerkStatus==="loading",
+      clerkSignInBox: s.clerkStatus==="ready"&&!s.clerkUser,
+      clerkSignedIn: !!s.clerkUser,
+      clerkSignedInLine: s.clerkUser?(s.clerkUser.email?`Signed in as ${s.clerkUser.email}`:"Signed in"):"",
+      clerkSignOut: ()=>this.clerkSignOut(),
+      clerkSignInRef: this.clerkSignInRef,
+      closeLogin:e=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({loginOpen:false}); },
+      // identity linking (the /api/link handshake) — which face the overlay shows
+      linkAsk: s.linkPhase==="linkedin",
+      linkInput: s.linkInput,
+      onLinkInput: e=>this.setState({linkInput:e.target.value}),
+      submitLink: ()=>{ const v=this.state.linkInput.trim(); if(v) this.tryLink(v); },
+      selfPromptTitle: !s.clerkUser ? "Sign in"
+        : s.linkPhase==="linkedin" ? "One more step"
+        : s.linkPhase==="queued" ? "You're in the queue"
+        : "You're signed in",
+      selfPromptSub: s.clerkStatus==="failed" ? "Sign-in isn't available right now — you can still browse the whole map."
+        : !s.clerkUser ? "Members sign in to see the map from their own spot: ranked matches, warm intros, and their asks & offers."
+        : s.linkPhase==="checking" ? "Connecting your account to the map…"
+        : s.linkPhase==="linkedin" ? "We couldn't match your email to anyone on the map. Paste your LinkedIn profile URL — the map knows people by their LinkedIn."
+        : s.linkPhase==="queued" ? "We couldn't match you automatically, so you're in the review queue — your account will be connected soon. Meanwhile, the whole map is yours to browse."
+        : (s.clerkUser.profileKey ? "" : "This account isn't connected to a spot on the map yet. Meanwhile, the whole map is yours to browse."),
       // detail
       // In Student view, closing a profile is "I'm done looking" — it exits their network
       // too and lands you back home: your web framed, your matches panel open.
@@ -2504,7 +2702,7 @@ class Component extends DCLogic {
       closeCatalogBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({catalogOpen:false}); },
       copyCatalog:()=>{ const txt="My Ecopreneurship Network catalog\n\n"+catalogEntries.map(c=>`• ${c.name} — ${c.line} (${c.meta})`).join("\n"); this.copyText(txt,"catCopied"); },
       catCopiedStyle:`font-size:12px;color:#2f5c28;${s.catCopied?"":"display:none;"}`,
-      catBadgeStyle:`display:inline-block;min-width:17px;text-align:center;background:#8C1515;color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;padding:1px 6px;`,
+      catBadgeStyle:`display:inline-block;min-width:17px;text-align:center;background:${INK};color:#fff;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 6px;`,
       catModalBadgeStyle:`display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:24px;height:24px;padding:0 7px;background:#8C1515;color:#fff;border-radius:12px;font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1;`
     };
   }
