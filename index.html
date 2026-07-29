@@ -70,9 +70,9 @@
 <script defer crossorigin="anonymous" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js" type="text/javascript"></script>
 <script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmFzdC1jcmF3ZGFkLTc5LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js" type="text/javascript"></script>
 </helmet>
-<template id="__bundler_thumbnail" data-bg-color="#faf9f6">
+<template id="__bundler_thumbnail" data-bg-color="#f7f5ef">
   <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1200" height="800" fill="#faf9f6"/>
+    <rect width="1200" height="800" fill="#f7f5ef"/>
     <circle cx="440" cy="330" r="150" fill="#007C9218"/>
     <circle cx="700" cy="300" r="130" fill="#4C6B4F18"/>
     <circle cx="600" cy="500" r="140" fill="#B26F1618"/>
@@ -86,7 +86,7 @@
     <text x="600" y="700" font-family="Georgia,serif" font-size="52" fill="#2e2d29" text-anchor="middle">The Ecopreneurship Network</text>
   </svg>
 </template>
-<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#faf9f6;position:relative;">
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f7f5ef;position:relative;">
 
   <sc-if value="{{ showCommandBar }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;left:50%;transform:translateX(-50%);top:20px;z-index:30;">
@@ -276,15 +276,15 @@
 
       <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
         <div onClick="{{ dismissWelcome }}" style="position:absolute;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 45%,rgba(250,249,246,.55),rgba(244,242,236,.8));animation:atlasFade .25s ease;">
-          <div onClick="{{ stopPropagation }}" style="width:100%;max-width:410px;text-align:center;background:#fffefb;border:1px solid #e6e2d9;border-radius:18px;box-shadow:0 22px 60px rgba(40,36,28,.2);padding:26px 28px 22px;">
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#8C1515;font-weight:700;">The Ecopreneurship Network</div>
-            <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.12;margin-top:8px;">Find your connections</div>
-            <div style="font-size:13.5px;color:#5a584f;margin:12px 0 6px;line-height:1.6;text-align:left;">
-              <div style="display:flex;gap:9px;margin-bottom:7px;"><span style="color:#8C1515;font-weight:700;">1.</span><span><b>Click any dot</b> to open that person and light up who they're connected to.</span></div>
-              <div style="display:flex;gap:9px;margin-bottom:7px;"><span style="color:#8C1515;font-weight:700;">2.</span><span><b>Hover</b> to preview someone without leaving where you are.</span></div>
-              <div style="display:flex;gap:9px;"><span style="color:#8C1515;font-weight:700;">3.</span><span><b>Search or filter</b> on the left to focus by area, program, or year.</span></div>
+          <div onClick="{{ stopPropagation }}" style="width:100%;max-width:400px;text-align:center;background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.09);padding:32px 28px 24px;">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#9a968a;font-weight:600;">The Ecopreneurship Network</div>
+            <div style="font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1.15;margin-top:8px;color:#211f1a;">Find your connections</div>
+            <div style="font-size:13.5px;color:#55534a;margin:16px 0 8px;line-height:1.6;text-align:left;">
+              <div style="display:flex;gap:9px;margin-bottom:8px;"><span style="color:#9a968a;font-weight:700;">1.</span><span><b>Click any dot</b> to open that person and light up who they're connected to.</span></div>
+              <div style="display:flex;gap:9px;margin-bottom:8px;"><span style="color:#9a968a;font-weight:700;">2.</span><span><b>Hover</b> to preview someone without leaving where you are.</span></div>
+              <div style="display:flex;gap:9px;"><span style="color:#9a968a;font-weight:700;">3.</span><span><b>Search or filter</b> on the left to focus by area, program, or year.</span></div>
             </div>
-            <button onClick="{{ dismissWelcome }}" style="margin-top:16px;width:100%;font-size:14px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:11px;padding:12px 0;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.22);">Start exploring</button>
+            <button onClick="{{ dismissWelcome }}" class="atlas-btn-primary" style="margin-top:16px;width:100%;font-size:13.5px;font-weight:600;border-radius:999px;padding:12px 0;cursor:pointer;">Start exploring</button>
           </div>
         </div>
       </sc-if>
@@ -302,20 +302,20 @@
       </sc-if>
 
       <sc-if value="{{ egoActive }}" hint-placeholder-val="{{ false }}">
-        <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #ece8de;">
-          <input type="text" value="{{ egoSearchVal }}" onInput="{{ onEgoSearch }}" placeholder="Find anyone…" style="flex:none;width:150px;padding:6px 11px;border:1px solid #e3e0d8;border-radius:999px;font-size:12px;background:#fff;" />
+        <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #e6e2d7;">
+          <input type="text" value="{{ egoSearchVal }}" onInput="{{ onEgoSearch }}" placeholder="Find anyone…" style="flex:none;width:150px;padding:6px 11px;border:1px solid #e6e2d7;border-radius:999px;font-size:12px;background:#fff;" />
           <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
           <sc-if value="{{ exploring }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ backToMyNetwork }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">◂ Back to my network</button>
           </sc-if>
-          <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">My profile</button>
-          <button onClick="{{ browseAll }}" style="flex:none;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Browse everyone</button>
+          <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;transition:border-color .12s ease,background .12s ease;">My profile</button>
+          <button onClick="{{ browseAll }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px;">Browse everyone</button>
           <sc-if value="{{ clerkSignedIn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ clerkSignOut }}" style="flex:none;font-size:11.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;">Sign out</button>
+            <button onClick="{{ clerkSignOut }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px;">Sign out</button>
           </sc-if>
         </div>
         <sc-if value="{{ egoSearchOpen }}" hint-placeholder-val="{{ false }}">
-          <div class="atlas-scroll" style="position:absolute;top:46px;left:14px;z-index:24;width:250px;max-height:280px;overflow-y:auto;background:#fffefb;border:1px solid #e3e0d8;border-radius:11px;box-shadow:0 10px 30px rgba(40,36,28,.18);">
+          <div class="atlas-scroll" style="position:absolute;top:46px;left:14px;z-index:24;width:250px;max-height:280px;overflow-y:auto;background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.09);">
             <sc-for list="{{ egoSearchResults }}" as="r" hint-placeholder-count="3">
               <div onClick="{{ r.onClick }}" style="padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid #f2eee4;"><b>{{ r.name }}</b> <span style="color:#8a877f;">· {{ r.sub }}</span></div>
             </sc-for>
@@ -350,16 +350,16 @@
     </div>
 
     <sc-if value="{{ resultsPanel }}" hint-placeholder-val="{{ false }}">
-      <aside style="width:344px;flex:none;border-left:1px solid #e3e0d8;background:#fffefb;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
-        <div style="padding:15px 16px 12px;border-bottom:1px solid #ece8de;">
+      <aside style="width:344px;flex:none;border-left:1px solid #e6e2d7;background:#fffefa;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
+        <div style="padding:15px 16px 12px;border-bottom:1px solid #e6e2d7;">
           <div style="display:flex;align-items:flex-start;gap:10px;">
-            <div style="flex:1;font-family:Newsreader,serif;font-size:16px;font-weight:600;line-height:1.25;">{{ results.countLine }}</div>
-            <button onClick="{{ closeList }}" title="Collapse list" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;margin:-2px -4px 0 0;">×</button>
+            <div style="flex:1;font-size:14.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3;color:#211f1a;">{{ results.countLine }}</div>
+            <button onClick="{{ closeList }}" title="Collapse list" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
-          <div style="font-size:11.5px;color:#6b6a65;margin-top:3px;line-height:1.35;">{{ results.subLine }}</div>
-          <div style="position:relative;margin-top:11px;">
-            <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:#9b978d;pointer-events:none;">⌕</span>
-            <input type="text" value="{{ resultsQuery }}" onInput="{{ onResultsSearch }}" placeholder="{{ resultsSearchPlaceholder }}" style="width:100%;padding:6px 26px 6px 24px;border:1px solid #e3e0d8;border-radius:8px;font-size:12px;background:#fff;outline:none;" />
+          <div style="font-size:11.5px;color:#6f6c63;margin-top:3px;line-height:1.35;">{{ results.subLine }}</div>
+          <div style="position:relative;margin-top:12px;">
+            <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:#9a968a;pointer-events:none;">⌕</span>
+            <input type="text" value="{{ resultsQuery }}" onInput="{{ onResultsSearch }}" placeholder="{{ resultsSearchPlaceholder }}" class="atlas-field" style="width:100%;padding:7px 26px 7px 24px;border-radius:6px;font-size:12px;" />
             <sc-if value="{{ resultsQuery }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ clearResultsSearch }}" title="Clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:14px;line-height:1;color:#9b978d;cursor:pointer;padding:2px 4px;">×</button>
             </sc-if>
@@ -368,14 +368,14 @@
         <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
           <sc-for list="{{ results.groups }}" as="g" hint-placeholder-count="1">
             <sc-if value="{{ g.showHeader }}" hint-placeholder-val="{{ false }}">
-              <div style="{{ g.headerStyle }}">{{ g.label }} <span style="color:#8C1515;">{{ g.count }}</span></div>
+              <div style="{{ g.headerStyle }}">{{ g.label }} <span style="color:#211f1a;">{{ g.count }}</span></div>
             </sc-if>
             <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="6">
               <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" onClick="{{ p.click }}" style="{{ p.rowStyle }}">
                 <div style="display:flex;align-items:center;gap:8px;">
                   <span style="{{ p.dotStyle }}"></span>
                   <div style="font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
-                  <button onClick="{{ p.reach }}" style="flex:none;white-space:nowrap;font-size:11px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3caca;border-radius:7px;padding:4px 9px;cursor:pointer;">Reach out</button>
+                  <button onClick="{{ p.reach }}" style="flex:none;white-space:nowrap;font-size:11px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:4px 10px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Reach out</button>
                 </div>
                 <div style="{{ p.ventureStyle }}">{{ p.venture }}</div>
                 <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
@@ -394,13 +394,13 @@
     </sc-if>
 
     <sc-if value="{{ egoPanel }}" hint-placeholder-val="{{ false }}">
-      <aside style="width:344px;flex:none;border-left:1px solid #e3e0d8;background:#fffefb;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
-        <div style="padding:15px 16px 13px;border-bottom:1px solid #ece8de;">
+      <aside style="width:344px;flex:none;border-left:1px solid #e6e2d7;background:#fffefa;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
+        <div style="padding:15px 16px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="display:flex;align-items:flex-start;gap:8px;">
-            <div style="font-family:Newsreader,serif;font-size:17px;font-weight:600;line-height:1.2;flex:1;">{{ egoPanel.title }}</div>
-            <button onClick="{{ closeList }}" title="Collapse" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9b978d;cursor:pointer;margin:-2px -4px 0 0;">×</button>
+            <div style="font-size:14.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3;flex:1;color:#211f1a;">{{ egoPanel.title }}</div>
+            <button onClick="{{ closeList }}" title="Collapse" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
-          <div style="font-size:11.5px;color:#6b6a65;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
+          <div style="font-size:11.5px;color:#6f6c63;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;">
             <button onClick="{{ egoPanel.onExchange }}" style="{{ egoPanel.exchangeBtnStyle }}">{{ egoPanel.exchangeLabel }}</button>
             <button onClick="{{ egoPanel.onEnrich }}" style="{{ egoPanel.enrichBtnStyle }}">{{ egoPanel.enrichLabel }}</button>
@@ -409,8 +409,8 @@
         <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
           <sc-for list="{{ egoPanel.groups }}" as="g" hint-placeholder-count="2">
             <div style="display:flex;align-items:baseline;gap:7px;margin:12px 2px 8px;">
-              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#6b6a65;">{{ g.label }}</span>
-              <span style="font-size:11px;color:#8C1515;font-weight:700;">{{ g.count }}</span>
+              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#8a8579;">{{ g.label }}</span>
+              <span style="font-size:11px;color:#211f1a;font-weight:700;">{{ g.count }}</span>
               <span style="font-size:10.5px;color:#a8a396;margin-left:auto;font-style:italic;">{{ g.hint }}</span>
             </div>
             <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
@@ -424,13 +424,13 @@
                 <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
                 <div style="{{ p.reasonStyle }}">{{ p.reason }}</div>
                 <sc-if value="{{ p.twoWay }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:8px;border:1px solid #e8d6d6;background:#fdf7f7;border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="margin-top:8px;border:1px solid #e6e2d7;background:#faf8f2;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
                     <div style="display:flex;gap:7px;align-items:baseline;">
-                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#0f766e;">They give you</span>
+                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#55534a;">They give you</span>
                       <span style="flex:1;min-width:0;font-size:11.5px;line-height:1.4;color:#3a3833;">{{ p.theyGive }}</span>
                     </div>
                     <div style="display:flex;gap:7px;align-items:baseline;">
-                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#a15c00;">You give them</span>
+                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#55534a;">You give them</span>
                       <span style="flex:1;min-width:0;font-size:11.5px;line-height:1.4;color:#3a3833;">{{ p.youGive }}</span>
                     </div>
                   </div>
@@ -447,17 +447,17 @@
     </sc-if>
 
     <sc-if value="{{ reopenTab }}" hint-placeholder-val="{{ false }}">
-      <button onClick="{{ openList }}" style="position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:26;display:flex;align-items:center;gap:6px;writing-mode:vertical-rl;background:#8C1515;color:#fff;border:none;border-radius:10px 0 0 10px;padding:14px 8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:-3px 3px 12px rgba(0,0,0,.15);">{{ reopenLabel }}</button>
+      <button onClick="{{ openList }}" style="position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:26;display:flex;align-items:center;gap:6px;writing-mode:vertical-rl;background:#211f1a;color:#fff;border:none;border-radius:8px 0 0 8px;padding:14px 8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:-3px 3px 12px rgba(33,31,26,.15);">{{ reopenLabel }}</button>
     </sc-if>
 
     <sc-if value="{{ detail }}" hint-placeholder-val="{{ false }}">
       <div style="{{ detail.panelStyle }}" class="atlas-scroll">
         <button onClick="{{ closeDetail }}" style="float:right;width:26px;height:26px;border:1px solid #e6e2d7;border-radius:6px;background:#fff;font-size:13px;line-height:1;color:#6f6c63;cursor:pointer;">×</button>
-        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#9a968a;font-weight:700;">Selected person</div>
-        <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.15;padding-right:20px;margin-top:8px;">{{ detail.name }}</div>
+        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;">Selected person</div>
+        <div style="font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.2;padding-right:20px;margin-top:8px;color:#211f1a;">{{ detail.name }}</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;line-height:1.5;">{{ detail.sub }}</div>
         <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
-          <div style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0f5d52;background:rgba(15,118,110,.1);border:1px solid rgba(15,118,110,.25);border-radius:7px;padding:3px 9px;margin-bottom:11px;">{{ detail.selfBadge }}</div>
+          <div style="display:inline-block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#55534a;background:#faf8f2;border:1px solid #e6e2d7;border-radius:999px;padding:3px 10px;margin-bottom:11px;">{{ detail.selfBadge }}</div>
         </sc-if>
         <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;">
           <sc-for list="{{ detail.tags }}" as="t" hint-placeholder-count="2">
@@ -465,41 +465,41 @@
           </sc-for>
         </div>
         <sc-if value="{{ detail.hasCohorts }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:4px;">Cohorts</div>
+          <div style="margin-top:12px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:4px;">Cohorts</div>
             <sc-for list="{{ detail.cohorts }}" as="c" hint-placeholder-count="1">
               <div style="font-size:12.5px;line-height:1.55;"><span style="{{ c.dotStyle }}"></span>{{ c.label }}</div>
             </sc-for>
           </div>
         </sc-if>
         <sc-if value="{{ detail.hasFocus }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Focus</div><div style="font-size:13px;line-height:1.55;">{{ detail.focus }}</div></div>
+          <div style="margin-top:12px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:3px;">Focus</div><div style="font-size:13px;line-height:1.55;">{{ detail.focus }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasNeed }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;background:rgba(161,92,0,.06);border:1px solid rgba(161,92,0,.2);border-radius:11px;padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:4px;"><span>→</span>Looking for</div>
+            <div style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#55534a;font-weight:600;margin-bottom:4px;"><span>→</span>Looking for</div>
             <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.need }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ detail.hasOffer }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:8px;background:rgba(15,118,110,.06);border:1px solid rgba(15,118,110,.2);border-radius:11px;padding:10px 12px;">
-            <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f766e;font-weight:700;margin-bottom:4px;"><span>←</span>Can help with</div>
+            <div style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#55534a;font-weight:600;margin-bottom:4px;"><span>←</span>Can help with</div>
             <div style="font-size:13px;line-height:1.55;color:#3a3833;">{{ detail.offer }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ detail.hasContact }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:3px;">Contact</div><div style="font-size:13px;"><a href="{{ detail.contactHref }}" style="color:#8C1515;font-weight:600;text-decoration:none;">{{ detail.contact }}</a></div></div>
+          <div style="margin-top:12px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:3px;">Contact</div><div style="font-size:13px;"><a href="{{ detail.contactHref }}" style="color:#8C1515;font-weight:600;text-decoration:none;">{{ detail.contact }}</a></div></div>
         </sc-if>
         <sc-if value="{{ detail.hasStage }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;">Stage</span><span style="font-size:12px;font-weight:600;color:#5a453a;background:#f3ede4;border:1px solid #e6dccd;border-radius:8px;padding:3px 10px;">{{ detail.stage }}</span></div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;">Stage</span><span style="font-size:12px;font-weight:600;color:#5a453a;background:#f3ede4;border:1px solid #e6dccd;border-radius:8px;padding:3px 10px;">{{ detail.stage }}</span></div>
         </sc-if>
         <sc-if value="{{ detail.hasCustomer }}" hint-placeholder-val="{{ false }}">
           <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#6b3fa0;font-weight:700;margin-bottom:3px;">Building for</div><div style="font-size:13px;line-height:1.55;">{{ detail.customer }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasChallenge }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#a15c00;font-weight:700;margin-bottom:3px;">Stuck on</div><div style="font-size:13px;line-height:1.55;">{{ detail.challenge }}</div></div>
+          <div style="margin-top:12px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:3px;">Stuck on</div><div style="font-size:13px;line-height:1.55;">{{ detail.challenge }}</div></div>
         </sc-if>
         <sc-if value="{{ detail.hasApproaches }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#0f5d52;font-weight:700;margin-bottom:5px;">How they work</div>
+          <div style="margin-top:12px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:5px;">How they work</div>
             <div style="display:flex;flex-wrap:wrap;gap:5px;">
               <sc-for list="{{ detail.approaches }}" as="a" hint-placeholder-count="2"><span style="{{ a.style }}">{{ a.label }}</span></sc-for>
             </div>
@@ -513,16 +513,16 @@
           </div>
         </sc-if>
         <sc-if value="{{ detail.hasNeighbors }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:16px;"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin-bottom:6px;">Closest connections</div>
+          <div style="margin-top:16px;"><div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin-bottom:6px;">Closest connections</div>
             <sc-for list="{{ detail.neighbors }}" as="nb" hint-placeholder-count="3">
-              <div onClick="{{ nb.onClick }}" style="font-size:12.5px;padding:6px 8px;border:1px solid #ece8de;border-radius:7px;margin-bottom:5px;cursor:pointer;background:#fff;"><b>{{ nb.name }}</b> <span style="color:#6b6a65;">· {{ nb.shared }}</span></div>
+              <div onClick="{{ nb.onClick }}" style="font-size:12.5px;padding:6px 8px;border:1px solid #e6e2d7;border-radius:7px;margin-bottom:5px;cursor:pointer;background:#fff;"><b>{{ nb.name }}</b> <span style="color:#6b6a65;">· {{ nb.shared }}</span></div>
             </sc-for>
           </div>
         </sc-if>
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:18px;">
           <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ detail.editExchange }}" style="font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;">⇄ My asks &amp; offers</button>
-            <button onClick="{{ detail.editProfile }}" style="font-size:12.5px;font-weight:600;color:#0f766e;background:#fff;border:1px solid #bfe0d9;border-radius:8px;padding:8px 14px;cursor:pointer;">Edit my profile</button>
+            <button onClick="{{ detail.editExchange }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 15px;cursor:pointer;">⇄ My asks &amp; offers</button>
+            <button onClick="{{ detail.editProfile }}" style="font-size:12.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:8px 15px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Edit my profile</button>
           </sc-if>
           <sc-if value="{{ detail.notSelf }}" hint-placeholder-val="{{ true }}">
             <button onClick="{{ detail.reach }}" style="width:100%;font-size:12px;font-weight:600;padding:10px 14px;border-radius:999px;cursor:pointer;background:#211f1a;color:#fff;border:1px solid #211f1a;">Request an intro</button>
@@ -536,29 +536,29 @@
   </div>
 
   <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;background:#0f766e;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(15,118,110,.35);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">{{ flash }}</div>
+    <div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;background:#211f1a;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(33,31,26,.3);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">{{ flash }}</div>
   </sc-if>
 
   <sc-if value="{{ interview }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div style="background:#fffefb;border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.34);">
-        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #ece8de;">
-          <div style="width:30px;height:30px;border-radius:50%;background:#0f766e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✦</div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
+          <div style="width:30px;height:30px;border-radius:50%;background:#211f1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✦</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-family:Newsreader,serif;font-size:16px;font-weight:600;line-height:1.15;">Find your hidden connections</div>
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">Find your hidden connections</div>
             <div style="font-size:11px;color:#8a877f;">{{ interview.kicker }} · {{ interview.progress }}</div>
           </div>
-          <button onClick="{{ interview.onClose }}" title="Close (answers so far are saved when you finish)" style="flex:none;background:none;border:none;font-size:22px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+          <button onClick="{{ interview.onClose }}" title="Close (answers so far are saved when you finish)" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
         </div>
 
         <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:16px 20px;">
           <sc-if value="{{ interview.welcome }}" hint-placeholder-val="{{ false }}">
-            <div style="background:rgba(15,118,110,.08);border:1px solid rgba(15,118,110,.2);border-radius:11px;padding:11px 13px;margin-bottom:14px;font-size:12.5px;color:#0f5d52;line-height:1.45;">{{ interview.welcomeText }}</div>
+            <div style="background:#faf8f2;border:1px solid #e6e2d7;border-radius:8px;padding:11px 13px;margin-bottom:16px;font-size:12.5px;color:#55534a;line-height:1.45;">{{ interview.welcomeText }}</div>
           </sc-if>
           <sc-for list="{{ interview.transcript }}" as="t" hint-placeholder-count="0">
             <div style="margin-bottom:12px;">
               <div style="display:inline-block;background:#f1efe9;color:#3a3833;font-size:12.5px;line-height:1.45;padding:8px 12px;border-radius:12px 12px 12px 3px;max-width:88%;">{{ t.agent }}</div>
-              <div style="text-align:right;margin-top:5px;"><span style="display:inline-block;background:#0f766e;color:#fff;font-size:12.5px;line-height:1.45;padding:8px 12px;border-radius:12px 12px 3px 12px;max-width:88%;text-align:left;">{{ t.answer }}</span></div>
+              <div style="text-align:right;margin-top:5px;"><span style="display:inline-block;background:#211f1a;color:#fff;font-size:12.5px;line-height:1.45;padding:8px 12px;border-radius:12px 12px 3px 12px;max-width:88%;text-align:left;">{{ t.answer }}</span></div>
             </div>
           </sc-for>
 
@@ -585,21 +585,21 @@
                   <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
                 </sc-for>
               </div>
-              <input type="text" value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" style="width:100%;margin-top:11px;padding:10px 13px;border:1px solid #e3e0d8;border-radius:10px;font-size:13px;outline:none;" />
+              <input type="text" value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" class="atlas-field" style="width:100%;margin-top:12px;padding:9px 12px;border-radius:6px;font-size:13px;" />
             </sc-if>
             <sc-if value="{{ interview.isLong }}" hint-placeholder-val="{{ false }}">
-              <textarea value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" rows="4" style="width:100%;padding:12px 13px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;line-height:1.5;resize:vertical;outline:none;"></textarea>
+              <textarea value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" rows="4" class="atlas-field" style="width:100%;padding:11px 12px;border-radius:6px;font-size:13.5px;line-height:1.5;resize:vertical;"></textarea>
             </sc-if>
             <sc-if value="{{ interview.isShort }}" hint-placeholder-val="{{ false }}">
-              <input type="text" value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" style="width:100%;padding:12px 13px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;outline:none;" />
+              <input type="text" value="{{ interview.currentValue }}" onInput="{{ interview.onType }}" placeholder="{{ interview.placeholder }}" class="atlas-field" style="width:100%;padding:10px 12px;border-radius:6px;font-size:13.5px;" />
             </sc-if>
           </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #ece8de;background:#fdfcf9;">
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #e6e2d7;background:#fdfcf9;">
           <button onClick="{{ interview.onBack }}" style="{{ interview.backStyle }}">← Back</button>
-          <button onClick="{{ interview.onSkip }}" style="font-size:12px;color:#9b978d;background:none;border:none;cursor:pointer;">Skip</button>
-          <button onClick="{{ interview.onNext }}" style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;">{{ interview.nextLabel }}</button>
+          <button onClick="{{ interview.onSkip }}" class="atlas-quiet" style="font-size:12px;color:#9a968a;background:none;border:none;cursor:pointer;">Skip</button>
+          <button onClick="{{ interview.onNext }}" class="atlas-btn-primary" style="margin-left:auto;font-size:13px;font-weight:600;border-radius:999px;padding:10px 20px;cursor:pointer;">{{ interview.nextLabel }}</button>
         </div>
       </div>
     </div>
@@ -607,20 +607,20 @@
 
   <sc-if value="{{ profileEdit }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ profileEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefb;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.34);">
-        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #ece8de;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
-            <div style="font-family:Newsreader,serif;font-size:17px;font-weight:600;line-height:1.15;">Edit my profile</div>
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">Edit my profile</div>
             <div style="font-size:11.5px;color:#8a877f;margin-top:1px;">Your project description, shown on your profile.</div>
           </div>
-          <button onClick="{{ profileEdit.onClose }}" style="flex:none;background:none;border:none;font-size:22px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+          <button onClick="{{ profileEdit.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
         </div>
         <div style="padding:16px 20px;flex:1;overflow-y:auto;">
-          <textarea value="{{ profileEdit.value }}" onInput="{{ profileEdit.onType }}" rows="10" placeholder="Describe what you're building and why it matters." style="width:100%;padding:13px 14px;border:1.5px solid #d8c9b0;border-radius:12px;font-size:14px;line-height:1.6;resize:vertical;outline:none;"></textarea>
+          <textarea value="{{ profileEdit.value }}" onInput="{{ profileEdit.onType }}" rows="10" placeholder="Describe what you're building and why it matters." class="atlas-field" style="width:100%;padding:11px 12px;border-radius:6px;font-size:13.5px;line-height:1.6;resize:vertical;"></textarea>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #ece8de;background:#fdfcf9;">
-          <button onClick="{{ profileEdit.onClose }}" style="font-size:12.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;">Cancel</button>
-          <button onClick="{{ profileEdit.onSave }}" style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;">Save</button>
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #e6e2d7;background:#fbf9f4;">
+          <button onClick="{{ profileEdit.onClose }}" class="atlas-quiet" style="font-size:12.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;">Cancel</button>
+          <button onClick="{{ profileEdit.onSave }}" class="atlas-btn-primary" style="margin-left:auto;font-size:13px;font-weight:600;border-radius:999px;padding:10px 20px;cursor:pointer;">Save</button>
         </div>
       </div>
     </div>
@@ -628,43 +628,43 @@
 
   <sc-if value="{{ exchangeEdit }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ exchangeEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefb;border-radius:16px;max-width:580px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.34);">
-        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #ece8de;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:580px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
-            <div style="font-family:Newsreader,serif;font-size:17px;font-weight:600;line-height:1.15;">My asks &amp; offers</div>
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">My asks &amp; offers</div>
             <div style="font-size:11.5px;color:#8a877f;margin-top:1px;">{{ exchangeEdit.summary }}</div>
           </div>
-          <button onClick="{{ exchangeEdit.onClose }}" style="flex:none;background:none;border:none;font-size:22px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+          <button onClick="{{ exchangeEdit.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
         </div>
         <div class="atlas-scroll" style="padding:16px 20px;flex:1;overflow-y:auto;">
           <sc-if value="{{ exchangeEdit.prefilled }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:12px;color:#a15c00;background:#fdf6e7;border:1px solid #f0dfb2;border-radius:9px;padding:9px 11px;margin-bottom:14px;line-height:1.45;">We filled these in from your reciprocity board answers — untick anything that's wrong, and add what's missing.</div>
+            <div style="font-size:12px;color:#6f6c63;background:#faf8f2;border:1px solid #e6e2d7;border-radius:9px;padding:9px 11px;margin-bottom:14px;line-height:1.45;">We filled these in from your reciprocity board answers — untick anything that's wrong, and add what's missing.</div>
           </sc-if>
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
-            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#a15c00;">→ I'm looking for</span>
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#55534a;">→ I'm looking for</span>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
             <sc-for list="{{ exchangeEdit.needOptions }}" as="o" hint-placeholder-count="8">
               <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
             </sc-for>
           </div>
-          <input type="text" value="{{ exchangeEdit.seeks }}" onInput="{{ exchangeEdit.onSeeks }}" placeholder="anything more specific? (optional)" style="width:100%;margin-top:10px;padding:10px 13px;border:1px solid #e3e0d8;border-radius:10px;font-size:13px;outline:none;" />
+          <input type="text" value="{{ exchangeEdit.seeks }}" onInput="{{ exchangeEdit.onSeeks }}" placeholder="anything more specific? (optional)" class="atlas-field" style="width:100%;margin-top:10px;padding:9px 12px;border-radius:6px;font-size:13px;" />
 
-          <div style="height:1px;background:#ece8de;margin:20px 0 16px;"></div>
+          <div style="height:1px;background:#e6e2d7;margin:20px 0 16px;"></div>
 
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
-            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#0f766e;">← I can help with</span>
+            <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#55534a;">← I can help with</span>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
             <sc-for list="{{ exchangeEdit.offerOptions }}" as="o" hint-placeholder-count="8">
               <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
             </sc-for>
           </div>
-          <input type="text" value="{{ exchangeEdit.brings }}" onInput="{{ exchangeEdit.onBrings }}" placeholder="anything more specific? (optional)" style="width:100%;margin-top:10px;padding:10px 13px;border:1px solid #e3e0d8;border-radius:10px;font-size:13px;outline:none;" />
+          <input type="text" value="{{ exchangeEdit.brings }}" onInput="{{ exchangeEdit.onBrings }}" placeholder="anything more specific? (optional)" class="atlas-field" style="width:100%;margin-top:10px;padding:9px 12px;border-radius:6px;font-size:13px;" />
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #ece8de;background:#fdfcf9;">
-          <button onClick="{{ exchangeEdit.onClose }}" style="font-size:12.5px;font-weight:600;color:#6b6a65;background:none;border:none;cursor:pointer;">Cancel</button>
-          <button onClick="{{ exchangeEdit.onSave }}" style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:#0f766e;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;">Save &amp; find matches</button>
+        <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid #e6e2d7;background:#fbf9f4;">
+          <button onClick="{{ exchangeEdit.onClose }}" class="atlas-quiet" style="font-size:12.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;">Cancel</button>
+          <button onClick="{{ exchangeEdit.onSave }}" class="atlas-btn-primary" style="margin-left:auto;font-size:13px;font-weight:600;border-radius:999px;padding:10px 20px;cursor:pointer;">Save &amp; find matches</button>
         </div>
       </div>
     </div>
@@ -672,27 +672,27 @@
 
   <sc-if value="{{ reach }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
-      <div style="background:#fffefb;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);" class="atlas-scroll">
-        <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;">Reach out to {{ reach.name }}</div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Reach out to {{ reach.name }}</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 4px;line-height:1.5;">{{ reach.sub }}</div>
         <sc-if value="{{ reach.showSelfTip }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12px;color:#a15c00;background:#fdf6e7;border:1px solid #f0dfb2;border-radius:8px;padding:8px 10px;margin:8px 0;">Tip: switch to Student view and pick who you are — intros get personalized with your name and venture.</div>
+          <div style="font-size:12px;color:#6f6c63;background:#faf8f2;border:1px solid #e6e2d7;border-radius:8px;padding:8px 10px;margin:8px 0;">Tip: switch to Student view and pick who you are — intros get personalized with your name and venture.</div>
         </sc-if>
-        <label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin:14px 0 4px;">Subject</label>
-        <input type="text" ref="{{ reachSubjRef }}" defaultValue="{{ reach.subject }}" style="width:100%;padding:9px;border:1px solid #e3e0d8;border-radius:9px;font-size:13px;" />
-        <label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#9b978d;font-weight:700;margin:14px 0 4px;">Message</label>
-        <textarea ref="{{ reachBodyRef }}" rows="9" defaultValue="{{ reach.body }}" style="width:100%;padding:10px;border:1px solid #e3e0d8;border-radius:9px;font-size:13px;line-height:1.55;resize:vertical;"></textarea>
+        <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Subject</label>
+        <input type="text" ref="{{ reachSubjRef }}" defaultValue="{{ reach.subject }}" class="atlas-field" style="width:100%;padding:8px 12px;border-radius:6px;font-size:13px;" />
+        <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Message</label>
+        <textarea ref="{{ reachBodyRef }}" rows="9" defaultValue="{{ reach.body }}" class="atlas-field" style="width:100%;padding:10px 12px;border-radius:6px;font-size:13px;line-height:1.55;resize:vertical;"></textarea>
         <sc-if value="{{ reach.hasEmail }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12px;color:#6b6a65;margin-top:10px;">Their email: <b style="color:#8C1515;">{{ reach.email }}</b></div>
+          <div style="font-size:12px;color:#6b6a65;margin-top:10px;">Their email: <b style="color:#211f1a;">{{ reach.email }}</b></div>
         </sc-if>
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;">
           <sc-if value="{{ reach.hasEmail }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ reach.sendEmail }}" style="font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:9px;padding:9px 15px;cursor:pointer;">{{ reach.emailLabel }}</button>
+            <button onClick="{{ reach.sendEmail }}" class="atlas-btn-primary" style="font-size:13px;font-weight:600;border-radius:999px;padding:9px 16px;cursor:pointer;">{{ reach.emailLabel }}</button>
           </sc-if>
           <a href="{{ reach.primaryHref }}" target="_blank" rel="noopener" onClick="{{ reach.onPrimary }}" style="{{ reach.primaryStyle }}">{{ reach.primaryLabel }}</a>
-          <button onClick="{{ reach.copy }}" style="font-size:13px;font-weight:600;background:#fff;border:1px solid #e3e0d8;border-radius:9px;padding:9px 15px;cursor:pointer;">Copy message</button>
+          <button onClick="{{ reach.copy }}" style="font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 16px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Copy message</button>
           <span style="{{ reach.copiedStyle }}">Copied ✓</span>
-          <button onClick="{{ closeReach }}" style="margin-left:auto;font-size:13px;color:#9b978d;background:none;border:none;cursor:pointer;">Close</button>
+          <button onClick="{{ closeReach }}" class="atlas-quiet" style="margin-left:auto;font-size:13px;color:#9a968a;background:none;border:none;cursor:pointer;">Close</button>
         </div>
       </div>
     </div>
@@ -700,19 +700,19 @@
 
   <sc-if value="{{ catalog }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeCatalogBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
-      <div style="background:#fffefb;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);" class="atlas-scroll">
-        <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;display:flex;align-items:center;gap:9px;">My catalog <span style="{{ catModalBadgeStyle }}">{{ catCount }}</span></div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;display:flex;align-items:center;gap:9px;">My catalog <span style="{{ catModalBadgeStyle }}">{{ catCount }}</span></div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 14px;line-height:1.5;">People you've saved on this device — your shortlist to follow up with.</div>
         <sc-if value="{{ catEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12.5px;color:#9b978d;padding:16px 0;">No saved people yet. Click ★ on anyone to add them here.</div>
         </sc-if>
         <sc-for list="{{ catalogEntries }}" as="c" hint-placeholder-count="0">
-          <div style="display:flex;gap:10px;border:1px solid #ece8de;border-radius:10px;padding:11px;margin-bottom:8px;">
+          <div style="display:flex;gap:10px;border:1px solid #e6e2d7;border-radius:8px;padding:11px;margin-bottom:8px;">
             <div style="flex:1;font-size:12.5px;line-height:1.5;">
               <b>{{ c.name }}</b> <span style="color:#6b6a65;">· {{ c.meta }}</span><br/>
               <span style="color:#3a3833;">{{ c.line }}</span>
               <div style="margin-top:7px;display:flex;gap:8px;align-items:center;">
-                <button onClick="{{ c.reach }}" style="font-size:11.5px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;">Reach out</button>
+                <button onClick="{{ c.reach }}" style="font-size:11.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:4px 10px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Reach out</button>
                 <a href="{{ c.linkedin }}" target="_blank" rel="noopener" style="font-size:11.5px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
               </div>
             </div>
@@ -720,9 +720,9 @@
           </div>
         </sc-for>
         <div style="display:flex;gap:8px;align-items:center;margin-top:14px;">
-          <button onClick="{{ copyCatalog }}" style="font-size:13px;font-weight:600;background:#fff;border:1px solid #e3e0d8;border-radius:9px;padding:9px 15px;cursor:pointer;">Copy list</button>
+          <button onClick="{{ copyCatalog }}" style="font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 16px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Copy list</button>
           <span style="{{ catCopiedStyle }}">Copied ✓</span>
-          <button onClick="{{ closeCatalog }}" style="margin-left:auto;font-size:13px;color:#9b978d;background:none;border:none;cursor:pointer;">Close</button>
+          <button onClick="{{ closeCatalog }}" class="atlas-quiet" style="margin-left:auto;font-size:13px;color:#9a968a;background:none;border:none;cursor:pointer;">Close</button>
         </div>
       </div>
     </div>
@@ -1564,7 +1564,10 @@ class Component extends DCLogic {
   openDetailCentered(id){
     const n=this.byId[id], st=this.stageRef.current;
     if(n&&st){ const r=st.getBoundingClientRect(), sc=Math.max(this.view.scale,1.1);
-      this.view.scale=sc; this.view.tx=r.width/2 - n.x*sc; this.view.ty=r.height/2 - n.y*sc; this.applyView(); }
+      // centre in the strip the sheet leaves visible, not the whole stage — otherwise the
+      // person you just picked lands underneath the panel that's opening for them
+      const availW=Math.max(260, r.width-344);
+      this.view.scale=sc; this.view.tx=availW/2 - n.x*sc; this.view.ty=r.height/2 - n.y*sc; this.applyView(); }
     // in Student view the matches panel already occupies the right edge; collapse it so the
     // detail panel has room instead of overlapping it (the "Show matches" tab brings it back).
     const collapse = this.state.mode!=="general" ? { listCollapsed:true } : {};
@@ -1700,6 +1703,28 @@ class Component extends DCLogic {
     const pad=150, w=(maxX-minX)+pad*2, h=(maxY-minY)+pad*2;
     const sc=Math.max(0.32, Math.min(r.width/w, r.height/h, 1.15));
     this.view.scale=sc; this.view.tx=r.width/2-((minX+maxX)/2)*sc; this.view.ty=r.height/2-((minY+maxY)/2)*sc;
+    this.applyView(animate); this.setState({zoom:sc});
+  }
+  // Browse: clicking a dot frames that person together with the very connections that light
+  // up, so the highlight is something you can actually see. Two things made this necessary
+  // when the map went full-bleed: the profile sheet now overlays the right edge (so a person
+  // clicked on the right sat underneath it), and the family-anchored layout scatters someone's
+  // ties across distant neighborhoods (so the lit set was mostly off-screen). Uses the same
+  // neighbors(node,7) set the highlight uses — framing and lighting must never disagree.
+  frameSelection(id, animate){
+    const n=this.byId[id]; if(!n) return;
+    const ids=new Set([id]);
+    this.neighbors(n,7).forEach(r=>ids.add(r.o.id));
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    ids.forEach(i=>{ const q=this.byId[i]; if(!q)return; minX=Math.min(minX,q.x);maxX=Math.max(maxX,q.x);minY=Math.min(minY,q.y);maxY=Math.max(maxY,q.y); });
+    const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect();
+    // the sheet covers the right edge — frame into the strip that's actually visible
+    const sheetW=this.state.detailId?344:0, availW=Math.max(260, r.width-sheetW);
+    const pad=140, w=(maxX-minX)+pad*2, h=(maxY-minY)+pad*2;
+    const sc=Math.max(0.32, Math.min(availW/w, r.height/h, 1.15));
+    this.view.scale=sc;
+    this.view.tx=availW/2-((minX+maxX)/2)*sc;
+    this.view.ty=r.height/2-((minY+maxY)/2)*sc;
     this.applyView(animate); this.setState({zoom:sc});
   }
   // frame the view around an arbitrary set of students (used when a sector is selected)
@@ -2040,14 +2065,14 @@ class Component extends DCLogic {
             ? `display:inline-block;font-size:10px;font-weight:700;letter-spacing:.02em;color:#fff;background:${c.rColor};border:1px solid ${c.rColor};border-radius:7px;padding:3px 8px;margin-top:7px;`
             : `display:inline-block;font-size:10px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:7px;padding:2px 7px;margin-top:7px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
           twoWay: c.rKind==="mutual", theyGive:c.theyGive, youGive:c.youGive,
-          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
-          rowStyle:`border:1px solid ${hov?"#8C1515":"#ece8de"};background:${hov?"#fdf6f6":"#fff"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s,border-color .12s;`,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefa":base};border:${alum?"2px solid "+base:"1.5px solid #fffefa"};box-shadow:0 0 0 1px #e6e2d9;`,
+          rowStyle:`border:1px solid ${hov?"#211f1a":"#e6e2d7"};background:${hov?"#faf8f2":"#fff"};border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:background .12s,border-color .12s;`,
           enter:()=>this.setState({hoverId:o.id}), leave:()=>this.setState(st2=>st2.hoverId===o.id?{hoverId:null}:null),
           click:()=>this.setState({hoverId:o.id}),
           view:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.openDetailCentered(o.id); },
           reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); },
           save:(e)=>{ e.stopPropagation(); this.toggleBookmark(o.id); }, saveIcon:saved?"★":"☆",
-          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:7px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e3e0d8"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
+          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:7px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e6e2d7"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
       };
       const isAlum=c=>c.o.status==="alum";
       const mutualRows=egoCands.filter(c=>c.rKind==="mutual" && !isAlum(c)).map(mkEgoRow);
@@ -2106,7 +2131,7 @@ class Component extends DCLogic {
       const moreBtn=(key,n)=>({
         showMore: n>0,
         moreLabel: s.egoMore[key] ? "Show fewer" : `See ${n} more`,
-        moreStyle:`width:100%;margin:2px 0 6px;font-size:11.5px;font-weight:600;color:#6b6a65;background:#fff;border:1px dashed #d9d5ca;border-radius:8px;padding:7px 0;cursor:pointer;`,
+        moreStyle:`width:100%;margin:2px 0 8px;font-size:11.5px;font-weight:600;color:#6f6c63;background:#fff;border:1px dashed #d9d5c8;border-radius:8px;padding:7px 0;cursor:pointer;transition:border-color .12s ease,color .12s ease;`,
         onMore:()=>this.setState(st=>({ egoMore:{...st.egoMore, [key]: !st.egoMore[key]} })),
       });
       if(shared.length) groups.push({ key:"shared", label:"Connections", hint:"similar work, approach, or challenges", count:shared.length, rows:shared, ...moreBtn("shared", sharedExtra.length) });
@@ -2116,12 +2141,12 @@ class Component extends DCLogic {
         enriched:!!self.person.enriched,
         enrichLabel: (function(f){ return f>=5?"Edit my answers":(f>0?`Finish your profile · ${f} of 5`:"Improve my matches →"); })(this.profileFilled(self.person)),
         // secondary next to the asks/offers button, so there's only one primary action here
-        enrichBtnStyle: `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#0f766e;background:#fff;border:1px solid #bfe0d9;border-radius:8px;padding:7px 12px;cursor:pointer;`,
+        enrichBtnStyle: `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:7px 13px;cursor:pointer;transition:border-color .12s ease,background .12s ease;`,
         // the asks/offers picker gets top billing until it's set — it's the fastest path to a real match
         exchangeLabel: ((self.person.needTags||[]).length||(self.person.offerTags||[]).length) ? "⇄ My asks & offers" : "⇄ Set my asks & offers",
         exchangeBtnStyle: ((self.person.needTags||[]).length&&(self.person.offerTags||[]).length)
-          ? `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3caca;border-radius:8px;padding:7px 12px;cursor:pointer;`
-          : `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:700;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(140,21,21,.25);`,
+          ? `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:7px 13px;cursor:pointer;transition:border-color .12s ease,background .12s ease;`
+          : `display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:600;color:#fff;background:#8C1515;border:1px solid #8C1515;border-radius:999px;padding:8px 14px;cursor:pointer;transition:background .12s ease;`,
         onExchange:()=>this.openExchangeEdit(),
         onEnrich:()=>this.openInterview() };
     }
@@ -2144,7 +2169,7 @@ class Component extends DCLogic {
     const cmdResults = cq.length>=2 ? s.nodes.filter(n=>[n.name,n.ventureName,...(n.tags||[])].join(" ").toLowerCase().includes(cq)).slice(0,7)
       .map(n=>({ name:n.name, sub:`${(n.tags||[])[0]||""}${n.ventureName?" · "+n.ventureName:""}`.slice(0,46),
         dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:${personFill(n)};`,
-        onClick:()=>this.setState({ detailId:n.id, pinId:n.id, cmdFocus:false }) })) : [];
+        onClick:()=>this.setState({ detailId:n.id, pinId:n.id, cmdFocus:false }, ()=>this.frameSelection(n.id, true)) })) : [];
 
     // territories stay hidden until a sector is clicked — then just a small label sits over its members (who light up in the sector color)
     const regions = s.activeSectors.length
@@ -2187,14 +2212,14 @@ class Component extends DCLogic {
       const baseSize=12+Math.pow(t,0.68)*28;
       const isExplore = !!explore && n.id===explore.id;
       const size=isExplore?baseSize+8:(isSelf?baseSize+6:(isFocus?baseSize+5:((highlight&&hi&&self)?baseSize+2:(inSelSector?baseSize+4:baseSize))));
-      const ring = dark ? "#191919" : "#fffefb";   // dot's rim reads against the canvas
+      const ring = dark ? "#191919" : "#fffefa";   // dot's rim reads against the canvas
       // all nodes filled — current vs alumni is a filter, not a visual encoding on the map
       let dot = `width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2px solid ${ring};box-shadow:0 1px 3px rgba(0,0,0,${dark?.4:.18});`;
       if(isExplore) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid #8C1515;box-shadow:0 0 0 3px rgba(140,21,21,.18),0 2px 8px rgba(0,0,0,.2);`;
       else if(isSelf) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:3px solid ${ring};animation:atlasPulse 2s ease-out infinite;`;
       else if(isRecip) dot=`width:${size}px;height:${size}px;border-radius:50%;background:${base};border:2.5px solid #1c2f5e;box-shadow:0 1px 4px rgba(28,47,94,.3);`;
       const overlap = s.activeSectors.length>=2 && s.activeSectors.every(sk=>(n.tags||[]).map(t=>this.norm(t)).includes(sk));
-      if(overlap && !isSelf && !isRecip) dot+=`outline:2px solid #8C1515;outline-offset:2px;box-shadow:0 0 0 1px #fffefb,0 0 10px rgba(140,21,21,.5);`;
+      if(overlap && !isSelf && !isRecip) dot+=`outline:2px solid #8C1515;outline-offset:2px;box-shadow:0 0 0 1px #fffefa,0 0 10px rgba(140,21,21,.5);`;
       const emphatic = isFocus||isSelf;
       // a highlighted person in your network (Student view) — their name should read clearly
       const egoConn = !!self && highlight && hi && !emphatic;
@@ -2213,7 +2238,8 @@ class Component extends DCLogic {
         onClick:(e)=>{ e.stopPropagation();
           // Student view: a click walks into that person's network (clicking yourself goes home)
           if(self && !s.showFullMap) this.setState({ detailId:n.id, hoverId:n.id, exploreId: n.id===self.id ? null : n.id });
-          else this.setState({detailId:n.id, pinId: s.mode==="general" ? n.id : s.pinId});
+          else this.setState({detailId:n.id, pinId: s.mode==="general" ? n.id : s.pinId},
+            ()=>{ if(this.state.mode==="general") this.frameSelection(n.id, true); });
         }
       };
     });
@@ -2370,16 +2396,16 @@ class Component extends DCLogic {
             : "display:none;",
           chipsWrapStyle:`display:flex;flex-wrap:wrap;gap:4px;margin-top:${exMode?4:7}px;`,
           meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
-          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefb":base};border:${alum?"2px solid "+base:"1.5px solid #fffefb"};box-shadow:0 0 0 1px #e6e2d9;`,
+          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefa":base};border:${alum?"2px solid "+base:"1.5px solid #fffefa"};box-shadow:0 0 0 1px #e6e2d9;`,
           // in asks/offers mode these chips carry the exchange instead of the sector; the one
           // you filtered by is filled in, so you can see why this person is in the list
           sectors: exMode
             ? exTags.map(t=>{ const sel=s.exchangeFilter===t;
                 return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?exColor:exColor+"55"};color:${sel?"#fff":exColor};background:${sel?exColor:exColor+"12"};` }; })
-            : (o.tags||[]).map(t=>{ const sel=s.activeSectors.includes(this.norm(t)); return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?"#8C1515":"#e3e0d8"};color:${sel?"#8C1515":"#6b6a65"};background:${sel?"#8c15150d":"#fff"};` }; }),
+            : (o.tags||[]).map(t=>{ const sel=s.activeSectors.includes(this.norm(t)); return { label:t, style:`display:inline-block;white-space:nowrap;font-size:9.5px;line-height:1.5;padding:1px 6px;border-radius:6px;border:1px solid ${sel?"#8C1515":"#e6e2d7"};color:${sel?"#8C1515":"#6b6a65"};background:${sel?"#8c15150d":"#fff"};` }; }),
           rowStyle:spanning
-            ? `border:1px solid ${hov?"#8C1515":"#e0b3b3"};border-left:3px solid #8C1515;background:${hov?"#fbf1f1":"#fdf6f6"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`
-            : `border:1px solid ${hov?"#d8c9b0":"#ece8de"};background:${hov?"#fdfaf3":"#fff"};border-radius:10px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:background .12s;`,
+            ? `border:1px solid ${hov?"#8C1515":"#e0b3b3"};border-left:3px solid #8C1515;background:${hov?"#fbf1f1":"#fdf6f6"};border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:background .12s;`
+            : `border:1px solid ${hov?"#c6c1b1":"#e6e2d7"};background:${hov?"#faf8f2":"#fff"};border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:background .12s;`,
           badgeStyle:`display:${spanning?"inline-block":"none"};white-space:nowrap;font-size:9.5px;font-weight:700;letter-spacing:.02em;color:#8C1515;background:#8c15150f;border:1px solid #e0b3b3;border-radius:6px;padding:2px 7px;margin-top:7px;`,
           enter:()=>this.setState({hoverId:o.id}),
           leave:()=>this.setState(st2=>st2.hoverId===o.id?{hoverId:null}:null),
@@ -2388,7 +2414,7 @@ class Component extends DCLogic {
         };
       };
       const selLabels=s.activeSectors.map(k=>{ const x=s.sectors.find(y=>y.key===k); return x?x.label:k; });
-      const normalHeader=`display:flex;align-items:center;gap:7px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:#6b6a65;margin:12px 2px 8px;`;
+      const normalHeader=`display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#8a8579;margin:12px 2px 8px;`;
       let groups;
       if(s.activeSectors.length>=2){
         const hasAll=o=>{ const tg=(o.tags||[]).map(t=>this.norm(t)); return s.activeSectors.every(sk=>tg.includes(sk)); };
@@ -2397,7 +2423,7 @@ class Component extends DCLogic {
         groups=[];
         if(spanNodes.length){
           groups.push({ key:"__span", label:"In all: "+selLabels.join(" + "), count:spanNodes.length, showHeader:true,
-            headerStyle:`display:flex;align-items:center;gap:7px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#8C1515;margin:4px 2px 9px;`,
+            headerStyle:`display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#211f1a;margin:4px 2px 9px;`,
             rows:spanNodes.slice().sort(cmp).map(o=>mkRow(o,true)) });
         }
         s.activeSectors.forEach(sk=>{ const sec=s.sectors.find(x=>x.key===sk);
@@ -2441,12 +2467,12 @@ class Component extends DCLogic {
         hasChallenge:selfMode&&!!(ch0.text&&ch0.text.trim()), challenge:ch0.text||"",
         hasCustomer:selfMode&&!!(p.customer&&p.customer.trim()), customer:p.customer||"",
         hasStage:selfMode&&!!(p.stage&&p.stage.trim()), stage:p.stage||"",
-        hasApproaches:selfMode&&(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#0f5d52;background:rgba(15,118,110,.09);border:1px solid rgba(15,118,110,.22);border-radius:8px;padding:2px 8px;" })),
+        hasApproaches:selfMode&&(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#55534a;background:#faf8f2;border:1px solid #e6e2d7;border-radius:999px;padding:2px 9px;" })),
         // full-bleed layout: the person opens as a sheet flush to the right edge, not a
         // floating card — full height, hairline left border, soft leftward shadow
         panelStyle:`position:absolute;right:0;top:0;bottom:0;width:344px;background:rgba(255,254,250,.97);border-left:1px solid ${LINE};box-shadow:-18px 0 44px rgba(33,31,26,.07);padding:24px 26px;overflow-y:auto;z-index:31;animation:atlasSlide .22s cubic-bezier(.2,.7,.3,1);`,
         sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
-        tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e3e0d8;border-radius:8px;padding:2px 8px;" })),
+        tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e6e2d7;border-radius:8px;padding:2px 8px;" })),
         hasCohorts:(p.cohorts||[]).length>0,
         cohorts:(p.cohorts||[]).map(c=>({ label:`${c.program}${c.year?" · "+c.year:""}${c.venture?" — "+c.venture:""}`, dotStyle:`display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;background:${PC[(c.program||"").split("+")[0]]||"#999"};` })),
         hasFocus:!!p.focus, focus:p.focus,
@@ -2460,7 +2486,7 @@ class Component extends DCLogic {
         reach:()=>this.setState({reachId:n.id, reachCopied:false}),
         toggleBookmark:()=>this.toggleBookmark(n.id),
         bookmarkLabel: bm?"★ Saved":"☆ Save",
-        bookmarkStyle:`font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid ${bm?"#c9a227":"#e3e0d8"};background:${bm?"#fdf6e0":"#fff"};color:${bm?"#8a6d00":"#2e2d29"};`
+        bookmarkStyle:`font-size:12.5px;font-weight:600;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid ${bm?"#c9a227":"#e6e2d7"};background:${bm?"#fdf6e0":"#fff"};color:${bm?"#8a6d00":"#2e2d29"};`
       };
     }
 
@@ -2485,8 +2511,8 @@ class Component extends DCLogic {
         primaryLabel: `Connect with ${t.name.split(" ")[0]} on LinkedIn`,
         primaryHref: liUrl,
         primaryStyle: hasEmail
-          ? `font-size:13px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e0b3b3;border-radius:9px;padding:9px 15px;text-decoration:none;`
-          : `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border-radius:9px;padding:9px 15px;text-decoration:none;`,
+          ? `font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 16px;text-decoration:none;transition:border-color .12s ease,background .12s ease;`
+          : `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:1px solid #8C1515;border-radius:999px;padding:9px 16px;text-decoration:none;transition:background .12s ease;`,
         onPrimary: ()=>{},
         copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
         copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
@@ -2518,15 +2544,15 @@ class Component extends DCLogic {
       }
       const approachOptions = this.APPROACHES.map(lbl=>{ const on=(a.approaches||[]).includes(lbl);
         return { label:lbl, onClick:()=>this.toggleApproach(lbl),
-          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?"#0f766e":"#e3e0d8"};background:${on?"#0f766e":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
+          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?"#0f766e":"#e6e2d7"};background:${on?"#0f766e":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
       // the asks/offers picker — same chip pattern as approaches, pointed at the shared vocabulary
       const exColor = step.key==="brings" ? "#0f766e" : "#a15c00";
       const exchangeOptions = step.type==="picker" ? this.EXCHANGE.map(lbl=>{ const on=(a[step.tagKey]||[]).includes(lbl);
         return { label:lbl, onClick:()=>this.toggleExchange(step.tagKey, lbl),
-          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?exColor:"#e3e0d8"};background:${on?exColor:"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; }) : [];
+          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?exColor:"#e6e2d7"};background:${on?exColor:"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; }) : [];
       const stageOptions = this.STAGES.map(lbl=>{ const on=a.stage===lbl;
         return { label:lbl, onClick:()=>this.selectStage(lbl),
-          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12.5px;border:1px solid ${on?"#8C1515":"#e3e0d8"};background:${on?"#8C1515":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:10px;padding:9px 14px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
+          style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12.5px;border:1px solid ${on?"#8C1515":"#e6e2d7"};background:${on?"#8C1515":"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:10px;padding:9px 14px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
       interview={
         welcome: !!iv.welcome,
         welcomeText: self ? `Welcome, ${self.name.split(" ")[0]}. A few quick questions and the map will find people you'd never bump into otherwise: people building for the same customer, working the way you do, or a step ahead of you. Skip anything, edit later.` : "",
@@ -2601,8 +2627,8 @@ class Component extends DCLogic {
       mapJump: (s.selfId && s.showFullMap) ? (()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); })) : (()=>this.setState({showFullMap:true}, ()=>this.fitView(true))),
       mapJumpLabel: (s.selfId && s.showFullMap) ? "◂ Back to my network" : "See the full map ◹",
       seeFullMapStyle: (s.selfId && s.showFullMap)
-        ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;"
-        : "width:100%;font-size:12px;font-weight:600;color:#8C1515;background:#fff;border:1px solid #e3e0d8;border-radius:8px;padding:9px 0;cursor:pointer;margin-bottom:8px;",
+        ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#211f1a;border:1px solid #211f1a;border-radius:999px;padding:9px 0;cursor:pointer;margin-bottom:8px;transition:background .12s ease;"
+        : "width:100%;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 0;cursor:pointer;margin-bottom:8px;transition:border-color .12s ease,background .12s ease;",
       namePromptKicker: "Account",
       stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};`,
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
@@ -2650,7 +2676,7 @@ class Component extends DCLogic {
       exchangeEdit: s.exchangeEdit ? (()=>{ const ee=s.exchangeEdit;
         const chip=(which,color)=>this.EXCHANGE.map(lbl=>{ const on=(ee[which]||[]).includes(lbl);
           return { label:lbl, onClick:()=>this.toggleExchangeTag(which,lbl),
-            style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?color:"#e3e0d8"};background:${on?color:"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
+            style:`display:inline-flex;align-items:center;white-space:nowrap;font-size:12px;border:1px solid ${on?color:"#e6e2d7"};background:${on?color:"#fff"};color:${on?"#fff":"#2e2d29"};border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .12s;`+(on?"font-weight:600;":"") }; });
         const n=(ee.needTags||[]).length, o=(ee.offerTags||[]).length;
         return {
           needOptions:chip("needTags","#a15c00"), offerOptions:chip("offerTags","#0f766e"),
@@ -2773,7 +2799,7 @@ class Component extends DCLogic {
       copyCatalog:()=>{ const txt="My Ecopreneurship Network catalog\n\n"+catalogEntries.map(c=>`• ${c.name} — ${c.line} (${c.meta})`).join("\n"); this.copyText(txt,"catCopied"); },
       catCopiedStyle:`font-size:12px;color:#2f5c28;${s.catCopied?"":"display:none;"}`,
       catBadgeStyle:`display:inline-block;min-width:17px;text-align:center;background:${INK};color:#fff;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 6px;`,
-      catModalBadgeStyle:`display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:24px;height:24px;padding:0 7px;background:#8C1515;color:#fff;border-radius:12px;font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1;`
+      catModalBadgeStyle:`display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:24px;height:24px;padding:0 7px;background:#211f1a;color:#fff;border-radius:999px;font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1;`
     };
   }
 }
