@@ -859,11 +859,16 @@ class Component extends DCLogic {
     // The race caps the wait at 3.5s: typical sheet load is a few hundred ms, and if Google
     // is slow or blocked we'd rather show the map with data.js values than a spinner.
     const live=Promise.race([ this.fetchLiveExchange(), new Promise(r=>setTimeout(()=>r(null),3500)) ]);
+    // …and what people have written about themselves here, which is the source that replaces
+    // the board eventually. Same 3.5s cap and the same reason: the map must never wait.
+    const posted=Promise.race([ this.fetchPostedExchange(), new Promise(r=>setTimeout(()=>r(null),3500)) ]);
     let tries=0;
     const grab=()=>{
       const F = (typeof FALLBACK_PEOPLE!=="undefined"&&FALLBACK_PEOPLE)||window.FALLBACK_PEOPLE;
       const A = (typeof ALUMNI_PEOPLE!=="undefined"&&ALUMNI_PEOPLE)||window.ALUMNI_PEOPLE;
-      if(F&&A){ live.then(map=>{ const people=this.mergePeople(F.concat(A)); const n=this.applyLiveExchange(people,map); if(n) try{ console.info(`[Atlas] live asks/offers: ${n} field(s) fresher than data.js`); }catch(e){} this.init(people); }); return; }
+      // order is the precedence rule: data.js, then the board, then what someone posted here —
+      // a person's own answer wins over the board's copy of it
+      if(F&&A){ Promise.all([live,posted]).then(([map,ex])=>{ const people=this.mergePeople(F.concat(A)); const n=this.applyLiveExchange(people,map); const m=this.applyPostedExchange(people,ex); if(n||m) try{ console.info(`[Atlas] fresher asks/offers: ${n} field(s) from the board, ${m} ${m===1?"person":"people"} posted here`); }catch(e){} this.init(people); }); return; }
       if(tries++<40) setTimeout(grab,50);
       else this.setState({loading:false});
     };
@@ -1021,6 +1026,27 @@ class Component extends DCLogic {
     people.forEach(p=>{ const row=live[this.norm(p.name)]; if(!row) return;
       if(row.ask && row.ask!==p.asks){ p.asks=row.ask; n++; }
       if(row.off && row.off!==p.offers){ p.offers=row.off; n++; } });
+    return n;
+  }
+
+  // ---------- asks & offers people posted here (/api/exchange) ----------
+  // The successor to the board fetch above: what someone writes in their own view is saved to
+  // Airtable, and everyone else picks it up the next time they open the map. Both sources run
+  // side by side until enough people have posted — see BACKEND.md, Asks & offers.
+  async fetchPostedExchange(){
+    try{
+      const r=await fetch("/api/exchange",{cache:"no-store"}); if(!r.ok) return null;
+      const j=await r.json(); return (j&&j.exchange)||null;
+    }catch(e){ return null; }   // opened as a local file, or a mirror with no backend — the map still loads
+  }
+  // A posted answer lands on exactly the fields the interview writes — the picked tags plus the
+  // free text — which is what makes it outrank the board everywhere: needsOf/offersOf read
+  // stated tags first, and egoData reads `seeks || asks`. Keys are profileKey(): the LinkedIn
+  // URL lowercased, else the normalized name, the same key the server derives from the session.
+  applyPostedExchange(people, ex){
+    if(!ex) return 0; let n=0;
+    people.forEach(p=>{ const row=ex[(p.linkedin||"").trim().toLowerCase() || this.norm(p.name)]; if(!row) return;
+      this.mergeProfile(p, p.name, { seeks:row.asks||"", brings:row.offers||"", needTags:row.askTags||[], offerTags:row.offerTags||[] }); n++; });
     return n;
   }
 
@@ -1351,6 +1377,25 @@ class Component extends DCLogic {
       : (fresh ? `${fresh} new ${fresh===1?"person":"people"} to meet ▸` : "Saved. More matches appear as others add theirs.");
     this.setState({ exchangeEdit:null, flash, listCollapsed:false });
     clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 5000);
+    this.postExchange({ asks:ee.seeks, offers:ee.brings, askTags:ee.needTags, offerTags:ee.offerTags });
+  }
+  // ---- the sharing half: the same answers, saved to Airtable so everyone else's map sees them ----
+  // Signed-in only, and the server writes whichever row the SESSION belongs to — the browser
+  // never says whose asks these are, because a browser-supplied key would let anyone overwrite
+  // anyone. A failure loses nothing: saveProfile already wrote this device's copy, so the only
+  // news to break is that it hasn't reached anybody else yet.
+  async postExchange(payload){
+    if(typeof Clerk==="undefined"||!Clerk.session) return;
+    try{
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/exchange",{ method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok }, body:JSON.stringify(payload) });
+      if(!r.ok) throw new Error("exchange_http_"+r.status);
+    }catch(e){
+      try{ console.warn("[Atlas] asks & offers not shared:", (e&&e.message)||e); }catch(_){}
+      const flash="Saved on this device — we couldn't reach the server, so nobody else can see it yet.";
+      this.setState({ flash });
+      clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
+    }
   }
   // text answers are controlled — committed to state on each keystroke, so step changes never leak text
   interviewType(val){
@@ -1391,6 +1436,11 @@ class Component extends DCLogic {
     // drop them straight into their refreshed matches so the payoff is visible, not a quiet toast
     this.setState({ interview:null, flash, listCollapsed:false }, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); });
     clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
+    // the interview's last two questions ARE their asks and offers — share those the same way
+    // the short editor does, so it doesn't matter which door someone came through. The other
+    // four answers stay on this device until /api/save is wired (BACKEND.md, the save seam).
+    const a=iv.answers||{};
+    this.postExchange({ asks:a.seeks||"", offers:a.brings||"", askTags:a.needTags||[], offerTags:a.offerTags||[] });
   }
 
   buildLayout(people){
