@@ -912,8 +912,11 @@ class Component extends DCLogic {
     // the landing screen greets a first-time visitor and nobody else — a returning one
     // lands on the map, which is what they came back for (DECISIONS.md, 2026-07-27)
     try{ if(localStorage.getItem("ecoatlas_landed_v1")) this.setState({ landing:false }); }catch(e){}
+    this._onResize=()=>this.onResize();
+    window.addEventListener("resize", this._onResize);
     this.clerkInit();
   }
+  componentWillUnmount(){ window.removeEventListener("resize", this._onResize); clearTimeout(this._resizeT); clearTimeout(this._settleT); clearTimeout(this._toastT); clearTimeout(this._flashT); }
 
   // ---------- Clerk (accounts): real sign-in for the Student view ----------
   // The CDN scripts in <helmet> are deferred, so window "load" is the earliest safe moment;
@@ -1698,7 +1701,33 @@ class Component extends DCLogic {
 
   // ---------- view transform ----------
   applyView(animate){ const w=this.worldRef.current; if(!w) return; w.style.transition = animate ? "transform .62s cubic-bezier(.4,0,.2,1)" : "none"; w.style.transform=`translate(${this.view.tx}px,${this.view.ty}px) scale(${this.view.scale})`; }
-  fitView(animate){ const st=this.stageRef.current; if(!st) return; const r=st.getBoundingClientRect(); const {w,h}=this.state.world; const s=Math.min(r.width/w, r.height/h)*0.94; this.view.scale=s; this.view.tx=(r.width-w*s)/2; this.view.ty=(r.height-h*s)/2; this.applyView(animate); this.setState({zoom:s}); }
+  // clientWidth/Height, not getBoundingClientRect: the rect is the *transformed* box, and
+  // behind the landing screen the stage carries the slow drift animation — measuring that
+  // fitted the map to a stage 6–10% bigger than it really is and left the network sitting
+  // off to one side until the landing was dismissed.
+  fitView(animate){ const st=this.stageRef.current; if(!st) return; const W=st.clientWidth, H=st.clientHeight; if(W<2||H<2) return; const {w,h}=this.state.world; const s=Math.min(W/w, H/h)*0.94; this.view.scale=s; this.view.tx=(W-w*s)/2; this.view.ty=(H-h*s)/2; this._stageSize={w:W,h:H}; this.applyView(animate); this.setState({zoom:s}); }
+  // ---------- the map follows the window ----------
+  // A resize used to leave the view exactly where it was until someone reloaded. Instead of
+  // simply re-fitting — which would yank a zoomed-in reader away from the person they were
+  // reading — we keep whatever world point sits under the middle of the stage and rescale by
+  // exactly the factor the fit-to-window scale changed by. On an untouched map that is
+  // arithmetically identical to a fresh fitView; on a zoomed one it keeps the subject.
+  onResize(){
+    clearTimeout(this._resizeT);
+    // dragging a window corner fires this dozens of times a second — settle first
+    this._resizeT=setTimeout(()=>{
+      const st=this.stageRef.current; if(!st) return;
+      const W=st.clientWidth, H=st.clientHeight; if(W<2||H<2) return;
+      const prev=this._stageSize; this._stageSize={w:W,h:H};
+      const {w,h}=this.state.world;
+      if(!prev||!prev.w||!prev.h||!w||!h) return;
+      const k=Math.min(W/w,H/h)/Math.min(prev.w/w,prev.h/h);
+      if(!isFinite(k)||k<=0) return;
+      const v=this.view, cx=(prev.w/2-v.tx)/v.scale, cy=(prev.h/2-v.ty)/v.scale;
+      v.scale=v.scale*k; v.tx=W/2-cx*v.scale; v.ty=H/2-cy*v.scale;
+      this.applyView(); this.setState({zoom:v.scale});
+    }, 120);
+  }
   zoomAt(cx,cy,factor){ const v=this.view; const ns=Math.max(0.12,Math.min(3.4,v.scale*factor)); const k=ns/v.scale; v.tx=cx-(cx-v.tx)*k; v.ty=cy-(cy-v.ty)*k; v.scale=ns; this.applyView(); if(Math.abs(ns-(this.state.zoom||1))>0.02) this.setState({zoom:ns}); }
   onWheel(e){ e.preventDefault(); const st=this.stageRef.current.getBoundingClientRect(); this.zoomAt(e.clientX-st.left, e.clientY-st.top, e.deltaY<0?1.12:1/1.12); }
   onPanStart(e){ if(e.target.closest("[data-node]")) return; const st=this.stageRef.current; st.style.cursor="grabbing"; const sx=e.clientX, sy=e.clientY, tx0=this.view.tx, ty0=this.view.ty; let moved=false; const move=ev=>{ if(Math.abs(ev.clientX-sx)>4||Math.abs(ev.clientY-sy)>4) moved=true; this.view.tx=tx0+(ev.clientX-sx); this.view.ty=ty0+(ev.clientY-sy); this.applyView(); }; const up=()=>{ st.style.cursor="grab"; window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
