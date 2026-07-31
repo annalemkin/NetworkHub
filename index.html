@@ -281,21 +281,6 @@
         <button onClick="{{ backToEgo }}" style="position:absolute;left:16px;top:14px;display:inline-flex;align-items:center;gap:6px;background:#8C1515;color:#fff;border:none;border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(140,21,21,.25);">◂ Back to my network</button>
       </sc-if>
 
-      <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
-        <div onClick="{{ dismissWelcome }}" style="position:absolute;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 45%,rgba(250,249,246,.55),rgba(244,242,236,.8));animation:atlasFade .25s ease;">
-          <div onClick="{{ stopPropagation }}" style="width:100%;max-width:400px;text-align:center;background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.09);padding:32px 28px 24px;">
-            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#9a968a;font-weight:600;">The Ecopreneurship Network</div>
-            <div style="font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1.15;margin-top:8px;color:#211f1a;">Find your connections</div>
-            <div style="font-size:13.5px;color:#55534a;margin:16px 0 8px;line-height:1.6;text-align:left;">
-              <div style="display:flex;gap:9px;margin-bottom:8px;"><span style="color:#9a968a;font-weight:700;">1.</span><span><b>Click any dot</b> to open that person and light up who they're connected to.</span></div>
-              <div style="display:flex;gap:9px;margin-bottom:8px;"><span style="color:#9a968a;font-weight:700;">2.</span><span><b>Hover</b> to preview someone without leaving where you are.</span></div>
-              <div style="display:flex;gap:9px;"><span style="color:#9a968a;font-weight:700;">3.</span><span><b>Search or filter</b> on the left to focus by area, program, or year.</span></div>
-            </div>
-            <button onClick="{{ dismissWelcome }}" class="atlas-btn-primary" style="margin-top:16px;width:100%;font-size:13.5px;font-weight:600;border-radius:999px;padding:12px 0;cursor:pointer;">Start exploring</button>
-          </div>
-        </div>
-      </sc-if>
-
       <sc-if value="{{ atlasControls }}" hint-placeholder-val="{{ true }}">
       <div style="position:absolute;right:20px;bottom:20px;display:flex;border:1px solid #e6e2d7;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(33,31,26,.05),0 6px 18px rgba(33,31,26,.08);">
         <button onClick="{{ zoomOut }}" style="width:31px;height:29px;border:none;border-right:1px solid #e6e2d7;background:rgba(250,248,242,.94);color:#211f1a;cursor:pointer;font-size:15px;">–</button>
@@ -560,6 +545,11 @@
           <button onClick="{{ enterMap }}" class="atlas-btn-primary" style="font-size:13.5px;font-weight:600;border-radius:999px;padding:13px 26px;cursor:pointer;">Explore the map</button>
           <button onClick="{{ enterLogin }}" style="font-size:13.5px;font-weight:600;color:#211f1a;background:#fffefa;border:1px solid #d9d5c8;border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Log in</button>
         </div>
+        <div style="{{ landingHintsStyle }}">
+          <sc-for list="{{ landingHints }}" as="hn" hint-placeholder-count="3">
+            <div style="{{ hn.style }}"><b style="color:#55534a;font-weight:600;">{{ hn.lead }}</b> {{ hn.text }}</div>
+          </sc-for>
+        </div>
         <div style="{{ landingFootStyle }}">{{ landingFoot }}</div>
       </div>
     </div>
@@ -783,7 +773,7 @@ class Component extends DCLogic {
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
       showConnections:true,
       egoLayout:"map",
-      interview:null, flash:null, filtersOpen:false, showTerritories:true, welcomeDismissed:false, profileEdit:null, egoSearch:"",
+      interview:null, flash:null, filtersOpen:false, showTerritories:true, profileEdit:null, egoSearch:"",
       exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{}, exchangePanelOpen:false,
       exploreId:null,   // in Student view: whose network you've clicked into (null = your own)
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
@@ -919,7 +909,6 @@ class Component extends DCLogic {
     };
     grab();
     try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
-    try{ if(localStorage.getItem("ecoatlas_welcomed_v1")) this.setState({ welcomeDismissed:true }); }catch(e){}
     // the landing screen greets a first-time visitor and nobody else — a returning one
     // lands on the map, which is what they came back for (DECISIONS.md, 2026-07-27)
     try{ if(localStorage.getItem("ecoatlas_landed_v1")) this.setState({ landing:false }); }catch(e){}
@@ -2820,8 +2809,18 @@ class Component extends DCLogic {
       landingHeadStyle:`font-family:Newsreader,serif;font-size:clamp(34px,5.4vw,58px);font-weight:500;letter-spacing:-.025em;line-height:1.06;color:#211f1a;margin:14px 0 0;`,
       landingSub: "A living map of the Stanford Ecopreneurship community — who's building what, who's looking for what, and who is already closest to the problem you're working on.",
       landingSubStyle:`max-width:560px;margin:16px auto 0;font-size:15px;line-height:1.6;color:#55534a;`,
-      landingFoot: "EcoSprint · EcoX · EcoSIF · EcoGlobal · EcoRAMP — current students and alumni. Members sign in to see the map from their own spot.",
-      landingFootStyle:`max-width:520px;margin:26px auto 0;font-size:11.5px;line-height:1.6;color:#9a968a;`,
+      // How to read the map, folded in here (2026-07-31, owner's call): it used to be a
+      // second full card between this screen and the map, which made two dismissals before
+      // anyone saw anything. Three short lines carry the same three points.
+      landingHints: [
+        { lead:"Click any dot", text:"to open that person and light up who they're connected to." },
+        { lead:"Hover", text:"to preview someone without leaving where you are." },
+        { lead:"Search or filter", text:"to focus by area, program or year." },
+      ].map(h=>({ lead:h.lead, text:h.text,
+        style:`flex:1 1 190px;max-width:230px;text-align:left;font-size:11.5px;line-height:1.55;color:#8a877f;` })),
+      landingHintsStyle:`display:flex;justify-content:center;flex-wrap:wrap;gap:12px 26px;max-width:720px;margin:34px auto 0;padding-top:22px;border-top:1px solid rgba(211,206,192,.55);`,
+      landingFoot: "EcoSprint · EcoX · EcoSIF · EcoGlobal · EcoRAMP — current students and alumni.",
+      landingFootStyle:`max-width:520px;margin:20px auto 0;font-size:11.5px;line-height:1.6;color:#9a968a;`,
       enterMap:()=>this.leaveLanding(),
       enterLogin:()=>this.leaveLanding(true),
       // command bar
@@ -2910,8 +2909,6 @@ class Component extends DCLogic {
       // the how-to card sits at a higher z-index than the login overlay, so it has to stand
       // down whenever the account card is up — otherwise "Log in" lands on a how-to card
       // with the sign-in controls hidden behind it
-      showWelcome: !s.loading && !landing && !namePrompt && s.mode==="general" && !s.welcomeDismissed,
-      dismissWelcome:()=>{ try{localStorage.setItem("ecoatlas_welcomed_v1","1");}catch(e){} this.setState({welcomeDismissed:true}); },
       stopPropagation:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       profileEdit: s.profileEdit ? {
         value: s.profileEdit.focus,
