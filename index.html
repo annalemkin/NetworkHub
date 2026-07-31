@@ -66,9 +66,11 @@
 <!-- Clerk (accounts) — loaded from this app's own Frontend API domain, per the js-frontend
      quickstart. The data attribute is the PUBLISHABLE key: designed to be public, safe in
      this file (the publish gate allows pk_, blocks sk_). The secret key lives only in
-     .env.local and Vercel's settings, never here. App: The Network (fast-crawdad-79). -->
-<script defer crossorigin="anonymous" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js" type="text/javascript"></script>
-<script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmFzdC1jcmF3ZGFkLTc5LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://fast-crawdad-79.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js" type="text/javascript"></script>
+     .env.local and Vercel's settings, never here. App: The Network, PRODUCTION instance
+     (2026-07-31) — the key and BOTH script hosts must name the same instance, or the page
+     loads one instance and signs people into another. -->
+<script defer crossorigin="anonymous" src="https://clerk.reciprocitynetwork.app/npm/@clerk/ui@1/dist/ui.browser.js" type="text/javascript"></script>
+<script defer crossorigin="anonymous" data-clerk-publishable-key="pk_live_Y2xlcmsucmVjaXByb2NpdHluZXR3b3JrLmFwcCQ" src="https://clerk.reciprocitynetwork.app/npm/@clerk/clerk-js@6/dist/clerk.browser.js" type="text/javascript"></script>
 </helmet>
 <template id="__bundler_thumbnail" data-bg-color="#f7f5ef">
   <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
