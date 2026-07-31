@@ -61,6 +61,11 @@
   .atlas-field:hover{border-color:#c6c1b1;}
   .atlas-field:focus,.atlas-field:focus-visible{outline:none;border-color:#211f1a;box-shadow:0 0 0 3px rgba(33,31,26,.12);}
   @keyframes atlasPulse{0%{box-shadow:0 0 0 0 rgba(140,21,21,.45);}70%{box-shadow:0 0 0 15px rgba(140,21,21,0);}100%{box-shadow:0 0 0 0 rgba(140,21,21,0);}}
+  /* the landing screen's background: the real network, drifting. Slow enough (75s) to read
+     as alive rather than as motion, and applied to the stage wrapper — never to the world
+     element, whose transform is written directly by applyView for pan and zoom. */
+  @keyframes atlasDrift{0%{transform:scale(1.06) translate3d(1.2%,.6%,0);}50%{transform:scale(1.1) translate3d(-1.4%,-1%,0);}100%{transform:scale(1.06) translate3d(1.2%,.6%,0);}}
+  @media (prefers-reduced-motion: reduce){ @keyframes atlasDrift{0%,100%{transform:none;}} }
 </style>
 <script src="data.js"></script>
 <!-- Clerk (accounts) — loaded from this app's own Frontend API domain, per the js-frontend
@@ -537,8 +542,43 @@
 
   </div>
 
+  <sc-if value="{{ landing }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ landingStyle }}">
+      <div style="width:100%;max-width:760px;text-align:center;">
+        <div style="{{ landingKickerStyle }}">The Ecopreneurship Network</div>
+        <div style="{{ landingHeadStyle }}">{{ landingHead }}</div>
+        <div style="{{ landingSubStyle }}">{{ landingSub }}</div>
+        <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:0 40px;margin:30px 0 32px;">
+          <sc-for list="{{ landingStats }}" as="st" hint-placeholder-count="4">
+            <div style="padding:6px 0;">
+              <div style="{{ st.numStyle }}">{{ st.num }}</div>
+              <div style="{{ st.labelStyle }}">{{ st.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button onClick="{{ enterMap }}" class="atlas-btn-primary" style="font-size:13.5px;font-weight:600;border-radius:999px;padding:13px 26px;cursor:pointer;">Explore the map</button>
+          <button onClick="{{ enterLogin }}" style="font-size:13.5px;font-weight:600;color:#211f1a;background:#fffefa;border:1px solid #d9d5c8;border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Log in</button>
+        </div>
+        <div style="{{ landingFootStyle }}">{{ landingFoot }}</div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;background:#211f1a;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(33,31,26,.3);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">{{ flash }}</div>
+  </sc-if>
+
+  <sc-if value="{{ matchToast }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ matchToastStyle }}">
+      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;color:#9a968a;font-weight:600;">{{ matchToast.kicker }}</div>
+      <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#211f1a;margin-top:7px;">{{ matchToast.name }}</div>
+      <div style="font-size:12px;color:#6f6c63;margin-top:3px;line-height:1.45;">{{ matchToast.sub }}</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:14px;">
+        <button onClick="{{ dismissMatchToast }}" style="font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:7px 15px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">That's me</button>
+        <button onClick="{{ notMe }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12px;font-weight:600;color:#6f6c63;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">That's not me</button>
+      </div>
+    </div>
   </sc-if>
 
   <sc-if value="{{ interview }}" hint-placeholder-val="{{ false }}">
@@ -755,6 +795,9 @@ class Component extends DCLogic {
       loginTab:"in",          // which Clerk controls the login card mounts: "in" (sign in) | "up" (create account)
       drawerOpen:true,        // the left filters drawer (full-bleed layout); collapses to a "Filters" chip
       showNames:true,         // map layer toggle: person-name labels at the current zoom rules
+      matchToast:null,        // {name, sub} — who we just linked this account to, with a way to object
+      settle:"seed",          // opening animation: "seed" (dots held at their entry spiral) → "run" (moving) → "done"
+      landing:true,           // the front screen; componentDidMount clears it for anyone who has been here before
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -877,6 +920,9 @@ class Component extends DCLogic {
     grab();
     try{ this.setState({ bookmarks: JSON.parse(localStorage.getItem("ecoatlas_bookmarks_v1")||"{}")||{} }); }catch(e){}
     try{ if(localStorage.getItem("ecoatlas_welcomed_v1")) this.setState({ welcomeDismissed:true }); }catch(e){}
+    // the landing screen greets a first-time visitor and nobody else — a returning one
+    // lands on the map, which is what they came back for (DECISIONS.md, 2026-07-27)
+    try{ if(localStorage.getItem("ecoatlas_landed_v1")) this.setState({ landing:false }); }catch(e){}
     this.clerkInit();
   }
 
@@ -919,6 +965,9 @@ class Component extends DCLogic {
   syncClerk(){
     const u=(typeof Clerk!=="undefined"&&Clerk.user)||null;
     const cu=u?{ id:u.id, first:u.firstName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
+    // they pressed "That's not me" — hold the key empty for the rest of this page load, even
+    // if Clerk's cached copy of the user hasn't caught up with the server clearing it yet
+    if(cu&&this._unlinkedFor===cu.id) cu.profileKey=null;
     const wasIn=!!this.state.clerkUser;
     this.setState({ clerkStatus:"ready", clerkUser:cu }, ()=>{
       if(cu&&cu.profileKey) this.clerkAutoSelect();
@@ -942,7 +991,7 @@ class Component extends DCLogic {
       if(j.status==="linked"&&j.profileKey){
         const cu={ ...this.state.clerkUser, profileKey:j.profileKey };
         this._autoSelected=false;
-        this.setState({ clerkUser:cu, linkPhase:null, linkInput:"", loginOpen:false }, ()=>this.clerkAutoSelect());
+        this.setState({ clerkUser:cu, linkPhase:null, linkInput:"", loginOpen:false }, ()=>{ this.clerkAutoSelect(); this.matchedToast(j.profileKey); });
       }
       else if(j.status==="needs_linkedin") this.setState({ linkPhase:"linkedin" });
       else this.setState({ linkPhase:"queued" });
@@ -952,6 +1001,46 @@ class Component extends DCLogic {
       try{ console.warn("[Atlas] account linking unavailable:", (e&&e.message)||e); }catch(_){}
     }
   }
+  // ---- telling someone they've been matched, and letting them say we got it wrong ----
+  // Matching is silent and automatic. If it ever links the wrong person, that person has no
+  // way to notice and nobody to complain to — this toast is the only place they'd find out,
+  // which is why it names who they were linked to rather than just saying "you're in".
+  matchedToast(key){
+    const n=this.state.nodes.find(x=>this.profileKey(x)===key); if(!n) return;
+    const sub=[ n.ventureName&&!/^solo/i.test(n.ventureName)?n.ventureName:"", n.program, n.status==="alum"?"Alumni":"Current" ].filter(Boolean).join(" · ");
+    clearTimeout(this._toastT);
+    this.setState({ matchToast:{ name:n.name, sub } });
+    // 12s — long enough to read a name and disagree with it, short enough not to sit there
+    this._toastT=setTimeout(()=>this.setState(st=>(st.matchToast&&st.matchToast.name===n.name)?{matchToast:null}:null), 12000);
+  }
+  dismissMatchToast(){ clearTimeout(this._toastT); this.setState({matchToast:null}); }
+  // "That's not me" — undo the match and put them in the review queue. The server clears the
+  // key and ticks "Not me", which stops the same email match from re-linking them tomorrow.
+  async notMe(){
+    const cu=this.state.clerkUser; if(!cu) return;
+    clearTimeout(this._toastT);
+    // stop our own listeners from putting them straight back: _linkTriedFor blocks the
+    // automatic re-ask, _unlinkedFor holds the key empty for the rest of this page load
+    // even if Clerk's cached user still carries the old one.
+    this._linkTriedFor=cu.id; this._unlinkedFor=cu.id; this._autoSelected=false;
+    this.setState({ matchToast:null, selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:true, linkPhase:"unlinking" });
+    try{
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/link",{ method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok }, body:JSON.stringify({unlink:true}) });
+      if(!r.ok) throw new Error("unlink_http_"+r.status);
+      // the retired name-picker wrote a key into unsafeMetadata too — clear it, or syncClerk
+      // reads the stale one straight back and re-links them to the person they just rejected
+      try{ await Clerk.user.update({ unsafeMetadata:{} }); }catch(e){}
+      try{ await Clerk.user.reload(); }catch(e){}
+      this.setState(st=>({ clerkUser: st.clerkUser?{...st.clerkUser, profileKey:null}:null, linkPhase:"notme" }));
+    }catch(e){
+      const flash="We couldn't unlink you just now — try again in a moment, or tell Anna.";
+      this.setState({ loginOpen:false, linkPhase:null, flash });
+      clearTimeout(this._flashT); this._flashT=setTimeout(()=>this.setState(st=>st.flash===flash?{flash:null}:null), 6000);
+      try{ console.warn("[Atlas] unlink failed:", (e&&e.message)||e); }catch(_){}
+    }
+  }
+
   // signing in IS entering your own view — fire once per page load / sign-in event, so an
   // in-session "Browse everyone" detour isn't yanked back by Clerk's periodic listener calls
   clerkAutoSelect(){
@@ -1272,12 +1361,39 @@ class Component extends DCLogic {
       let attempts=0;
       const tryFit=()=>{
         const st=this.stageRef.current;
-        if(st && st.getBoundingClientRect().width>1){ this.fitView(); return; }
+        if(st && st.getBoundingClientRect().width>1){ this.fitView(); this.startSettle(); return; }
         if(attempts++<60) requestAnimationFrame(tryFit);
+        else this.startSettle();   // never leave the dots parked at their entry spiral
       };
       tryFit();
       this.clerkAutoSelect();   // Clerk may have been ready before the nodes were
     });
+  }
+
+  // Leaving the landing screen is a one-way door for this browser: the flag is written on
+  // the way out, so the next visit opens on the map. Both buttons go through here — "Log in"
+  // is the same exit with the account card already open on top of the map.
+  leaveLanding(openLogin){
+    try{ localStorage.setItem("ecoatlas_landed_v1","1"); }catch(e){}
+    this.setState({ landing:false, loginOpen:!!openLogin }, ()=>this.fitView(true));
+  }
+
+  // ---------- the opening settle: dots resolve into position over ~1.5s ----------
+  // Only ever a CSS transform on each dot — the positions React renders are the final ones
+  // throughout, so this cannot move the map anywhere except into its finished arrangement.
+  // Order matters: fitView must have run first, or the dots animate while the whole world
+  // is still being scaled to the stage and the two motions read as one lurch. The double
+  // rAF is the flip: the browser has to paint the offset frame before the transition can
+  // animate away from it. "done" then drops the transition so nothing else inherits it.
+  startSettle(){
+    if(this._settleStarted) return; this._settleStarted=true;
+    let reduce=false; try{ reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
+    if(reduce){ this.setState({settle:"done"}); return; }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      this.setState({settle:"run"});
+      // 1500ms travel + 260ms of stagger, and a little slack for a busy first paint
+      this._settleT=setTimeout(()=>this.setState({settle:"done"}), 1900);
+    }));
   }
 
   // ---------- profile enrichment (interview answers) ----------
@@ -1571,6 +1687,22 @@ class Component extends DCLogic {
     const deg={}; restLinks.forEach(l=>{ deg[l.aid]=(deg[l.aid]||0)+1; deg[l.bid]=(deg[l.bid]||0)+1; });
     nodes.forEach(n=>{ n.degree=deg[n.id]||0; });
     this.maxDeg = nodes.reduce((m,n)=>Math.max(m,n.degree),0);   // reference for node-size scaling
+
+    // ---------- where the dots come from on first load (the opening settle) ----------
+    // The layout above is untouched: still one synchronous pass, still the same final
+    // arrangement. All this records is a starting point, so the opening can animate the
+    // TRANSITION into the finished map rather than the simulation itself — animating the
+    // raw force iterations would swing and jump when the anchoring pass fires at the end
+    // (DECISIONS.md, 2026-07-27).
+    // The starting point is one phyllotaxis spiral over the whole map — the even, unsorted
+    // scatter the pipeline used to seed from before the six family neighborhoods existed.
+    // It reads as "not arranged yet", so watching it resolve is watching the sorting happen.
+    // 0.36 of the shorter world axis keeps every dot inside the fitted view, so nothing
+    // flies in from off-screen; 260ms of stagger, hashed off the name, is enough to make
+    // them arrive as a shower rather than a single block, and is stable across reloads.
+    const ecx=(maxX-minX)/2+pad, ecy=(maxY-minY)/2+padTop, eR=0.36*Math.min(maxX-minX, maxY-minY);
+    nodes.forEach((n,i)=>{ const a=i*GA, r=eR*Math.sqrt((i+0.5)/nodes.length);
+      n.ex=ecx+Math.cos(a)*r; n.ey=ecy+Math.sin(a)*r; n.settleDelay=Math.round(this.hash(n.name)*260); });
 
     return { sectors, nodes, clusters:this.buildClusters(nodes), world:{ w:(maxX-minX)+pad*2, h:(maxY-minY)+padTop+pad } };
   }
@@ -2235,6 +2367,15 @@ class Component extends DCLogic {
         }))
       : [];
 
+    // opening settle (buildLayout records the entry spiral): "seed" holds every dot at its
+    // entry point with no transition, the flip to "run" animates it home, "done" drops the
+    // transition again. The dot's left/top are its FINAL coordinates in all three states —
+    // only a composited transform moves, which is what keeps 196 of them smooth.
+    const settleSeed = s.settle==="seed", settleRun = s.settle==="run";
+    // The connection lines and the neighborhood names fade in behind the dots: drawing them
+    // over a spiral that hasn't sorted itself yet would spell out an arrangement that isn't
+    // there. The .55s delay puts them just after the first dots land.
+    const settleFade = settleSeed ? "opacity:0;" : (settleRun ? "opacity:1;transition:opacity .6s ease .55s;" : "");
     const nodesView=s.nodes.map(n=>{
       const matched=matchedIds.has(n.id);
       const isSelf=self&&n.id===self.id;
@@ -2280,9 +2421,13 @@ class Component extends DCLogic {
       const labelFont = emphatic ? Math.max(12.5, 13/zoom) : (egoConn ? Math.max(12.5, 13/zoom) : 11);
       const labelWeight = emphatic ? 700 : (egoConn ? 600 : 500);
       const strongLabel = emphatic || egoConn;
+      const settleOff = settleSeed ? ` translate(${(n.ex-n.x).toFixed(1)}px,${(n.ey-n.y).toFixed(1)}px)` : "";
+      // a long, heavily decelerating curve: fast out of the spiral, then a slow arrival, so
+      // it reads as settling into place rather than sliding to a stop
+      const settleTr = settleRun ? `,transform 1500ms cubic-bezier(.16,.86,.24,1) ${n.settleDelay}ms` : "";
       return {
         id:n.id, name:n.name,
-        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%);display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(egoConn?20:(matched?10:1)))};transition:opacity .2s;pointer-events:${(matched||(highlight&&hi))?"auto":"none"};`,
+        wrapStyle:`position:absolute;left:${n.x}px;top:${n.y}px;transform:translate(-50%,-50%)${settleOff};display:${nodeVisible?"flex":"none"};flex-direction:column;align-items:center;cursor:pointer;opacity:${op};z-index:${isFocus?40:(isSelf?30:(egoConn?20:(matched?10:1)))};transition:opacity .2s${settleTr};pointer-events:${(matched||(highlight&&hi))?"auto":"none"};`,
         dotStyle:dot,
         labelStyle:`margin-top:3px;font-size:${labelFont}px;font-weight:${labelWeight};color:#2e2d29;white-space:nowrap;background:rgba(253,252,249,${strongLabel?.96:.88});padding:${strongLabel?"2px 7px":"0 3px"};border-radius:6px;line-height:1.2;max-width:${emphatic?340:180}px;overflow:hidden;text-overflow:ellipsis;box-shadow:${strongLabel?"0 1px 6px rgba(0,0,0,.15)":"none"};display:${labelVisible?"block":"none"};`,
         onEnter:()=>{ if(!self) this.setState({hoverId:n.id}); else this.setState({hoverId:n.id}); },
@@ -2337,6 +2482,25 @@ class Component extends DCLogic {
     // at-a-glance overview for the intro card
     const progSet=new Set(); s.nodes.forEach(n=>(n.person.programs||[]).forEach(p=>{ if(p) progSet.add(p); }));
     const overviewLine = `${s.nodes.length} people · ${progSet.size} programs · ${s.sectors.length} focus areas`;
+
+    // ---------- the landing screen ----------
+    // Held back until the layout exists, for two reasons: every number on it is counted from
+    // the data rather than typed in (so there is nothing to show yet), and the map behind it
+    // should already be drifting when the headline appears rather than popping in underneath.
+    const landing = !!s.landing && !s.loading && s.nodes.length>0;
+    const yrs=[]; s.nodes.forEach(n=>{ const y=+((n.person&&n.person.year)||0); if(y) yrs.push(y); });
+    const yMin=yrs.length?Math.min(...yrs):0, yMax=yrs.length?Math.max(...yrs):0;
+    const yCount=new Set(yrs).size;
+    const landingStats = [
+      { num:String(s.nodes.length), label:"ecopreneurs" },
+      { num:String(progSet.size),   label:"programs" },
+      { num:String(s.sectors.length), label:"focus areas" },
+      // the fourth figure is the span of cohorts, which says "this keeps happening" in a way
+      // a headcount can't; it falls away silently if the data ever loses its year field
+      ...(yCount ? [{ num: yMin===yMax?String(yMin):`${yMin}–${String(yMax).slice(2)}`, label: yCount===1?"cohort":"cohorts" }] : []),
+    ].map(x=>({ num:x.num, label:x.label,
+      numStyle:`font-family:Newsreader,serif;font-size:38px;font-weight:500;letter-spacing:-.02em;line-height:1;color:#211f1a;`,
+      labelStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;color:#8a877f;font-weight:600;margin-top:9px;` }));
     // sector-family region labels — one per family, at the centre of that family's members.
     // Only when browsing the whole map (no self, filter, or search), so the six broad regions
     // read cleanly without competing with a selection's own labels.
@@ -2370,12 +2534,14 @@ class Component extends DCLogic {
       }
       this._famLabels=labels;
     }
-    const clusterLabels = (territoriesAvailable && s.showTerritories && this._famLabels) ? this._famLabels.map(c=>({
+    // …and not behind the landing screen: serif neighborhood names sitting inches from the
+    // headline read as part of the copy. Behind the landing the map is dots and lines only.
+    const clusterLabels = (territoriesAvailable && s.showTerritories && !landing && this._famLabels) ? this._famLabels.map(c=>({
       label:c.label, count:"",
       // bare serif text sitting directly in the map space, per the approved mock — the
       // spread layout gives each label clear ground, so the paper pill is gone; a hint of
       // paper text-shadow keeps it legible where an edge passes underneath
-      style:`position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:500;color:${dark?"#c9c7c1":"#5b584f"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;text-shadow:0 1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"},0 -1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"};`,
+      style:`${settleFade}position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:500;color:${dark?"#c9c7c1":"#5b584f"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;text-shadow:0 1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"},0 -1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"};`,
       countStyle:`display:none;`,
     })) : [];
 
@@ -2632,11 +2798,34 @@ class Component extends DCLogic {
 
     return {
       loading:s.loading, worldW:s.world.w, worldH:s.world.h,
-      svgStyle:`position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:5;`,
+      svgStyle:`${settleFade}position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:5;`,
       interview, flash:s.flash,
+      // ---- "you've been linked to this person" ----
+      // Sits under the command bar rather than over the map, so the dot it's talking about
+      // (already framed and pulsing by the time this appears) stays visible behind it.
+      matchToast: s.matchToast ? { name:s.matchToast.name, sub:s.matchToast.sub, kicker:"You're on the map" } : null,
+      matchToastStyle:`position:fixed;top:86px;left:50%;transform:translateX(-50%);z-index:72;width:300px;max-width:92vw;text-align:left;background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.12);padding:16px 18px;animation:atlasFade .25s ease;`,
+      dismissMatchToast:()=>this.dismissMatchToast(),
+      notMe:()=>this.notMe(),
       regions, nodesView, links:restView.concat(links), sectorGroups, familyLegend,
+      // ---- landing screen: the thing you'd send to an alum or a funder ----
+      // Nothing but the map behind the words: while it's up, every piece of chrome stands
+      // down (command bar, filters drawer, layer pills, zoom, the how-to card), so the
+      // network itself is the whole picture. Dismissing it brings the tools back.
+      landing, landingStats,
+      landingStyle:`position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:32px;background:radial-gradient(circle at 50% 44%,rgba(247,245,239,.58),rgba(244,242,235,.9) 58%,rgba(238,235,227,.97));animation:atlasFade .45s ease;`,
+      landingKickerStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#9a968a;font-weight:600;`,
+      // the count is live: the headline restates itself every time the cohort grows
+      landingHead: `${s.nodes.length} Stanford ecopreneurs. One map.`,
+      landingHeadStyle:`font-family:Newsreader,serif;font-size:clamp(34px,5.4vw,58px);font-weight:500;letter-spacing:-.025em;line-height:1.06;color:#211f1a;margin:14px 0 0;`,
+      landingSub: "A living map of the Stanford Ecopreneurship community — who's building what, who's looking for what, and who is already closest to the problem you're working on.",
+      landingSubStyle:`max-width:560px;margin:16px auto 0;font-size:15px;line-height:1.6;color:#55534a;`,
+      landingFoot: "EcoSprint · EcoX · EcoSIF · EcoGlobal · EcoRAMP — current students and alumni. Members sign in to see the map from their own spot.",
+      landingFootStyle:`max-width:520px;margin:26px auto 0;font-size:11.5px;line-height:1.6;color:#9a968a;`,
+      enterMap:()=>this.leaveLanding(),
+      enterLogin:()=>this.leaveLanding(true),
       // command bar
-      showCommandBar: s.mode==="general",
+      showCommandBar: s.mode==="general" && !landing,
       cmdBarStyle:`display:flex;align-items:center;overflow:hidden;${CARD}border-radius:8px;`,
       // kept after discussion (2026-07-28): at rest it says the scale of the network, and
       // while filtering it becomes the "42 of 196" feedback — one slot, two jobs
@@ -2682,11 +2871,13 @@ class Component extends DCLogic {
         ? "width:100%;font-size:12px;font-weight:600;color:#fff;background:#211f1a;border:1px solid #211f1a;border-radius:999px;padding:9px 0;cursor:pointer;margin-bottom:8px;transition:background .12s ease;"
         : "width:100%;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 0;cursor:pointer;margin-bottom:8px;transition:border-color .12s ease,background .12s ease;",
       namePromptKicker: "Account",
-      stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};`,
+      // behind the landing screen the map drifts, slowly and out of reach; the animation
+      // sits on the stage wrapper, never on the world element applyView writes to
+      stageStyle:`flex:1;position:relative;min-width:0;overflow:hidden;background:${TH.stageBg};${landing?"animation:atlasDrift 75s ease-in-out infinite;":""}`,
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
       themeToggleLabel: dark?"☀ Light":"☾ Dark",
       // ---- map furniture (full-bleed layout): layer pills top-right, legend strip bottom-left ----
-      showMapFurniture: !egoActive && !namePrompt && s.mode==="general",
+      showMapFurniture: !egoActive && !namePrompt && !landing && s.mode==="general",
       layerPills: [
         { label:"Territories", on:s.showTerritories, onClick:()=>this.setState(st=>({showTerritories:!st.showTerritories})) },
         { label:"Connections", on:s.showConnections, onClick:()=>this.setState(st=>({showConnections:!st.showConnections})) },
@@ -2698,7 +2889,7 @@ class Component extends DCLogic {
       helpOpen: !!s.helpOpen,
       helpToggleLabel: s.helpOpen ? "Hide" : "How to read this map",
       toggleHelp:()=>this.setState(st=>({helpOpen: !st.helpOpen})),
-      atlasControls: !egoActive && !namePrompt,
+      atlasControls: !egoActive && !namePrompt && !landing,
       showBackToEgo: !!self && s.showFullMap,
       backToEgo:()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
       exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
@@ -2716,7 +2907,10 @@ class Component extends DCLogic {
             .map(n=>({ name:n.name, sub:`${n.ventureName||"Independent"} · ${n.status==="alum"?"Alumni":"Current"}`,
               onClick:()=>this.setState({egoSearch:""}, ()=>this.openDetailCentered(n.id)) }))
         : [],
-      showWelcome: !s.loading && s.mode==="general" && !s.welcomeDismissed,
+      // the how-to card sits at a higher z-index than the login overlay, so it has to stand
+      // down whenever the account card is up — otherwise "Log in" lands on a how-to card
+      // with the sign-in controls hidden behind it
+      showWelcome: !s.loading && !landing && !namePrompt && s.mode==="general" && !s.welcomeDismissed,
       dismissWelcome:()=>{ try{localStorage.setItem("ecoatlas_welcomed_v1","1");}catch(e){} this.setState({welcomeDismissed:true}); },
       stopPropagation:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); },
       profileEdit: s.profileEdit ? {
@@ -2747,7 +2941,7 @@ class Component extends DCLogic {
         return this.EXCHANGE.filter(v=>c[v]>0 || v===s.exchangeFilter)
           .map(v=>({ value:v, label:`${v} (${c[v]||0})` })); })(),
       // ---- filters drawer (full-bleed layout): all filtering lives in one floating panel ----
-      showDrawer: s.mode==="general" && !namePrompt,
+      showDrawer: s.mode==="general" && !namePrompt && !landing,
       drawerOpenNow: !!s.drawerOpen,
       drawerClosed: !s.drawerOpen,
       toggleDrawer:()=>this.setState(st=>({drawerOpen:!st.drawerOpen})),
@@ -2825,13 +3019,22 @@ class Component extends DCLogic {
       submitLink: ()=>{ const v=this.state.linkInput.trim(); if(v) this.tryLink(v); },
       selfPromptTitle: !s.clerkUser ? (s.loginTab==="up"?"Create an account":"Sign in")
         : s.linkPhase==="linkedin" ? "One more step"
-        : s.linkPhase==="queued" ? "You're in the queue"
+        : s.linkPhase==="unlinking" ? "One moment"
+        : s.linkPhase==="notme" ? "Unlinked — thank you"
+        : s.linkPhase==="queued" ? "No dot of your own yet"
         : "You're signed in",
+      // Two different people land on the "queued" face and the copy has to be true for both:
+      // a student the matching missed, and a colleague who was never on the map to begin with
+      // (the map is the awardees, not the programme team). So it promises nothing about being
+      // connected "soon" — it says what's true, and points at what they CAN do, which is the
+      // whole map. Anna links anyone who should have a dot, by hand, from the Accounts queue.
       selfPromptSub: s.clerkStatus==="failed" ? "Sign-in isn't available right now — you can still browse the whole map."
         : !s.clerkUser ? "Members sign in to see the map from their own spot: ranked matches, warm intros, and their asks & offers."
         : s.linkPhase==="checking" ? "Connecting your account to the map…"
+        : s.linkPhase==="unlinking" ? "Disconnecting your account from that person…"
         : s.linkPhase==="linkedin" ? "We couldn't match your email to anyone on the map. Paste your LinkedIn profile URL — the map knows people by their LinkedIn."
-        : s.linkPhase==="queued" ? "We couldn't match you automatically, so you're in the review queue — your account will be connected soon. Meanwhile, the whole map is yours to browse."
+        : s.linkPhase==="notme" ? "We've disconnected your account from that person and flagged it for Anna, who'll connect you to the right one by hand. You won't be matched to them again. The whole map stays open to you meanwhile."
+        : s.linkPhase==="queued" ? "We couldn't find you on the map — either the matching missed you, or you're one of the people who work on the programme rather than one of the ventures on it. Either way the whole map is open to you: search, filter and read anyone's profile. If you should have a spot of your own, Anna can connect you by hand."
         : (s.clerkUser.profileKey ? "" : "This account isn't connected to a spot on the map yet. Meanwhile, the whole map is yours to browse."),
       // detail
       // In Student view, closing a profile is "I'm done looking" — it exits their network
