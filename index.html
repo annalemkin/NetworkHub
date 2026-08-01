@@ -702,9 +702,6 @@
       <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
         <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Reach out to {{ reach.name }}</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 4px;line-height:1.5;">{{ reach.sub }}</div>
-        <sc-if value="{{ reach.showSelfTip }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12px;color:#6f6c63;background:#faf8f2;border:1px solid #e6e2d7;border-radius:8px;padding:8px 10px;margin:8px 0;">Tip: switch to Student view and pick who you are — intros get personalized with your name and venture.</div>
-        </sc-if>
         <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Subject</label>
         <input type="text" ref="{{ reachSubjRef }}" defaultValue="{{ reach.subject }}" class="atlas-field" style="width:100%;padding:8px 12px;border-radius:6px;font-size:13px;" />
         <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Message</label>
@@ -2062,10 +2059,22 @@ class Component extends DCLogic {
   }
 
   generateIntro(self, t){
-    const first=t.name.split(" ")[0]; const selfName=self?self.name:"[your name]"; const selfFirst=self?self.name.split(" ")[0]:"[your name]";
+    // Signing in is not the same as having a dot: the programme team and anyone the matcher
+    // hasn't linked yet reach out with no `self` at all. Their account still knows their
+    // first name, so use it — "[your name]" is only for someone who isn't signed in.
+    const first=t.name.split(" ")[0];
+    const acct=(this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"";
+    const selfName=self?self.name:(acct||"[your name]"), selfFirst=self?self.name.split(" ")[0]:(acct||"[your name]");
     const selfVenture=self&&self.ventureName?self.ventureName:"my venture";
     // name the sender's actual program (EcoX, EcoSprint, …) rather than a generic label
     const selfProgram = (self && (self.person.programs||[])[0]) || "Stanford Ecopreneurship";
+    // Someone signed in without a dot has no venture to name — the programme team least of
+    // all — so for them the venture clause is dropped rather than filled in with the words
+    // "my venture", which was untrue of every one of them. What's left is true of anyone
+    // holding an account, and it's a draft they can finish in their own words.
+    const selfIntro = self
+      ? `I'm ${selfName}, working on ${selfVenture} through ${selfProgram}.`
+      : `I'm ${selfName}, part of the Stanford Ecopreneurship community.`;
     const shared=self?t.tags.filter(x=>self.tags.map(y=>this.norm(y)).includes(this.norm(x))):[];
     const sharedStr=shared.slice(0,2).join(" and "); const tv=t.ventureName||"your project";
     const selfAlum=self&&self.status==="alum", tAlum=t.status==="alum";
@@ -2090,14 +2099,16 @@ class Component extends DCLogic {
       ask=`Happy to share what I learned or make introductions — want to grab 20 minutes?`;
       subject=`Happy to help — from a fellow Ecopreneurship founder`;
     } else if(tAlum){
-      intro=`I'm ${selfName}, working on ${selfVenture} through ${selfProgram}.`;
-      hook=`I came across your work on ${tv} in the Ecopreneurship Network, and as someone building in ${shared[0]||"a related space"}, your path is exactly the kind I'd love to learn from.`;
+      intro=selfIntro;
+      // the "as someone building in…" clause is the same venture claim — only for people who have one
+      hook=self ? `I came across your work on ${tv} in the Ecopreneurship Network, and as someone building in ${shared[0]||"a related space"}, your path is exactly the kind I'd love to learn from.`
+                : `I came across your work on ${tv} in the Ecopreneurship Network, and your path is exactly the kind I'd love to learn from.`;
       if(theyHelpMe&&theirOffer) why=` I saw you can help with ${theirOffer}${myAsk?`, which is right where I'm focused (I'm looking for ${myAsk})`:""} — I'd really value your perspective.`;
       else if(myAsk) why=` Right now I'm especially trying to figure out ${myAsk}.`;
       ask=`Would you be open to a quick 15-minute call so I could hear what you learned?`;
       subject=`Stanford Ecopreneurship — would love your advice`;
     } else {
-      intro=`I'm ${selfName}, working on ${selfVenture} through ${selfProgram}.`;
+      intro=selfIntro;
       hook=shared.length?`I found you through the Ecopreneurship Network — we both show up under ${sharedStr}.`:`I found you through the Ecopreneurship Network and was really interested in ${tv}.`;
       if(theyHelpMe&&iHelpThem) why=` It looks like a real two-way match: you can help with ${theirOffer||"what I'm working on"}, and in return I can offer ${myOffer||"what you're looking for"}.`;
       else if(theyHelpMe) why=` You mentioned you can help with ${theirOffer||"an area I'm focused on"}${myAsk?`, which is exactly what I'm looking for right now (${myAsk})`:""}.`;
@@ -2767,7 +2778,6 @@ class Component extends DCLogic {
       reach={
         name:t.name,
         sub:`${t.ventureName?t.ventureName+" · ":""}${t.status==="alum"?"Alumni":"Current"} · ${(t.person.programs||[]).join(", ")}. Edit it, then ${hasEmail?"send it by email or LinkedIn":"copy and send on LinkedIn"}.`,
-        showSelfTip:!self,
         subject:intro.subject, body:intro.body,
         hasEmail, email:(t.person.email||"").trim(),
         emailLabel:`✉ Email ${t.name.split(" ")[0]}`,
