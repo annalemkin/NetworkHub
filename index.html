@@ -1366,7 +1366,7 @@ class Component extends DCLogic {
       let attempts=0;
       const tryFit=()=>{
         const st=this.stageRef.current;
-        if(st && st.clientWidth>1){ this.state.landing ? this.landingView() : this.fitView(); this.startSettle(); return; }
+        if(st && st.clientWidth>1){ this.fitView(); this.startSettle(); return; }
         if(attempts++<60) requestAnimationFrame(tryFit);
         else this.startSettle();   // never leave the dots parked at their entry spiral
       };
@@ -1619,8 +1619,6 @@ class Component extends DCLogic {
     // seed each family on its own small phyllotaxis spiral around its anchor
     const seedGroups={}; nodes.forEach(nd=>{ const f=famOf(nd)||"other"; (seedGroups[f]=seedGroups[f]||[]).push(nd); });
     Object.values(seedGroups).forEach(g=>{ g.forEach((nd,i)=>{ const a=i*GA, r=W*0.13*Math.sqrt((i+0.5)/g.length); const an=anchors[nd.id]; nd.x=an.x+Math.cos(a)*r; nd.y=an.y+Math.sin(a)*r; }); });
-    // keep the seed: it is where the opening animation starts from (see the end of this method)
-    const seedPos={}; nodes.forEach(nd=>{ seedPos[nd.id]={x:nd.x,y:nd.y}; });
 
     const aff=this.computeAffinity(nodes);
     this.affAdj=aff.adj;
@@ -1712,17 +1710,16 @@ class Component extends DCLogic {
     // TRANSITION into the finished map rather than the simulation itself — animating the
     // raw force iterations would swing and jump when the anchoring pass fires at the end
     // (DECISIONS.md, 2026-07-27).
-    // The starting point is the phyllotaxis seed the pipeline itself starts from: six loose
-    // clouds, one per family, before any real tie has pulled anybody anywhere. So the dots
-    // begin in the right neighborhood and wrong places within it, and the settle is the
-    // sorting — which is the honest thing to animate, and it means the landing screen behind
-    // it shows constellations rather than an even field of dots (owner's design, 2026-07-31).
-    // Loosened by a third around each family's anchor so the gather is legible; 260ms of
-    // stagger, hashed off the name, makes them arrive as a shower and stays put across reloads.
-    nodes.forEach(n=>{ const a=anchors[n.id], sx=(seedPos[n.id]||{x:n.x,y:n.y});
-      n.ex=(a?a.x:sx.x)+(sx.x-(a?a.x:sx.x))*1.35+offX;
-      n.ey=(a?a.y:sx.y)+(sx.y-(a?a.y:sx.y))*1.35+offY;
-      n.settleDelay=Math.round(this.hash(n.name)*260); });
+    // The starting point is one phyllotaxis spiral over the whole map — an even disc of dots,
+    // the seeding the pipeline used before the six family neighborhoods existed. It reads as
+    // "not arranged yet", so watching it resolve is watching the sorting happen, and it is
+    // the shape the owner picked for the landing screen behind it (2026-07-31: the per-family
+    // version was tried and looked worse). 0.36 of the shorter world axis keeps every dot
+    // inside the fitted view, so nothing flies in from off-screen; 260ms of stagger, hashed
+    // off the name, makes them arrive as a shower and stays put across reloads.
+    const ecx=(maxX-minX)/2+pad, ecy=(maxY-minY)/2+padTop, eR=0.36*Math.min(maxX-minX, maxY-minY);
+    nodes.forEach((n,i)=>{ const a=i*GA, r=eR*Math.sqrt((i+0.5)/nodes.length);
+      n.ex=ecx+Math.cos(a)*r; n.ey=ecy+Math.sin(a)*r; n.settleDelay=Math.round(this.hash(n.name)*260); });
 
     return { sectors, nodes, clusters:this.buildClusters(nodes), world:{ w:(maxX-minX)+pad*2, h:(maxY-minY)+padTop+pad } };
   }
@@ -1734,18 +1731,6 @@ class Component extends DCLogic {
   // fitted the map to a stage 6–10% bigger than it really is and left the network sitting
   // off to one side until the landing was dismissed.
   fitView(animate){ const st=this.stageRef.current; if(!st) return; const W=st.clientWidth, H=st.clientHeight; if(W<2||H<2) return; const {w,h}=this.state.world; const s=Math.min(W/w, H/h)*0.94; this.view.scale=s; this.view.tx=(W-w*s)/2; this.view.ty=(H-h*s)/2; this._stageSize={w:W,h:H}; this.applyView(animate); this.setState({zoom:s}); }
-  // Behind the landing screen the map is held zoomed in, not fitted. At fit scale the whole
-  // network sits in the middle of the frame — which is exactly where the landing's veil is
-  // thickest, so almost none of it would show. Pushed in by 1.9 the scatter overflows the
-  // frame and reads as constellations around the edges of the type, which is the composition
-  // the owner designed. Leaving the landing pulls back to the real fit.
-  landingView(){
-    const st=this.stageRef.current; if(!st) return;
-    const W=st.clientWidth, H=st.clientHeight; if(W<2||H<2) return;
-    const {w,h}=this.state.world; const s=Math.min(W/w,H/h)*0.94*1.9;
-    this.view.scale=s; this.view.tx=(W-w*s)/2; this.view.ty=(H-h*s)/2;
-    this._stageSize={w:W,h:H}; this.applyView(); this.setState({zoom:s});
-  }
   // ---------- the map follows the window ----------
   // A resize used to leave the view exactly where it was until someone reloaded. Instead of
   // simply re-fitting — which would yank a zoomed-in reader away from the person they were
@@ -1758,7 +1743,6 @@ class Component extends DCLogic {
     this._resizeT=setTimeout(()=>{
       const st=this.stageRef.current; if(!st) return;
       const W=st.clientWidth, H=st.clientHeight; if(W<2||H<2) return;
-      if(this.state.landing) return this.landingView();   // the front screen has its own framing
       const prev=this._stageSize; this._stageSize={w:W,h:H};
       const {w,h}=this.state.world;
       if(!prev||!prev.w||!prev.h||!w||!h) return;
@@ -2430,6 +2414,9 @@ class Component extends DCLogic {
     // entry point with no transition, the flip to "run" animates it home, "done" drops the
     // transition again. The dot's left/top are its FINAL coordinates in all three states —
     // only a composited transform moves, which is what keeps 196 of them smooth.
+    // the front screen is up: the map behind it is scenery, so its dots are taken right
+    // down — present enough to say "this is a real network", quiet enough to read over
+    const landing = !!s.landing;
     const settleSeed = s.settle==="seed", settleRun = s.settle==="run";
     // The connection lines and the neighborhood names fade in behind the dots: drawing them
     // over a spiral that hasn't sorted itself yet would spell out an arrangement that isn't
@@ -2446,6 +2433,9 @@ class Component extends DCLogic {
       if(highlight && hi) op=1;
       else if(!matched) op=0.035;
       else if(highlight) op=dimOp;
+      // behind the front screen the map is scenery — taken right down so the type is the
+      // only thing with any weight on it (owner, 2026-07-31)
+      if(landing) op*=0.45;
       const isFocus = focusNode && n.id===focusNode.id;
       const alum=n.status==="alum";
       // colour returned 2026-07-28 (owner's call): with the six family neighborhoods, the
@@ -2547,7 +2537,6 @@ class Component extends DCLogic {
     // which is a plain script tag. Its figures come from overview() for exactly that reason.
     // The map builds behind it while someone reads, holds at its unsorted starting scatter,
     // and only resolves when they press a button — see startSettle.
-    const landing = !!s.landing;
     const ov = s.preview || { people:s.nodes.length, programs:progSet.size, sectors:s.sectors.length, years:0, yMin:0, yMax:0 };
     const landingStats = (ov.people ? [
       { num:String(ov.people),   label:"ecopreneurs" },
@@ -2874,11 +2863,10 @@ class Component extends DCLogic {
       // down (command bar, filters drawer, layer pills, zoom, the how-to card), so the
       // network itself is the whole picture. Dismissing it brings the tools back.
       landing, landingStats,
-      // The scrim is inverted on purpose (owner's design, 2026-07-31): near-opaque in the
-      // middle so the type sits on clean paper, thinning outwards so the network reads as
-      // constellations around the edges. The map is also held zoomed in while this is up
-      // (landingView) — at fit scale the dots sit in the middle, exactly where the veil is.
-      landingStyle:`position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;padding:32px;background:radial-gradient(ellipse 58% 54% at 50% 46%,rgba(247,245,239,.985) 0%,rgba(247,245,239,.955) 55%,rgba(247,245,239,.72) 82%,rgba(247,245,239,.5) 100%);animation:atlasFade .45s ease;`,
+      // A gentle, fairly even veil — the dots are already taken down to a third of their
+      // weight in nodesView, so this only has to lift the type off them rather than hide
+      // them. Slightly heavier under the middle, where the headline sits.
+      landingStyle:`position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;padding:32px;background:radial-gradient(ellipse 72% 64% at 50% 44%,rgba(247,245,239,.84) 0%,rgba(247,245,239,.74) 62%,rgba(247,245,239,.55) 100%);animation:atlasFade .45s ease;`,
       landingKickerStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.18em;color:#9a968a;font-weight:600;`,
       // the count is live: the headline restates itself every time the cohort grows
       // The count moved out of the headline and down into the figures (owner's design): the
