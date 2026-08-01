@@ -2856,7 +2856,9 @@ class Component extends DCLogic {
     }
 
     return {
-      loading:s.loading, worldW:s.world.w, worldH:s.world.h,
+      // "Mapping the network…" is for someone waiting to see the map, not for someone
+      // reading the front screen — behind the landing it ghosts through the veil
+      loading:s.loading && !landing, worldW:s.world.w, worldH:s.world.h,
       svgStyle:`${settleFade}position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:5;`,
       interview, flash:s.flash,
       // ---- "you've been linked to this person" ----
