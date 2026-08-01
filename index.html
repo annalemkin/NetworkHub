@@ -98,7 +98,7 @@
   <sc-if value="{{ showCommandBar }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;left:50%;transform:translateX(-50%);top:20px;z-index:30;">
       <div style="{{ cmdBarStyle }}">
-        <div style="padding:0 16px;font-family:Newsreader,serif;font-size:15.5px;font-weight:600;white-space:nowrap;">The Ecopreneurship Network</div>
+        <div onClick="{{ showLanding }}" title="Back to the front screen" style="padding:0 16px;font-family:Newsreader,serif;font-size:15.5px;font-weight:600;white-space:nowrap;cursor:pointer;">The Ecopreneurship Network</div>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
         <input type="text" value="{{ searchQuery }}" onInput="{{ onSearch }}" onFocus="{{ onCmdFocus }}" onBlur="{{ onCmdBlur }}" placeholder="Search people, focus, ask…" style="width:240px;padding:12px 14px;border:none;font-size:12.5px;background:none;outline:none;color:#211f1a;" />
         <sc-if value="{{ searchQuery }}" hint-placeholder-val="{{ false }}">
@@ -2882,6 +2882,11 @@ class Component extends DCLogic {
       landingStatsRowStyle:`width:100%;max-width:860px;border-top:1px solid rgba(198,193,177,.7);padding-top:22px;display:flex;justify-content:center;align-items:baseline;flex-wrap:wrap;gap:12px 48px;`,
       enterMap:()=>this.leaveLanding(),
       enterLogin:()=>this.leaveLanding(true),
+      // the wordmark is the way back to the front screen. The "you've been here" flag stays
+      // written, so this is a door rather than an undo — a returning visitor still opens on
+      // the map. The settle doesn't re-run: the map is already sorted, it just steps behind
+      // the type again.
+      showLanding:()=>this.setState({ landing:true, detailId:null, pinId:null, loginOpen:false, catalogOpen:false }),
       // command bar
       showCommandBar: s.mode==="general" && !landing,
       cmdBarStyle:`display:flex;align-items:center;overflow:hidden;${CARD}border-radius:8px;`,
