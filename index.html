@@ -954,7 +954,7 @@ class Component extends DCLogic {
   // back to unsafeMetadata (the interim client-set value from the retired picker flow).
   syncClerk(){
     const u=(typeof Clerk!=="undefined"&&Clerk.user)||null;
-    const cu=u?{ id:u.id, first:u.firstName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
+    const cu=u?{ id:u.id, first:u.firstName||"", last:u.lastName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
     // they pressed "That's not me" — hold the key empty for the rest of this page load, even
     // if Clerk's cached copy of the user hasn't caught up with the server clearing it yet
     if(cu&&this._unlinkedFor===cu.id) cu.profileKey=null;
@@ -2398,9 +2398,15 @@ class Component extends DCLogic {
     const myNode = (s.clerkUser&&s.clerkUser.profileKey) ? s.nodes.find(x=>this.profileKey(x)===s.clerkUser.profileKey) : null;
     // command bar (full-bleed direction): brand · search · stats · catalog · account. The
     // bar is the only chrome above the map; signed in, the avatar chip leads to your map.
+    // Name on the chip: first name + last name. An account's "first name" often carries
+    // middle names with it (Google hands over "Anna Vivian Nancy"), so only its first word
+    // is used — "Anna Lemkin", not the whole string. Falls back to the email's local part
+    // for an account with no name on it at all.
+    const acctFirst = ((s.clerkUser&&s.clerkUser.first)||"").trim().split(/\s+/)[0]||"";
+    const acctLast = ((s.clerkUser&&s.clerkUser.last)||"").trim();
     const cmdAccount = s.clerkUser ? {
-      first: s.clerkUser.first || (s.clerkUser.email||"").split("@")[0] || "You",
-      initials: ((s.clerkUser.first||s.clerkUser.email||"?")[0]||"?").toUpperCase(),
+      first: [acctFirst, acctLast].filter(Boolean).join(" ") || (s.clerkUser.email||"").split("@")[0] || "You",
+      initials: ((acctFirst||s.clerkUser.email||"?")[0]||"?").toUpperCase(),
       title: myNode ? "Open my map" : "Signed in",
       onClick: ()=>this.myMap(),
       avStyle:`width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:.02em;cursor:pointer;background:${myNode?personFill(myNode):"#b9b5a8"};`,
