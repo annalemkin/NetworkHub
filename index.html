@@ -788,6 +788,7 @@ class Component extends DCLogic {
       matchToast:null,        // {name, sub} — who we just linked this account to, with a way to object
       settle:"seed",          // opening animation: "seed" (dots held at their entry spiral) → "run" (moving) → "done"
       landing:true,           // the front screen; componentDidMount clears it for anyone who has been here before
+      preview:null,           // {people, programs, sectors, years, yMin, yMax} — the landing figures, counted before the layout exists
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -903,7 +904,12 @@ class Component extends DCLogic {
       const A = (typeof ALUMNI_PEOPLE!=="undefined"&&ALUMNI_PEOPLE)||window.ALUMNI_PEOPLE;
       // order is the precedence rule: data.js, then the board, then what someone posted here —
       // a person's own answer wins over the board's copy of it
-      if(F&&A){ Promise.all([live,posted]).then(([map,ex])=>{ const people=this.mergePeople(F.concat(A)); const n=this.applyLiveExchange(people,map); const m=this.applyPostedExchange(people,ex); if(n||m) try{ console.info(`[Atlas] fresher asks/offers: ${n} field(s) from the board, ${m} ${m===1?"person":"people"} posted here`); }catch(e){} this.init(people); }); return; }
+      if(F&&A){
+        // The landing screen's figures are counted here, off data.js alone — before the
+        // board fetch, before the layout. data.js is a plain script tag, so this lands on
+        // the first paint and the front screen never waits for anything.
+        this.setState({ preview:this.overview(this.mergePeople(F.concat(A))) });
+        Promise.all([live,posted]).then(([map,ex])=>{ const people=this.mergePeople(F.concat(A)); const n=this.applyLiveExchange(people,map); const m=this.applyPostedExchange(people,ex); if(n||m) try{ console.info(`[Atlas] fresher asks/offers: ${n} field(s) from the board, ${m} ${m===1?"person":"people"} posted here`); }catch(e){} this.init(people); }); return; }
       if(tries++<40) setTimeout(grab,50);
       else this.setState({loading:false});
     };
@@ -916,7 +922,7 @@ class Component extends DCLogic {
     window.addEventListener("resize", this._onResize);
     this.clerkInit();
   }
-  componentWillUnmount(){ window.removeEventListener("resize", this._onResize); clearTimeout(this._resizeT); clearTimeout(this._settleT); clearTimeout(this._toastT); clearTimeout(this._flashT); }
+  componentWillUnmount(){ window.removeEventListener("resize", this._onResize); clearTimeout(this._resizeT); clearTimeout(this._settleT); clearTimeout(this._settleFallbackT); clearTimeout(this._toastT); clearTimeout(this._flashT); }
 
   // ---------- Clerk (accounts): real sign-in for the Student view ----------
   // The CDN scripts in <helmet> are deferred, so window "load" is the earliest safe moment;
@@ -1317,6 +1323,18 @@ class Component extends DCLogic {
     return out;   // overlap is resolved at render time, where the zoom level is known
   }
 
+  // The four figures on the landing screen, counted from the people list itself. Deliberately
+  // independent of buildLayout: the front screen has to be on the glass immediately, and the
+  // layout takes the best part of a second at 196 people.
+  overview(people){
+    const progs=new Set(), tags=new Set(), yrs=[];
+    people.forEach(p=>{ (p.programs||[]).forEach(x=>{ if(x) progs.add(x); });
+      (p.tags||[]).forEach(t=>{ if(t) tags.add(this.norm(t)); });
+      const y=+((""+(p.year||"")).match(/\d{4}/)||[0])[0]; if(y) yrs.push(y); });
+    return { people:people.length, programs:progs.size, sectors:tags.size, years:new Set(yrs).size,
+      yMin:yrs.length?Math.min(...yrs):0, yMax:yrs.length?Math.max(...yrs):0 };
+  }
+
   // merge cohort-participation rows into one node per person (name is the only reliable key — emails are blank in the source)
   mergePeople(list){
     const norm=s=>this.norm(s);
@@ -1367,7 +1385,10 @@ class Component extends DCLogic {
   // is the same exit with the account card already open on top of the map.
   leaveLanding(openLogin){
     try{ localStorage.setItem("ecoatlas_landed_v1","1"); }catch(e){}
-    this.setState({ landing:false, loginOpen:!!openLogin }, ()=>this.fitView(true));
+    // the reveal is the answer to the click: fit first, then let the dots resolve. If the
+    // layout isn't finished yet they get "Mapping the network…" and init starts the settle
+    // itself the moment it is.
+    this.setState({ landing:false, loginOpen:!!openLogin }, ()=>{ this.fitView(); this.startSettle(); });
   }
 
   // ---------- the opening settle: dots resolve into position over ~1.5s ----------
@@ -1378,14 +1399,22 @@ class Component extends DCLogic {
   // rAF is the flip: the browser has to paint the offset frame before the transition can
   // animate away from it. "done" then drops the transition so nothing else inherits it.
   startSettle(){
-    if(this._settleStarted) return; this._settleStarted=true;
+    if(this._settleStarted) return;
+    // Held while the front screen is up. The map forming is the payoff for pressing a
+    // button — playing it behind the headline spends it on someone who is reading.
+    if(this.state.landing || !this.state.nodes.length) return;
+    this._settleStarted=true;
     let reduce=false; try{ reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
     if(reduce){ this.setState({settle:"done"}); return; }
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const go=()=>{ if(this._settleRan) return; this._settleRan=true;
       this.setState({settle:"run"});
       // 1500ms travel + 260ms of stagger, and a little slack for a busy first paint
       this._settleT=setTimeout(()=>this.setState({settle:"done"}), 1900);
-    }));
+    };
+    requestAnimationFrame(()=>requestAnimationFrame(go));
+    // …and a belt-and-braces timer, because a hidden tab pauses rAF entirely: without this
+    // a page opened in a background tab would sit at its entry spiral rather than its map.
+    this._settleFallbackT=setTimeout(go, 500);
   }
 
   // ---------- profile enrichment (interview answers) ----------
@@ -2502,21 +2531,20 @@ class Component extends DCLogic {
     const overviewLine = `${s.nodes.length} people · ${progSet.size} programs · ${s.sectors.length} focus areas`;
 
     // ---------- the landing screen ----------
-    // Held back until the layout exists, for two reasons: every number on it is counted from
-    // the data rather than typed in (so there is nothing to show yet), and the map behind it
-    // should already be drifting when the headline appears rather than popping in underneath.
-    const landing = !!s.landing && !s.loading && s.nodes.length>0;
-    const yrs=[]; s.nodes.forEach(n=>{ const y=+((n.person&&n.person.year)||0); if(y) yrs.push(y); });
-    const yMin=yrs.length?Math.min(...yrs):0, yMax=yrs.length?Math.max(...yrs):0;
-    const yCount=new Set(yrs).size;
-    const landingStats = [
-      { num:String(s.nodes.length), label:"ecopreneurs" },
-      { num:String(progSet.size),   label:"programs" },
-      { num:String(s.sectors.length), label:"focus areas" },
+    // On the glass from the first paint: it does NOT wait for the layout, only for data.js,
+    // which is a plain script tag. Its figures come from overview() for exactly that reason.
+    // The map builds behind it while someone reads, holds at its unsorted starting scatter,
+    // and only resolves when they press a button — see startSettle.
+    const landing = !!s.landing;
+    const ov = s.preview || { people:s.nodes.length, programs:progSet.size, sectors:s.sectors.length, years:0, yMin:0, yMax:0 };
+    const landingStats = (ov.people ? [
+      { num:String(ov.people),   label:"ecopreneurs" },
+      { num:String(ov.programs), label:"programs" },
+      { num:String(ov.sectors),  label:"focus areas" },
       // the fourth figure is the span of cohorts, which says "this keeps happening" in a way
       // a headcount can't; it falls away silently if the data ever loses its year field
-      ...(yCount ? [{ num: yMin===yMax?String(yMin):`${yMin}–${String(yMax).slice(2)}`, label: yCount===1?"cohort":"cohorts" }] : []),
-    ].map(x=>({ num:x.num, label:x.label,
+      ...(ov.years ? [{ num: ov.yMin===ov.yMax?String(ov.yMin):`${ov.yMin}–${String(ov.yMax).slice(2)}`, label: ov.years===1?"cohort":"cohorts" }] : []),
+    ] : []).map(x=>({ num:x.num, label:x.label,
       numStyle:`font-family:Newsreader,serif;font-size:38px;font-weight:500;letter-spacing:-.02em;line-height:1;color:#211f1a;`,
       labelStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.14em;color:#8a877f;font-weight:600;margin-top:9px;` }));
     // sector-family region labels — one per family, at the centre of that family's members.
@@ -2834,7 +2862,10 @@ class Component extends DCLogic {
       landingStyle:`position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:32px;background:radial-gradient(circle at 50% 44%,rgba(247,245,239,.58),rgba(244,242,235,.9) 58%,rgba(238,235,227,.97));animation:atlasFade .45s ease;`,
       landingKickerStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#9a968a;font-weight:600;`,
       // the count is live: the headline restates itself every time the cohort grows
-      landingHead: `${s.nodes.length} Stanford ecopreneurs. One map.`,
+      // data.js is a plain script tag, so the count is there before the first paint — but if
+      // it ever weren't, a headline reading "0 Stanford ecopreneurs" would be worse than one
+      // with no number in it at all
+      landingHead: (ov.people||s.nodes.length) ? `${ov.people||s.nodes.length} Stanford ecopreneurs. One map.` : "Stanford's climate founders. One map.",
       landingHeadStyle:`font-family:Newsreader,serif;font-size:clamp(34px,5.4vw,58px);font-weight:500;letter-spacing:-.025em;line-height:1.06;color:#211f1a;margin:14px 0 0;`,
       landingSub: "A living map of the Stanford Ecopreneurship community — who's building what, who's looking for what, and who is already closest to the problem you're working on.",
       landingSubStyle:`max-width:560px;margin:16px auto 0;font-size:15px;line-height:1.6;color:#55534a;`,
