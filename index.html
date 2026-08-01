@@ -2063,7 +2063,9 @@ class Component extends DCLogic {
     // hasn't linked yet reach out with no `self` at all. Their account still knows their
     // first name, so use it — "[your name]" is only for someone who isn't signed in.
     const first=t.name.split(" ")[0];
-    const acct=(this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"";
+    // first word only: an account's "first name" often carries middle names with it, and
+    // "I'm Anna Vivian Nancy, part of the…" is not how anyone introduces themselves
+    const acct=((this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"").split(/\s+/)[0]||"";
     const selfName=self?self.name:(acct||"[your name]"), selfFirst=self?self.name.split(" ")[0]:(acct||"[your name]");
     const selfVenture=self&&self.ventureName?self.ventureName:"my venture";
     // name the sender's actual program (EcoX, EcoSprint, …) rather than a generic label
