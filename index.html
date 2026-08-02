@@ -110,6 +110,10 @@
         </sc-if>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
         <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+        <sc-if value="{{ mentorPill }}" hint-placeholder-val="{{ false }}">
+          <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
+          <button onClick="{{ mentorPill.onClick }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ mentorPill.label }} <span style="{{ mentorPill.badgeStyle }}">{{ mentorPill.count }}</span></button>
+        </sc-if>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
         <sc-if value="{{ cmdSignedOut }}" hint-placeholder-val="{{ true }}">
           <button onClick="{{ openLogin }}" style="background:none;border:none;padding:12px 16px;font-size:11.5px;font-weight:600;color:#211f1a;cursor:pointer;white-space:nowrap;">Log in</button>
@@ -653,6 +657,36 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ mentor }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ mentor.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ mentor.title }}</div>
+            <div style="font-size:11.5px;color:#8a877f;margin-top:2px;line-height:1.45;">{{ mentor.sub }}</div>
+          </div>
+          <button onClick="{{ mentor.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
+        </div>
+        <div class="atlas-scroll" style="padding:14px 20px 18px;flex:1;overflow-y:auto;">
+          <sc-for list="{{ mentor.matches }}" as="m" hint-placeholder-count="4">
+            <div style="{{ m.style }}">
+              <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:13.5px;font-weight:600;color:#211f1a;">{{ m.name }}</span>
+                <span style="font-size:11.5px;color:#8a877f;">{{ m.location }}</span>
+              </div>
+              <div style="font-size:12.5px;color:#55534a;margin-top:2px;line-height:1.45;">{{ m.detail }}</div>
+              <div style="{{ m.whyStyle }}">{{ m.why }}</div>
+              <sc-if value="{{ m.linkedin }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ m.linkedin }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8C1515;text-decoration:none;">View LinkedIn ↗</a>
+              </sc-if>
+            </div>
+          </sc-for>
+          <div style="{{ mentor.noteStyle }}">{{ mentor.note }}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ exchangeEdit }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ exchangeEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
       <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:580px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
@@ -781,6 +815,8 @@ class Component extends DCLogic {
       settle:"seed",          // opening animation: "seed" (dots held at their entry spiral) → "run" (moving) → "done"
       landing:true,           // the front screen; componentDidMount clears it for anyone who has been here before
       preview:null,           // {people, programs, sectors, years, yMin, yMax} — the landing figures, counted before the layout exists
+      mentorship:null,        // /api/mentorship: {role, shows, basis, matches} for a mentorship participant; null = not one (or not signed in)
+      mentorOpen:false,       // their matches panel
     };
     this.stageRef = React.createRef();
     this.worldRef = React.createRef();
@@ -960,11 +996,15 @@ class Component extends DCLogic {
     if(cu&&this._unlinkedFor===cu.id) cu.profileKey=null;
     const wasIn=!!this.state.clerkUser;
     this.setState({ clerkStatus:"ready", clerkUser:cu }, ()=>{
+      // mentorship matches are independent of the map: asked for once per sign-in, whether or
+      // not they turn out to have a dot (one person on each list does)
+      if(cu&&this._mentorTriedFor!==cu.id){ this._mentorTriedFor=cu.id; this.fetchMentorship(); }
+      if(!cu){ this._mentorTriedFor=null; this._mentorShown=false; }
       if(cu&&cu.profileKey) this.clerkAutoSelect();
       // signed in but not yet linked to a person → ask the server to match them (once per account)
       else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
       // signed out — one site, one rule: no account, no personal view. Back to the public map.
-      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"" }); }
+      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false }); }
     });
   }
   // ---- identity: /api/link matches the signed-in person server-side (BACKEND.md) ----
@@ -1047,6 +1087,26 @@ class Component extends DCLogic {
     this.setState({ mode:"student", searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], exchangeFilter:"", exchangePanelOpen:false, resultsQuery:"", listCollapsed:false, pinId:null }, ()=>this.selectSelf(n.id));
   }
   clerkSignOut(){ try{ if(typeof Clerk!=="undefined"&&Clerk.session) Clerk.signOut(); }catch(e){} }
+  // ---------- Energy & Climate Mentorship: matches for the people on those two lists ----------
+  // A separate population from the map (DECISIONS.md, 2026-07-28) — they have no dot, so this
+  // is the one thing the app has to say to them. The server decides whether the signed-in
+  // person is on either list, from their verified email; the browser asks and is told nothing
+  // if they aren't. Fails silently: no backend (local file, static mirror) means no panel.
+  async fetchMentorship(){
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return;
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/mentorship",{ headers:{ Authorization:"Bearer "+tok } });
+      if(!r.ok) return;
+      const j=await r.json();
+      if(!j||!j.role||!(j.matches||[]).length) return;
+      // opened once, unprompted, the first time we learn about it — these people signed in
+      // expecting the programme to introduce them to someone, and would never find a pill
+      this.setState({ mentorship:j, mentorOpen:!this._mentorShown });
+      this._mentorShown=true;
+      try{ console.info(`[Atlas] mentorship: ${j.role}, ${j.matches.length} match(es) on ${j.basis}`); }catch(e){}
+    }catch(e){ try{ console.warn("[Atlas] mentorship matches unavailable:", (e&&e.message)||e); }catch(_){} }
+  }
   // mount/unmount Clerk's sign-in OR sign-up controls as the target div appears, disappears,
   // or the tab flips — the div is React-owned (sc-if), so lifecycle is the only safe place.
   // Clerk's own header/footer are hidden (appearance), so our page supplies the heading and
@@ -2436,6 +2496,11 @@ class Component extends DCLogic {
     // the front screen is up: the map behind it is scenery, so its dots are taken right
     // down — present enough to say "this is a real network", quiet enough to read over
     const landing = !!s.landing;
+    // the mentorship panel only exists for someone the server recognised on one of those lists
+    const mentorData = (s.mentorship && (s.mentorship.matches||[]).length) ? s.mentorship : null;
+    const listOf = arr => { const a=(arr||[]).slice(0,3).map(x=>String(x).toLowerCase()); const more=(arr||[]).length-a.length;
+      const s2 = a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+      return more>0 ? `${s2} +${more} more` : s2; };
     const settleSeed = s.settle==="seed", settleRun = s.settle==="run";
     // The connection lines and the neighborhood names fade in behind the dots: drawing them
     // over a spiral that hasn't sorted itself yet would spell out an arrangement that isn't
@@ -2905,6 +2970,37 @@ class Component extends DCLogic {
       // the map. The settle doesn't re-run: the map is already sorted, it just steps behind
       // the type again.
       showLanding:()=>this.setState({ landing:true, detailId:null, pinId:null, loginOpen:false, catalogOpen:false }),
+      // ---- mentorship matches (a different programme; these people have no dot) ----
+      mentorPill: mentorData ? {
+        label: mentorData.role==="student" ? "Mentors" : "Students",
+        count: mentorData.matches.length,
+        badgeStyle:`display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:999px;font-size:10px;font-weight:700;background:#211f1a;color:#fff;`,
+        onClick:()=>this.setState({mentorOpen:true}),
+      } : null,
+      mentor: (mentorData && s.mentorOpen) ? {
+        title: mentorData.role==="student" ? "Mentors worth writing to" : "Students in your areas",
+        // Said plainly, because a ranking built on evidence and one built on shared ticks look
+        // identical from the outside. Which one this is comes from the server's `basis`, not
+        // from which side you're on — both sides can be evidence-backed now that a student's
+        // programme is read the way an alum's job is, and either can fall back to ticks.
+        sub: mentorData.basis==="role"
+          ? `From the Energy & Climate Mentorship ${mentorData.role==="student" ? "alumni — ranked by what they actually work on" : "students — ranked by what they're studying"}, not just what they ticked.`
+          : `From the Energy & Climate Mentorship ${mentorData.role==="student" ? "alumni" : "students"}. Matched on shared interests only, so read it as a starting point rather than a shortlist.`,
+        matches: mentorData.matches.map((m,i)=>({
+          name:m.name, detail:m.detail||"", location:m.location||"", linkedin:m.linkedin||"",
+          // at most three, and read as a sentence — four topics strung together with "and"
+          // is a wall of words nobody finishes
+          why: (m.evidence&&m.evidence.length) ? `Works in ${listOf(m.evidence)}${m.sameCity?" · in your city":""}`
+             : `Shares ${listOf(m.shared)||"your focus areas"}${m.sameCity?" · in your city":""}`,
+          whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${(m.evidence&&m.evidence.length)?"#1c2f5e":"#8a877f"};background:${(m.evidence&&m.evidence.length)?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
+          style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
+        })),
+        note: mentorData.role==="student"
+          ? "Anna can make the introduction if you'd rather not write cold."
+          : "Only a handful of students have joined so far, so this list is short by nature.",
+        noteStyle:`margin-top:14px;padding-top:12px;border-top:1px solid #e6e2d7;font-size:11.5px;line-height:1.5;color:#9a968a;`,
+        onClose:()=>this.setState({mentorOpen:false}),
+      } : null,
       // command bar
       showCommandBar: s.mode==="general" && !landing,
       cmdBarStyle:`display:flex;align-items:center;overflow:hidden;${CARD}border-radius:8px;`,
