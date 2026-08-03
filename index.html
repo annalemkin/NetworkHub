@@ -681,7 +681,11 @@
               </sc-if>
             </div>
           </sc-for>
-          <div style="{{ mentor.noteStyle }}">{{ mentor.note }}</div>
+          <div style="{{ mentor.noteStyle }}">{{ mentor.note }}
+            <sc-if value="{{ mentor.browse }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ mentor.browse.onClick }}" style="{{ mentor.browse.style }}">{{ mentor.browse.label }}</button>
+            </sc-if>
+          </div>
         </div>
       </div>
     </div>
@@ -909,6 +913,18 @@ class Component extends DCLogic {
     };
     this.APPROACHES = ["Hardware / physical product","Software / AI / data","Scientific R&D","Policy & advocacy","Finance & capital","Community & co-design","Go-to-market / scaling","Behavior change","Measurement & standards","Infrastructure & operations","Education & storytelling","Partnerships & coalitions"];
     this.STAGES = ["Just an idea","Building a prototype","Running a pilot","Early customers / revenue","Raising a round"];
+    // Mentorship topics → the map's own territories, for "browse more students". The two
+    // vocabularies were written for different purposes and only partly overlap, so this maps
+    // only where the line is honest and leaves the rest unmapped: there is no territory for
+    // "batteries", so that topic borrows the two energy ones, and nothing here stands in for
+    // "still exploring". A topic with no reasonable territory simply adds no filter.
+    this.MENTOR_SECTORS = {
+      "Grid infrastructure": ["grid & electricity", "grid infrastructure", "energy transition"],
+      "Batteries & energy storage": ["grid & electricity", "energy transition"],
+      "AI/Software": ["ai climate solutions", "planetary intelligence", "efficient datacenters"],
+      "Policy & regulation": ["policy"],
+      "Finance": ["climate finance"],
+    };
     // reason palette (why two people match) — deeper kinds get their own colors
     this.REASON_COLOR = { mutual:"#8C1515", team:"#3b5bdb", customer:"#6b3fa0", help:"#1c2f5e", give:"#3f6fa8", approach:"#0f766e", challenge:"#a15c00", stage:"#8a6d3b", sector:"#6f6c64", rel:"#9a968c", alum:"#8a6d3b" };
   }
@@ -2498,6 +2514,23 @@ class Component extends DCLogic {
     const landing = !!s.landing;
     // the mentorship panel only exists for someone the server recognised on one of those lists
     const mentorData = (s.mentorship && (s.mentorship.matches||[]).length) ? s.mentorship : null;
+    // the viewer's own evidenced topics, translated into territories that actually exist in
+    // this dataset — an empty list just means "browse everyone current" rather than a filter
+    // that would hide the whole map
+    const mentorSectors = ((mentorData && mentorData.myEvidence) || [])
+      .flatMap(t=>this.MENTOR_SECTORS[t]||[])
+      .filter((k,i,a)=>a.indexOf(k)===i && s.sectors.some(sec=>sec.key===k));
+    // "Browse more" has to actually show more. Only 32 of the current cohort have posted an
+    // ask, so one territory on top of that can leave two people — fewer than the shortlist
+    // they just closed. When that happens the territories drop and the ask stays: being able
+    // to help someone with something they've asked for is the whole point of the link, while
+    // the territory is only a convenience. Six is the floor because the panel shows five.
+    const mentorBrowse = (!mentorData || mentorData.role==="student") ? null : (()=>{
+      const withAsk = s.nodes.filter(n=>n.status==="current" && this.needsOf(n.person).tags.length>0);
+      const inSectors = mentorSectors.length ? withAsk.filter(n=>mentorSectors.some(k=>(n.tags||[]).map(t=>this.norm(t)).includes(k))) : [];
+      const keep = inSectors.length>=6;
+      return { sectors: keep?mentorSectors:[], count: keep?inSectors.length:withAsk.length };
+    })();
     const listOf = arr => { const a=(arr||[]).slice(0,3).map(x=>String(x).toLowerCase()); const more=(arr||[]).length-a.length;
       const s2 = a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
       return more>0 ? `${s2} +${more} more` : s2; };
@@ -2997,8 +3030,27 @@ class Component extends DCLogic {
         })),
         note: mentorData.role==="student"
           ? "Anna can make the introduction if you'd rather not write cold."
-          : "Only a handful of students have joined so far, so this list is short by nature.",
+          : "These are the closest few. The whole current cohort is on the map.",
         noteStyle:`margin-top:14px;padding-top:12px;border-top:1px solid #e6e2d7;font-size:11.5px;line-height:1.5;color:#9a968a;`,
+        // Alumni only: the five above are a shortlist, not the population. This drops them
+        // onto the map already filtered to current students who have posted an ask — the ones
+        // who can actually be helped today — narrowed to their own areas where the mentorship
+        // topics and the map's territories line up.
+        browse: !mentorBrowse ? null : {
+          // the count is on the label because the filters are strict and a link that says
+          // "browse more" and lands on two people reads as broken
+          label: mentorBrowse.sectors.length
+            ? `Browse ${mentorBrowse.count} more students in your areas →`
+            : `Browse ${mentorBrowse.count} students who've asked for something →`,
+          style:`display:block;margin-top:8px;background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#8C1515;cursor:pointer;text-align:left;`,
+          onClick:()=>this.setState({
+            mentorOpen:false, mode:"general", detailId:null, pinId:null,
+            statusFilter:"current", activeSectors:mentorBrowse.sectors,
+            // lead with people who have actually asked for something, rather than everyone
+            exchangeFilter:"__all__", exchangeDir:"need", exchangePanelOpen:true,
+            searchQuery:"", programFilter:"", resultsQuery:"", drawerOpen:true,
+          }),
+        },
         onClose:()=>this.setState({mentorOpen:false}),
       } : null,
       // command bar

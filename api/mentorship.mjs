@@ -17,6 +17,9 @@
 // Env: CLERK_SECRET_KEY, AIRTABLE_TOKEN, AIRTABLE_BASE_ID (+ optional ALLOWED_ORIGIN).
 
 import { createClerkClient, verifyToken } from "@clerk/backend";
+// the map's own people, and the LinkedIn-slug key everything is deduped on — both already
+// written and cached in /api/link, so this reuses them rather than keeping a second copy
+import { loadPeople, liKey } from "./link.mjs";
 
 const API = "https://api.airtable.com/v0";
 const STUDENTS = "Mentorship Students";
@@ -43,10 +46,16 @@ export const cityOf = (raw) => norm(String(raw || "").split(/[,/(]/)[0]).replace
 // Inverse document frequency over the population being ranked: 78 of the 111 alumni ticked
 // "Batteries & energy storage", so sharing it says almost nothing, while a shared "Finance"
 // is informative. Necessary, but nowhere near sufficient — see roleEvidence.
+// Only people who were ASKED the topic question count towards rarity. Once the pool included
+// the map cohort, who never saw those checkboxes, every tick started looking vanishingly rare
+// — a topic held by 3 of 125 scored ~3.5, so the handful of form responses outranked a
+// hundred and twenty people on a field those hundred and twenty were never shown. Rarity is
+// only meaningful within the population that answered.
 export function idfOver(rows) {
+  const asked = rows.filter((r) => (r.topics || []).length);
   const df = new Map();
-  rows.forEach((r) => new Set(r.topics.map(norm)).forEach((t) => df.set(t, (df.get(t) || 0) + 1)));
-  const n = Math.max(1, rows.length);
+  asked.forEach((r) => new Set(r.topics.map(norm)).forEach((t) => df.set(t, (df.get(t) || 0) + 1)));
+  const n = Math.max(1, asked.length);
   return (topic) => Math.log((n + 1) / ((df.get(norm(topic)) || 0) + 1));
 }
 
@@ -85,7 +94,11 @@ export const ROLE_EVIDENCE = {
 export const PROGRAM_EVIDENCE = {
   "Finance": /\b(\bmba\b|\bgsb\b|business|finance|financial|economics|management science|\bms&e\b)\b/i,
   "Policy & regulation": /\b(policy|public policy|\blaw\b|\bjd\b|international policy|environmental (policy|science|studies)|civil and environmental|\bcee\b|systems engineering)\b/i,
-  "AI/Software": /\b(computer science|\bcs\b|\bms&e\b|management science|data science|statistics|artificial intelligence|\bai\b|machine learning|symbolic systems|electrical engineering)\b/i,
+  // "electrical engineering" is deliberately absent: it already earns grid evidence below,
+  // which is the ground it obviously covers, and an EE degree does not by itself mean
+  // software or AI work. The EE↔software overlap is real but lives in what someone
+  // specialises in, so it has to be named — a bare major is not evidence of it.
+  "AI/Software": /\b(computer science|\bcs\b|\bms&e\b|management science|data science|statistics|artificial intelligence|\bai\b|machine learning|symbolic systems|signal processing|controls?|embedded systems)\b/i,
   "Batteries & energy storage": /\b(chemistry|chemical engineering|materials science|material science|\bmatsci\b|mechanical engineering|\bme\b|applied physics|physics)\b/i,
   "Grid infrastructure": /\b(electrical engineering|\bee\b|mechanical engineering|energy (science|engineering|resources)|civil and environmental|\bcee\b|systems engineering|earth systems)\b/i,
 };
@@ -98,11 +111,29 @@ export const roleEvidence = (text, topics, map = ROLE_EVIDENCE) => {
   return topics.filter((topic) => { const re = map[topic]; return re && re.test(t); });
 };
 
-// a person's own evidence text and the map that reads it — alumni are their job, students
-// are their programme
-export const evidenceOf = (person, topics) =>
-  person && person.role ? roleEvidence(person.role, topics, ROLE_EVIDENCE)
-                        : roleEvidence((person && person.program) || "", topics, PROGRAM_EVIDENCE);
+// And the same idea again for someone who is on the map rather than on a mentorship form.
+// They never answered the six topic checkboxes, so there is nothing to compare ticks against
+// — but they wrote about what they are building, which is better evidence than a checkbox
+// ever was. Read against the venture, the project description, the asks and offers, and the
+// sector tags, all of it prose, so the patterns have to be narrower than the job-title ones:
+// a project description says "business model" and "data center" in passing, and neither is a
+// claim to work in AI.
+export const MAP_EVIDENCE = {
+  "Finance": /\b(project financ\w*|financ\w*|investor\w*|investment|capital|funding|carbon (credits?|markets?)|insur\w*|underwrit\w*|offtake)\b/i,
+  "Policy & regulation": /\b(policy|policies|regulat\w*|permit\w*|complian\w*|tariffs?|legislat\w*|standards body|public utilit\w*|government agenc\w*)\b/i,
+  "AI/Software": /\b(\bai\b|artificial intelligence|machine learning|\bml\b|software|algorithm\w*|analytics|\bllm\b|computer vision|digital twin|predictive|data(?! ?cent)\w*)\b/i,
+  "Batteries & energy storage": /\b(batter\w*|energy storage|storage system\w*|\bbess\b|anode|cathode|electrolyte|lithium|sodium-ion|electrochem\w*|thermal storage)\b/i,
+  "Grid infrastructure": /\b(grid|microgrid|transmission|distribution network|substation|interconnect\w*|utilit\w*|demand response|load flexibilit\w*|virtual power plant|\bvpp\b|electricity market|capacity market)\b/i,
+};
+
+// a person's own evidence text and the map that reads it — an alum is their job, a mentorship
+// student is their programme, a map student is what they wrote about their venture
+export const evidenceOf = (person, topics) => {
+  if (!person) return [];
+  if (person.role) return roleEvidence(person.role, topics, ROLE_EVIDENCE);
+  if (person.mapText) return roleEvidence(person.mapText, topics, MAP_EVIDENCE);
+  return roleEvidence(person.program || "", topics, PROGRAM_EVIDENCE);
+};
 
 // Rank the other side of the programme for one person.
 //
@@ -179,6 +210,20 @@ const studentOf = (f) => ({
   location: "", linkedin: f["LinkedIn URL"] || "",
   hoping: f["Hoping to experience"] || "",
 });
+// A current student as they exist on the map. They never answered the mentorship form, so
+// they have no topics and no city — everything about them has to come out of what they wrote
+// about their venture, which `mapText` gathers for MAP_EVIDENCE to read. Their key is the
+// LinkedIn slug so it lands in the same space as the mentorship tables' Profile key.
+const mapStudentOf = (p) => ({
+  key: liKey(p.linkedin) || norm(p.name), name: p.name || "", email: "",
+  topics: [], stage: (p.programs || [])[0] || "", program: (p.venture || "").trim(),
+  location: "", linkedin: p.linkedin || "",
+  // their own words about what they need — the most useful line on a card, and the reason to
+  // write to them rather than to somebody else
+  hoping: (p.asks || "").trim(),
+  mapText: [p.venture, p.focus, p.asks, p.offers, (p.tags || []).join(" ")].filter(Boolean).join(" · "),
+});
+
 const alumOf = (f) => ({
   key: norm(f["Profile key"] || f.Name), name: f.Name || "", email: norm(f.Email),
   topics: topicsOf(f["Topic areas"]), stage: (f["Career Stage"] && f["Career Stage"].name) || f["Career Stage"] || "",
@@ -244,6 +289,10 @@ export default async function handler(req, res) {
       loadTable(ALUMNI, alumOf).then(dedupe),
     ]);
 
+    // WHO GETS A PANEL AT ALL is decided here, and only by the two mentorship tables. The
+    // pool an alum is *shown* grew to the whole current cohort below, but that must not make
+    // those 122 people eligible themselves — nobody gets an unasked-for mentors panel because
+    // they happen to be on the map.
     const isMe = (r) => (email && r.email === email) || (metaKey && r.key === metaKey);
     const meStudent = students.find(isMe);
     const meAlum = meStudent ? null : alumni.find(isMe);
@@ -252,19 +301,40 @@ export default async function handler(req, res) {
     if (!me) return res.status(200).json({ role: null, matches: [] });
 
     const side = meStudent ? "alum" : "student";
-    const pool = (meStudent ? alumni : students).filter((r) => r.key !== me.key);
+    let pool;
+    if (meStudent) {
+      // a student's mentors: the 111 who volunteered to mentor, and nobody else
+      pool = alumni;
+    } else {
+      // An alum's students: the whole current cohort on the map, plus the handful who filled
+      // in the mentorship form but have no map profile yet. Ten form responses was never the
+      // real answer to "who could I help" — a hundred and twenty-two people are already here
+      // describing what they're building. Deduped on the LinkedIn slug for the one person who
+      // is on both lists; the form entry wins, since it carries their stated topics.
+      const onMap = (await loadPeople(req.headers.host))
+        .filter((p) => p.status === "current")
+        .map(mapStudentOf);
+      pool = dedupe(students.concat(onMap));
+    }
+    pool = pool.filter((r) => r.key !== me.key);
     const ranked = rankMatches(me, pool);
     const matches = ranked.map((m) => publicMatch(m, side));
 
     // How much these are worth, so the interface can say so rather than implying more than
-    // the data supports. A student is shown alumni whose *job* backs up their interests —
-    // that is a recommendation. An alum is shown students who share their topics and nothing
-    // more, because a student has no job to match on — that is an interest overlap, and
-    // calling it a curated match would be a lie the reader can't check.
+    // the data supports: "role" means the ranking is standing on what people actually do or
+    // build, "topics" means it is two sets of checkboxes overlapping and should be read as a
+    // starting point. The interface takes its wording from this rather than from which side
+    // you are on, because both sides can now be either.
     const basis = ranked.some((m) => m.evidence.length) ? "role" : "topics";
 
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ role: meStudent ? "student" : "alum", name: me.name, shows: side, basis, matches });
+    return res.status(200).json({
+      role: meStudent ? "student" : "alum", name: me.name, shows: side, basis,
+      // the viewer's own topics that their job backs up — the app turns these into map
+      // filters for "browse more students", so the browse lands somewhere relevant
+      myEvidence: evidenceOf(me, me.topics),
+      matches,
+    });
   } catch (err) {
     console.error("mentorship error:", err);
     return res.status(500).json({ error: "mentorship_failed" });
