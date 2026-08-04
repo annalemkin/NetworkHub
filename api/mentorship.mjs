@@ -309,16 +309,70 @@ export const evidenceIn = (text, ticks, map) => {
   return ticks.filter((cat) => { const re = map[cat]; return re && re.test(t); });
 };
 
-// a person's own evidence text and the map that reads it, for one dimension — an alum is
+// A person's own evidence text and the map that reads it, for one dimension — an alum is
 // their job, a mentorship student is their programme, a map student is what they wrote about
-// their venture
-export const evidenceOf = (person, ticks, dim = "domains") => {
-  if (!person || !ticks || !ticks.length) return [];
+// their venture. Both evidenceOf and inferTicks go through here, so the text that earns
+// somebody an inferred tick is by construction the same text that would back it as evidence.
+// Split them and they drift, and a person ends up ticked for something their own text denies.
+export const sourceOf = (person, dim) => {
   const cfg = DIMS[dim];
-  if (!cfg) return [];
-  if (person.role) return evidenceIn(person.role, ticks, cfg.role);
-  if (person.mapText) return evidenceIn(person.mapText, ticks, cfg.map);
-  return evidenceIn(person.program || "", ticks, cfg.program);
+  if (!person || !cfg) return { text: "", map: null };
+  if (person.role) return { text: person.role, map: cfg.role };
+  if (person.mapText) return { text: person.mapText, map: cfg.map };
+  return { text: person.program || "", map: cfg.program };
+};
+
+export const evidenceOf = (person, ticks, dim = "domains") => {
+  if (!person || !ticks || !ticks.length || !DIMS[dim]) return [];
+  const { text, map } = sourceOf(person, dim);
+  return evidenceIn(text, ticks, map);
+};
+
+// ---------------------------------------------------------------------------
+// BOOTSTRAP: ticks inferred from a person's own text
+// ---------------------------------------------------------------------------
+//
+// skills, customerGroup and solutionCharacteristics have no intake question yet, so nobody
+// has ticks in them, so they were inert: `shared` needs ticks on both sides, and `evidence`
+// only ever checks the categories the VIEWER ticked. Four dimensions, three of them silent.
+//
+// This fills them in from the one thing every person here has already written about
+// themselves — an alum's job title, a student's degree, a map student's venture prose — by
+// running that text through the very same regex maps the evidence step uses. If a job title
+// matches the "Investment & finance" skill pattern, that person is ticked for it, instead of
+// the pattern only firing when somebody else happens to ask about it.
+//
+// THIS IS A BOOTSTRAP, NOT AN ANSWER. An inferred tick is this system's guess from a job
+// title; a form tick is a claim the person made about themselves. They are not the same
+// thing and must never be shown as though they were, which is what `dimsSource` is for.
+// Tasks #4/#5 replace "inferred" with "form" per dimension as real questions ship; nothing
+// else has to change when they do.
+//
+// `domains` is deliberately NOT inferred — it has real self-reported answers, and guessing
+// over the top of them would be a downgrade.
+export const INFERRED_DIMS = ["skills", "customerGroup", "solutionCharacteristics"];
+
+// what this person's own text says they'd have ticked, for one dimension
+export const inferTicks = (person, dim) => {
+  const cfg = DIMS[dim];
+  if (!person || !cfg) return [];
+  const { text, map } = sourceOf(person, dim);
+  // same guard evidenceIn uses: "Retired", "N/A" and friends describe no work at all
+  if (!text || !map || /^\s*(retired|n\/a|none|undecided)\b/i.test(text)) return [];
+  return cfg.categories.filter((cat) => { const re = map[cat]; return re && re.test(text); });
+};
+
+// Fill the three inferred dimensions on a person and record, per dimension, where its ticks
+// came from. `formDomains` says whether this person was ever ASKED the domains question —
+// a map student wasn't, so their empty domains is "none" rather than a form they left blank.
+export const withInferredTicks = (person, { formDomains = true } = {}) => {
+  const dims = { ...emptyDims(), ...(person.dims || {}) };
+  const dimsSource = { domains: formDomains ? "form" : "none" };
+  for (const d of INFERRED_DIMS) {
+    dims[d] = inferTicks(person, d);
+    dimsSource[d] = "inferred";
+  }
+  return { ...person, dims, dimsSource };
 };
 
 // Only the dimensions a caller asked for, and only ones that exist. Unknown keys are dropped
@@ -366,8 +420,14 @@ export function rankMatches(me, others, opts = {}) {
         // four-department degree or a job title that touches everything shouldn't win on
         // volume. The second matching area is worth about half the first, the fourth a fifth.
         const evidenceScore = Math.sqrt(evidence.length) * 2.2;
-        // ticking everything is not the same as knowing everything
-        const breadth = 0.12 * Math.max(0, theirs.length - 2);
+        // Ticking everything is not the same as knowing everything — but that is a statement
+        // about a person's CHOICES, so it only applies where the ticks were chosen. On an
+        // inferred dimension the ticks are ours, not theirs, and charging someone for them
+        // punishes them for having descriptive prose: Gauraang Biyani's venture text names
+        // three customer groups, which cost him 0.12 and dropped him out of an alum's top
+        // four for something he never claimed. No penalty on inferred dimensions.
+        const inferredDim = (o.dimsSource || {})[d] === "inferred";
+        const breadth = inferredDim ? 0 : 0.12 * Math.max(0, theirs.length - 2);
         byDim[d] = { shared, evidence, sharedScore, evidenceScore, breadth, score: sharedScore + evidenceScore - breadth };
         score += byDim[d].score;
       }
@@ -419,11 +479,11 @@ export const dedupe = (rows) => {
   return [...seen.values()];
 };
 
-// The one intake question that exists today answers `domains`. The other three dimensions
-// stay empty until the forms are updated — the engine is built to expect that.
+// The one intake question that exists today answers `domains`. The other three are filled in
+// by withInferredTicks below, from the person's own text, and stamped "inferred".
 const dimsFromForm = (f) => ({ ...emptyDims(), domains: ticksOf(f["Topic areas"], "domains") });
 
-const studentOf = (f) => ({
+const studentOf = (f) => withInferredTicks({
   key: norm(f["Profile key"] || f.Name), name: f.Name || "", email: norm(f.Email),
   dims: dimsFromForm(f),
   stage: f["Stanford Affiliation"] || "",          // how far along: undergrad, master's, PhD, GSB
@@ -432,11 +492,12 @@ const studentOf = (f) => ({
   hoping: f["Hoping to experience"] || "",
 });
 // A current student as they exist on the map. They never answered the mentorship form, so
-// they have no ticks in any dimension and no city — everything about them has to come out of
-// what they wrote about their venture, which `mapText` gathers for the `map` evidence maps to
-// read. Their key is the LinkedIn slug so it lands in the same space as the mentorship
-// tables' Profile key.
-const mapStudentOf = (p) => ({
+// their domains stay empty and are marked "none" rather than "form" — they weren't asked, as
+// opposed to asked and left blank. Everything else about them comes out of what they wrote
+// about their venture, which `mapText` gathers for the `map` maps to read — for inferred
+// ticks now as well as for evidence. Their key is the LinkedIn slug so it lands in the same
+// space as the mentorship tables' Profile key.
+const mapStudentOf = (p) => withInferredTicks({
   key: liKey(p.linkedin) || norm(p.name), name: p.name || "", email: "",
   dims: emptyDims(), stage: (p.programs || [])[0] || "", program: (p.venture || "").trim(),
   location: "", linkedin: p.linkedin || "",
@@ -444,9 +505,9 @@ const mapStudentOf = (p) => ({
   // write to them rather than to somebody else
   hoping: (p.asks || "").trim(),
   mapText: [p.venture, p.focus, p.asks, p.offers, (p.tags || []).join(" ")].filter(Boolean).join(" · "),
-});
+}, { formDomains: false });
 
-const alumOf = (f) => ({
+const alumOf = (f) => withInferredTicks({
   key: norm(f["Profile key"] || f.Name), name: f.Name || "", email: norm(f.Email),
   dims: dimsFromForm(f), stage: (f["Career Stage"] && f["Career Stage"].name) || f["Career Stage"] || "",
   role: f["Current Role and Institution"] || "", location: f.Location || "", linkedin: f["LinkedIn URL"] || "",
@@ -468,10 +529,15 @@ const publicMatch = (m, side, dims) => ({
   // the same two, split by dimension, for an interface that wants to say WHICH kind of
   // overlap this is. Flat `shared`/`evidence` above stay as they were so the current card
   // keeps working untouched.
+  //
+  // `source` is load-bearing, not decoration. "form" means this person ticked the box.
+  // "inferred" means we read it off their job title and they never said it — so a card must
+  // not put it in their mouth ("Shares X" is a claim; "Their role suggests X" is not).
   byDim: Object.fromEntries(dims.map((d) => [d, {
     shared: (m.byDim[d] || {}).shared || [],
     evidence: (m.byDim[d] || {}).evidence || [],
     score: Number(((m.byDim[d] || {}).score || 0).toFixed(3)),
+    source: (m.dimsSource || {})[d] || "none",
   }])),
   // what they said they were hoping for, in their own words. Often the most useful line on
   // the card and the only unprompted thing either side wrote, so it goes to the browser too.
@@ -584,6 +650,11 @@ export default async function handler(req, res) {
       // which dimensions this ranking was actually scored on, echoed back so a caller can
       // see that its toggles landed
       dims,
+      // where the VIEWER's own ticks in each of those came from. Same contract as byDim.source
+      // on a match: "form" is a claim they made, "inferred" is this system's reading of their
+      // job title, "none" means they were never asked. Tasks #4/#5 flip these to "form" one
+      // dimension at a time as real intake questions ship.
+      dimsSource: Object.fromEntries(dims.map((d) => [d, (me.dimsSource || {})[d] || "none"])),
       // the viewer's own categories that their job backs up — the app turns these into map
       // filters for "browse more students", so the browse lands somewhere relevant
       myEvidence: dims.flatMap((d) => myEvidenceByDim[d]),
