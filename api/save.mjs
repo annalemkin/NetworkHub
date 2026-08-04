@@ -24,6 +24,21 @@
 
 const API = "https://api.airtable.com/v0";
 
+// The five stages the app offers, mirroring this.STAGES in Atlas Map.dc.html. Anything else
+// is dropped rather than sent.
+//
+// This exists because `typecast: true` is set on the write, and for a singleSelect typecast
+// does NOT mean "reject unknown values" — it means "create them". Posting a stage of
+// "Not A Real Stage" silently added exactly that as a sixth option, coloured blue, sitting in
+// the picker for everyone. Verified against the live base, then cleaned up. Approaches has
+// the same exposure but genuinely needs typecast for its twelve names, so the narrow fix is
+// to validate the one free-text-ish field the client controls rather than drop typecast and
+// break the multi-select.
+const STAGES = new Set([
+  "Just an idea", "Building a prototype", "Running a pilot",
+  "Early customers / revenue", "Raising a round",
+]);
+
 export default async function handler(req, res) {
   const origin = process.env.ALLOWED_ORIGIN || "*";
   res.setHeader("Access-Control-Allow-Origin", origin);
@@ -48,8 +63,9 @@ export default async function handler(req, res) {
     const fields = {
       "Profile key": key, Name: name, LinkedIn: linkedin, Program: program,
       Challenge: challenge, "Who they're building for": customer,
-      // single select — the value must already exist as an option or Airtable rejects the row
-      ...(stage ? { Stage: stage } : {}),
+      // single select — only a stage the app actually offers. An unrecognised one is dropped,
+      // not written: with typecast on, sending it would ADD it as a new option (see STAGES).
+      ...(STAGES.has(String(stage).trim()) ? { Stage: String(stage).trim() } : {}),
       Approaches: Array.isArray(approaches) ? approaches : [],
       "What they bring": brings, "What they're seeking": seeks,
       "Submitted at": new Date().toISOString(),
