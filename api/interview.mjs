@@ -17,7 +17,7 @@
 //               or { done: true, profile: {...} }        — interview finished
 //
 // The structured profile matches what the front-end already stores per student:
-//   { challenge, who, approaches[], brings, seeks }
+//   { challenge, customer, approaches[], brings, seeks }
 
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -32,14 +32,14 @@ const recordProfile = {
   name: "record_profile",
   description:
     "Save the student's completed profile. Call this ONLY when you have collected " +
-    "answers (or explicit skips) for all five topics: their live challenge, who bears " +
-    "it, how they work, what they bring, and what they seek.",
+    "answers (or explicit skips) for all five topics: their live challenge, who they are " +
+    "building it for, how they work, what they bring, and what they seek.",
   strict: true,
   input_schema: {
     type: "object",
     properties: {
       challenge: { type: "string", description: "The real, current challenge they're navigating, in their own words (may be empty if skipped)" },
-      who:       { type: "string", description: "Who feels the consequences of that challenge most" },
+      customer:  { type: "string", description: "Who they are building this for — their first customer or user" },
       approaches: {
         type: "array",
         description: "How they tend to work a problem — pick only from the allowed list",
@@ -48,7 +48,7 @@ const recordProfile = {
       brings: { type: "string", description: "Knowledge/experience they bring that others may not have" },
       seeks:  { type: "string", description: "What they're trying to figure out or find help with" },
     },
-    required: ["challenge", "who", "approaches", "brings", "seeks"],
+    required: ["challenge", "customer", "approaches", "brings", "seeks"],
     additionalProperties: false,
   },
 };
@@ -57,7 +57,7 @@ const systemPrompt = (student) => `You are the profile interviewer for The Ecopr
 
 Your job is a short, warm, conversational interview covering five topics, so the map can surface non-obvious connections — students in different sectors who tackle problems the same way, hit the same walls, or hold knowledge someone else needs:
 1. A real challenge they're navigating right now (live, not hypothetical)
-2. Who feels the consequences of that challenge most
+2. Who they're building this for — their first customer or user, as specifically as they can put it
 3. How they tend to work a problem — map their answer onto the allowed approaches list
 4. What knowledge or experience they bring that others in the room may not have
 5. What they're trying to figure out, or find help with

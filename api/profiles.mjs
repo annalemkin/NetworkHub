@@ -35,7 +35,8 @@ export default async function handler(req, res) {
         profiles[key] = {
           name: f.Name || "",
           challenge: f.Challenge || "",
-          who: f["Who bears it"] || "",
+          customer: f["Who they're building for"] || "",
+          stage: f.Stage || "",
           approaches: Array.isArray(f.Approaches) ? f.Approaches : [],   // multiple-select → array
           brings: f["What they bring"] || "",
           seeks: f["What they're seeking"] || "",

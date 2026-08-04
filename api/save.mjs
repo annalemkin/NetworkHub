@@ -15,11 +15,11 @@
 //   ALLOWED_ORIGIN        — optional; lock CORS to the site's own origin in prod
 //
 // The Airtable table already exists with these fields (created 2026-07-23):
-//   Profile key | Name | LinkedIn | Program | Challenge | Who bears it
-//   | Approaches (multiple select) | What they bring | What they're seeking
-//   | Submitted at (dateTime) | Status (single select: New / Reviewed)
+//   Profile key | Name | LinkedIn | Program | Challenge | Who they're building for
+//   | Stage (single select) | Approaches (multiple select) | What they bring
+//   | What they're seeking | Submitted at (dateTime) | Status (single select: New / Reviewed)
 //
-// Request (POST JSON): { key, name, linkedin, program, challenge, who, approaches: [], brings, seeks }
+// Request (POST JSON): { key, name, linkedin, program, challenge, customer, stage, approaches: [], brings, seeks }
 // Response: { ok: true } or { error }
 
 const API = "https://api.airtable.com/v0";
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   if (!token || !baseId) return res.status(500).json({ error: "server_not_configured" });
 
   try {
-    const { key, name, linkedin = "", program = "", challenge = "", who = "", approaches = [], brings = "", seeks = "" } = req.body || {};
+    const { key, name, linkedin = "", program = "", challenge = "", customer = "", stage = "", approaches = [], brings = "", seeks = "" } = req.body || {};
     if (!key || !name) return res.status(400).json({ error: "key and name required" });
 
     const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -47,7 +47,10 @@ export default async function handler(req, res) {
     // Approaches is a multiple-select; send an array. Everything else is text/date.
     const fields = {
       "Profile key": key, Name: name, LinkedIn: linkedin, Program: program,
-      Challenge: challenge, "Who bears it": who, Approaches: Array.isArray(approaches) ? approaches : [],
+      Challenge: challenge, "Who they're building for": customer,
+      // single select — the value must already exist as an option or Airtable rejects the row
+      ...(stage ? { Stage: stage } : {}),
+      Approaches: Array.isArray(approaches) ? approaches : [],
       "What they bring": brings, "What they're seeking": seeks,
       "Submitted at": new Date().toISOString(),
     };
