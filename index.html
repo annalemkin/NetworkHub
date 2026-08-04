@@ -110,6 +110,9 @@
         </sc-if>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
         <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+        <sc-if value="{{ showIntrosBtn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openIntros }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ introsBtnLabel }}</button>
+        </sc-if>
         <sc-if value="{{ mentorPill }}" hint-placeholder-val="{{ false }}">
           <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
           <button onClick="{{ mentorPill.onClick }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ mentorPill.label }} <span style="{{ mentorPill.badgeStyle }}">{{ mentorPill.count }}</span></button>
@@ -765,6 +768,27 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ intros }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeIntrosBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Your intros</div>
+        <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 14px;line-height:1.5;">People you've reached out to. Only you can see this.</div>
+        <sc-if value="{{ introsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:#9b978d;padding:16px 0;">Nothing yet. Copy or send a reach-out draft and it'll be listed here.</div>
+        </sc-if>
+        <sc-for list="{{ introsEntries }}" as="x" hint-placeholder-count="0">
+          <div style="{{ x.style }}">
+            <div style="font-size:13px;font-weight:600;color:#211f1a;">{{ x.name }}</div>
+            <div style="font-size:11.5px;color:#8a877f;margin-top:2px;">{{ x.meta }}</div>
+          </div>
+        </sc-for>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:16px;">
+          <button onClick="{{ closeIntros }}" class="atlas-quiet" style="margin-left:auto;font-size:13px;color:#9a968a;background:none;border:none;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ catalog }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeCatalogBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
       <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
@@ -809,6 +833,8 @@ class Component extends DCLogic {
       // index into mentorship.matches for the draft-email modal. Separate from reachId
       // because a mentorship match is not a map node — it has no dot and no this.byId entry.
       mentorReachIdx:null,
+      // "Your intros" — the signed-in person's own outreach log from /api/intros
+      introsOpen:false, intros:[],
       showConnections:true,
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:true, profileEdit:null, egoSearch:"",
@@ -1043,7 +1069,9 @@ class Component extends DCLogic {
       // signed in but not yet linked to a person → ask the server to match them (once per account)
       else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
       // signed out — one site, one rule: no account, no personal view. Back to the public map.
-      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false, mentorReachIdx:null }); }
+      // signing out drops the intro log with everything else — it is one person's private
+      // list, and the next person at this browser must not see a trace of it
+      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this._introsCache=null; this._introLogged=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false, mentorReachIdx:null, introsOpen:false, intros:[] }); }
     });
   }
   // ---- identity: /api/link matches the signed-in person server-side (BACKEND.md) ----
@@ -2364,6 +2392,54 @@ class Component extends DCLogic {
     }catch(e){}
   }
 
+  // Log one outreach to /api/intros. Unlike track() this is NOT anonymous — it records that
+  // you contacted a particular person — so it needs the session token, and the server takes
+  // the sender from that token rather than from anything sent here.
+  //
+  // Still fire-and-forget for the user: a failed log must never block a copy or hold up the
+  // mailto. `_introLogged` de-dupes within a page load, so pressing Copy three times while
+  // editing a draft records one intro rather than three; a genuine second outreach to the
+  // same person on another day is a new page load and logs again.
+  async logIntro(targetName, targetKey, channel){
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return;   // signed out: nothing to attribute
+      const dedupe=`${channel}|${targetKey||targetName}`;
+      this._introLogged=this._introLogged||new Set();
+      if(this._introLogged.has(dedupe)) return;
+      this._introLogged.add(dedupe);
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/intros",{ method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok },
+        body:JSON.stringify({ targetName, targetKey:targetKey||"", channel }) });
+      if(!r.ok) throw new Error("intros_http_"+r.status);
+      // a fresh send invalidates the cached list, so "Your intros" opens with it included
+      this._introsCache=null;
+    }catch(e){
+      // let it be logged again on a later click rather than silently never recording
+      try{ if(this._introLogged) this._introLogged.delete(`${channel}|${targetKey||targetName}`); }catch(_){}
+      try{ console.warn("[Atlas] intro not logged:", (e&&e.message)||e); }catch(_){}
+    }
+  }
+
+  // "Your intros": the signed-in person's own outreach log. Cached per page load; cleared
+  // whenever a new one is logged.
+  async fetchIntros(){
+    if(this._introsCache) return this._introsCache;
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return [];
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/intros",{ headers:{ Authorization:"Bearer "+tok } });
+      if(!r.ok) return [];
+      const j=await r.json();
+      this._introsCache=(j&&j.intros)||[];
+      return this._introsCache;
+    }catch(e){ try{ console.warn("[Atlas] intros unavailable:", (e&&e.message)||e); }catch(_){} return []; }
+  }
+  openIntros(){
+    this.setState({ introsOpen:true, intros:this.state.intros||[] });
+    this.fetchIntros().then(intros=>this.setState({ intros }));
+  }
+
   copyText(text, which){
     const done=()=>{ this.setState({[which]:true}); setTimeout(()=>this.setState({[which]:false}),1600); };
     try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,done); } else done(); }catch(e){ done(); }
@@ -3054,14 +3130,17 @@ class Component extends DCLogic {
         emailLabel:`✉ Email ${t.name.split(" ")[0]}`,
         sendEmail:()=>{ const subj=this.reachSubjRef.current?this.reachSubjRef.current.value:intro.subject;
           const body=this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body;
+          this.logIntro(t.name, this.profileKey(t), "Map");
           location.href=`mailto:${(t.person.email||"").trim()}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; },
         primaryLabel: `Connect with ${t.name.split(" ")[0]} on LinkedIn`,
         primaryHref: liUrl,
         primaryStyle: hasEmail
           ? `font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:9px 16px;text-decoration:none;transition:border-color .12s ease,background .12s ease;`
           : `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:1px solid #8C1515;border-radius:999px;padding:9px 16px;text-decoration:none;transition:background .12s ease;`,
-        onPrimary: ()=>{},
-        copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
+        // the LinkedIn button is a send too — it's the channel most people actually use here
+        onPrimary: ()=>this.logIntro(t.name, this.profileKey(t), "Map"),
+        copy:()=>{ this.logIntro(t.name, this.profileKey(t), "Map");
+          this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"); },
         copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
       };
     } else if(s.mentorReachIdx!=null && s.mentorship && (s.mentorship.matches||[])[s.mentorReachIdx]){
@@ -3083,8 +3162,11 @@ class Component extends DCLogic {
         primaryStyle: m.linkedin
           ? `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:1px solid #8C1515;border-radius:999px;padding:9px 16px;text-decoration:none;transition:background .12s ease;`
           : `font-size:13px;font-weight:600;color:#9a968a;background:#f4f2ec;border:1px solid #e6e2d7;border-radius:999px;padding:9px 16px;text-decoration:none;pointer-events:none;`,
-        onPrimary: ()=>{},
-        copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
+        // the mentorship target key is their LinkedIn, the only stable id we hold for someone
+        // who has no dot on the map
+        onPrimary: ()=>this.logIntro(m.name, m.linkedin||"", "Mentorship"),
+        copy:()=>{ this.logIntro(m.name, m.linkedin||"", "Mentorship");
+          this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"); },
         copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
       };
     }
@@ -3471,6 +3553,22 @@ class Component extends DCLogic {
       closeReach:()=>this.setState({reachId:null, mentorReachIdx:null}),
       closeReachBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({reachId:null, mentorReachIdx:null}); },
       // catalog
+      // ---- Your intros: the signed-in person's own outreach log ----
+      // Only ever their own rows — /api/intros filters on the session server-side. The pill
+      // only exists for someone signed in, since there is nothing to show otherwise.
+      showIntrosBtn: !!s.clerkUser,
+      introsBtnLabel: (s.intros||[]).length ? `✉ Your intros · ${(s.intros||[]).length}` : "✉ Your intros",
+      openIntros:()=>this.openIntros(),
+      intros: s.introsOpen,
+      introsCount:(s.intros||[]).length,
+      introsEmpty:(s.intros||[]).length===0,
+      introsEntries:(s.intros||[]).map((x,i)=>({
+        name:x.name||"(unnamed)",
+        meta:[x.channel, x.at?new Date(x.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""].filter(Boolean).join(" · "),
+        style:`padding:10px 0;${i?"border-top:1px solid #eeebe2;":""}`,
+      })),
+      closeIntros:()=>this.setState({introsOpen:false}),
+      closeIntrosBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({introsOpen:false}); },
       catalog:s.catalogOpen, catalogEntries, catCount, catEmpty:catCount===0,
       openCatalog:()=>this.setState({catalogOpen:true, catCopied:false}),
       closeCatalog:()=>this.setState({catalogOpen:false}),
