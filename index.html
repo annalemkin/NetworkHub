@@ -676,9 +676,12 @@
               </div>
               <div style="font-size:12.5px;color:#55534a;margin-top:2px;line-height:1.45;">{{ m.detail }}</div>
               <div style="{{ m.whyStyle }}">{{ m.why }}</div>
-              <sc-if value="{{ m.linkedin }}" hint-placeholder-val="{{ false }}">
-                <a href="{{ m.linkedin }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8C1515;text-decoration:none;">View LinkedIn ↗</a>
-              </sc-if>
+              <div>
+                <button onClick="{{ m.draft }}" style="{{ m.draftStyle }}">Draft an email</button>
+                <sc-if value="{{ m.linkedin }}" hint-placeholder-val="{{ false }}">
+                  <a href="{{ m.linkedin }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11.5px;font-weight:600;color:#8C1515;text-decoration:none;">View LinkedIn ↗</a>
+                </sc-if>
+              </div>
             </div>
           </sc-for>
           <div style="{{ mentor.noteStyle }}">{{ mentor.note }}
@@ -736,7 +739,9 @@
   </sc-if>
 
   <sc-if value="{{ reach }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
+    <!-- z-index 70: above the mentorship panel (65), which stays open behind the draft so
+         closing it returns you to the list. Was 60, which put the draft underneath it. -->
+    <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:70;">
       <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
         <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Reach out to {{ reach.name }}</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 4px;line-height:1.5;">{{ reach.sub }}</div>
@@ -801,6 +806,9 @@ class Component extends DCLogic {
       hoverId:null, detailId:null, mode:(props.defaultMode||"general"), selfId:null, loginOpen:false,
       searchQuery:"", programFilter:"", statusFilter:"", activeSectors:[], sortBy:"match", sectorMenuOpen:false, resultsQuery:"",
       reachId:null, catalogOpen:false, bookmarks:{}, reachCopied:false, catCopied:false,
+      // index into mentorship.matches for the draft-email modal. Separate from reachId
+      // because a mentorship match is not a map node — it has no dot and no this.byId entry.
+      mentorReachIdx:null,
       showConnections:true,
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:true, profileEdit:null, egoSearch:"",
@@ -1025,7 +1033,7 @@ class Component extends DCLogic {
       // signed in but not yet linked to a person → ask the server to match them (once per account)
       else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
       // signed out — one site, one rule: no account, no personal view. Back to the public map.
-      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false }); }
+      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false, mentorReachIdx:null }); }
     });
   }
   // ---- identity: /api/link matches the signed-in person server-side (BACKEND.md) ----
@@ -2204,6 +2212,90 @@ class Component extends DCLogic {
     return { subject, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
   }
 
+  // A draft for a MENTORSHIP match. Same spirit as generateIntro, different raw material:
+  // these people have no dot, no venture and no asks/offers — what we have is a job title or
+  // a course of study, the categories the server matched on, and their own line about what
+  // they're hoping for.
+  //
+  // Two honesty rules govern every sentence here, and they are not stylistic:
+  //
+  //  1. PROVENANCE. byDim[d].source says where a category came from. "form" means the person
+  //     ticked it; "inferred" means api/mentorship.mjs read it off their job title and they
+  //     never said any such thing. A claim ("I saw you work in X") is only allowed for the
+  //     first kind. An inferred category gets a hedge ("your role suggests…") or it doesn't
+  //     appear. Putting an inferred tick in someone's mouth is the exact failure the card's
+  //     evidence/byDim split exists to prevent, and an email is far worse than a card: the
+  //     other person reads it as something you asserted about them.
+  //  2. BASIS. mentorData.basis is what the panel already tells the user — "role" means the
+  //     ranking stands on what people actually do, "topics" means it's checkbox overlap. The
+  //     draft must not claim more than the panel does, so on "topics" even a form-backed
+  //     category drops to "we both share an interest in X".
+  generateMentorIntro(md, m){
+    const first=(m.name||"").split(" ")[0]||"there";
+    // same fallback chain generateIntro uses: account first name, first word only
+    const acct=((this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"").split(/\s+/)[0]||"";
+    const selfFirst=acct||"[your name]";
+    const iAmStudent = md.role==="student";        // a student writing to a mentor
+    const confident = md.basis==="role";           // the panel's own claim level
+    const PROG="the Stanford Energy & Climate Mentorship programme";
+
+    // ---- sort every category by where it came from ----
+    // A category can appear in more than one dimension; first classification wins, strongest
+    // first, so nothing gets demoted by a later weaker mention.
+    const byDim=m.byDim||{};
+    const seen=new Set(), claim=[], hedge=[], share=[];
+    const put=(bucket,cat)=>{ const k=String(cat).toLowerCase(); if(!seen.has(k)){ seen.add(k); bucket.push(k); } };
+    Object.keys(byDim).forEach(d=>{
+      const b=byDim[d]||{}, inferred=b.source==="inferred";
+      // evidence = their own text backs this up. A claim only when the category was also
+      // self-reported AND the panel is claiming role-level confidence.
+      (b.evidence||[]).forEach(c=>put(confident&&!inferred?claim:hedge,c));
+    });
+    Object.keys(byDim).forEach(d=>{
+      const b=byDim[d]||{}, inferred=b.source==="inferred";
+      // shared with nothing in their text behind it — an overlap, never a statement about them
+      (b.shared||[]).forEach(c=>put(inferred?hedge:share,c));
+    });
+    // Older/other server shapes, or a call with byDim absent: fall back to the flat fields and
+    // treat everything as an overlap. Under-claiming is the safe direction.
+    if(!claim.length&&!hedge.length&&!share.length) (m.shared||[]).forEach(c=>put(share,c));
+    const listOf=a=>{ const x=a.slice(0,2); return x.length>1?x.slice(0,-1).join(", ")+" and "+x[x.length-1]:(x[0]||""); };
+
+    // ---- the why line ----
+    // Their own words first when we have them. "Hoping to experience" is the only unprompted
+    // sentence either side wrote, and it beats any category name for specificity.
+    const hoping=this.snippet(m.hoping,22);
+    let why="";
+    if(hoping) why=iAmStudent
+      ? ` You mentioned you're hoping to ${hoping.replace(/^I('m| am)?\s*/i,"").replace(/^(hoping|looking) to\s*/i,"")} — that's a large part of why I'm writing.`
+      : ` You mentioned you're hoping to ${hoping.replace(/^I('m| am)?\s*/i,"").replace(/^(hoping|looking) to\s*/i,"")}, which is close to ground I've covered.`;
+    // Then the categories, each in the register its provenance earns. Claim and hedge can BOTH
+    // appear — they're different sentences making different strength statements, and dropping
+    // the hedge would often throw away the strongest part of the match (the inferred skill and
+    // solution categories routinely outscore the form-backed domain one). What can't happen is
+    // an inferred category riding along inside the claim sentence.
+    if(claim.length) why+=` I saw you work in ${listOf(claim)}${iAmStudent?", which is exactly where I'm trying to learn":", which is close to what I've spent my time on"}.`;
+    if(hedge.length) why+=` Your ${iAmStudent?"role also suggests":"background also suggests"} ${listOf(hedge)}${claim.length?"":iAmStudent?", which is the ground I'm trying to cover":""}.`;
+    // only when we have nothing firmer — an overlap is not a statement about them
+    if(!claim.length&&!hedge.length&&share.length) why+=` We both share an interest in ${listOf(share)}.`;
+    if(m.sameCity) why+=` We're in the same city, so this could just as easily be a coffee.`;
+
+    const detail=(m.detail||"").trim();
+    let intro,hook,ask,subject;
+    if(iAmStudent){
+      intro=`I'm ${selfFirst}, a student taking part in ${PROG}.`;
+      hook=detail?`Your name came up in my mentorship matches — ${detail}.`:`Your name came up in my mentorship matches.`;
+      ask=`Would you be open to a short call, 15 minutes or so, in the next few weeks? I'd value hearing how you got there.`;
+      subject=`${PROG.replace("the ","")} — would value your perspective`;
+    } else {
+      intro=`I'm ${selfFirst}, an alum taking part in ${PROG}.`;
+      hook=detail?`You came up in my mentorship matches — ${detail}.`:`You came up in my mentorship matches.`;
+      ask=`If it would be useful, I'm happy to share what I learned or make an introduction — would 20 minutes help?`;
+      subject=`${PROG.replace("the ","")} — happy to help if useful`;
+    }
+    return { subject, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
+  }
+
   copyText(text, which){
     const done=()=>{ this.setState({[which]:true}); setTimeout(()=>this.setState({[which]:false}),1600); };
     try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,done); } else done(); }catch(e){ done(); }
@@ -2904,6 +2996,29 @@ class Component extends DCLogic {
         copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
         copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
       };
+    } else if(s.mentorReachIdx!=null && s.mentorship && (s.mentorship.matches||[])[s.mentorReachIdx]){
+      // Same modal, different source. A mentorship match has no map node, so nothing here can
+      // come from this.byId — only from the match object the server sent.
+      const m=s.mentorship.matches[s.mentorReachIdx];
+      const intro=this.generateMentorIntro(s.mentorship, m);
+      reach={
+        name:m.name,
+        sub:`${[m.detail,m.location].filter(Boolean).join(" · ")}. Edit it, then copy and send on LinkedIn.`,
+        subject:intro.subject, body:intro.body,
+        // NEVER an email button here. /api/mentorship deliberately returns no address —
+        // these people consented to a mentorship programme, and the introduction is the
+        // programme's to make. LinkedIn is the only channel this panel offers.
+        hasEmail:false, email:"", emailLabel:"",
+        sendEmail:()=>{},
+        primaryLabel: m.linkedin?`Connect with ${(m.name||"").split(" ")[0]} on LinkedIn`:"No LinkedIn on file",
+        primaryHref: m.linkedin||"#",
+        primaryStyle: m.linkedin
+          ? `font-size:13px;font-weight:600;color:#fff;background:#8C1515;border:1px solid #8C1515;border-radius:999px;padding:9px 16px;text-decoration:none;transition:background .12s ease;`
+          : `font-size:13px;font-weight:600;color:#9a968a;background:#f4f2ec;border:1px solid #e6e2d7;border-radius:999px;padding:9px 16px;text-decoration:none;pointer-events:none;`,
+        onPrimary: ()=>{},
+        copy:()=>this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"),
+        copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
+      };
     }
 
     // catalog
@@ -3031,6 +3146,10 @@ class Component extends DCLogic {
           why: (m.evidence&&m.evidence.length) ? `Works in ${listOf(m.evidence)}${m.sameCity?" · in your city":""}`
              : `Shares ${listOf(m.shared)||"your focus areas"}${m.sameCity?" · in your city":""}`,
           whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${(m.evidence&&m.evidence.length)?"#1c2f5e":"#8a877f"};background:${(m.evidence&&m.evidence.length)?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
+          // opens the shared reach modal on this match. The panel stays open behind it, so
+          // closing the draft puts you back in the list where you were.
+          draft:()=>this.setState({mentorReachIdx:i, reachCopied:false}),
+          draftStyle:`margin-top:8px;margin-right:12px;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;padding:0;cursor:pointer;`,
           style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
         })),
         note: mentorData.role==="student"
@@ -3276,8 +3395,9 @@ class Component extends DCLogic {
         else this.setState({detailId:null}); },
       // reach
       reach, reachSubjRef:this.reachSubjRef, reachBodyRef:this.reachBodyRef,
-      closeReach:()=>this.setState({reachId:null}),
-      closeReachBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({reachId:null}); },
+      // clears BOTH sources — whichever opened the modal, Close means closed
+      closeReach:()=>this.setState({reachId:null, mentorReachIdx:null}),
+      closeReachBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({reachId:null, mentorReachIdx:null}); },
       // catalog
       catalog:s.catalogOpen, catalogEntries, catCount, catEmpty:catCount===0,
       openCatalog:()=>this.setState({catalogOpen:true, catCopied:false}),
