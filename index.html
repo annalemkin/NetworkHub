@@ -947,6 +947,9 @@ class Component extends DCLogic {
   jaccard(a,b){ const A=new Set((a||[]).map(x=>this.norm(x))), B=new Set((b||[]).map(x=>this.norm(x))); if(!A.size||!B.size) return 0; let inter=0; A.forEach(x=>{if(B.has(x))inter++;}); return inter/(A.size+B.size-inter); }
 
   componentDidMount(){
+    // one anonymous count that the app was opened. No detail: which page someone landed on is
+    // not a metric worth the risk of a URL fragment carrying something identifying.
+    this.track("page_view");
     // INTERIM: start the Reciprocity Board fetch first so fresh asks/offers can land before
     // the one-and-only layout pass — matching and map edges are computed once, at init.
     // The race caps the wait at 3.5s: typical sheet load is a few hundred ms, and if Google
@@ -1024,7 +1027,14 @@ class Component extends DCLogic {
     // if Clerk's cached copy of the user hasn't caught up with the server clearing it yet
     if(cu&&this._unlinkedFor===cu.id) cu.profileKey=null;
     const wasIn=!!this.state.clerkUser;
+    // A COMPLETED sign-in, not a session restored on page load. Both arrive here as
+    // "cu is set, wasIn is false", and counting the second would tally a sign_in on every
+    // reload for anyone already logged in. The tell is clerkStatus: it's still "loading" on
+    // the first callback of a page load, and already "ready" by the time someone signs in
+    // during a session. Read before setState, which is what flips it.
+    const freshSignIn = !!cu && !wasIn && this.state.clerkStatus==="ready";
     this.setState({ clerkStatus:"ready", clerkUser:cu }, ()=>{
+      if(freshSignIn) this.track("sign_in");
       // mentorship matches are independent of the map: asked for once per sign-in, whether or
       // not they turn out to have a dot (one person on each list does)
       if(cu&&this._mentorTriedFor!==cu.id){ this._mentorTriedFor=cu.id; this.fetchMentorship(); }
@@ -1131,7 +1141,12 @@ class Component extends DCLogic {
       if(!j||!j.role||!(j.matches||[]).length) return;
       // opened once, unprompted, the first time we learn about it — these people signed in
       // expecting the programme to introduce them to someone, and would never find a pill
-      this.setState({ mentorship:j, mentorOpen:!this._mentorShown });
+      const opening=!this._mentorShown;
+      this.setState({ mentorship:j, mentorOpen:opening });
+      // Detail is which dimensions the ranking ran on — "domains skills" and the like. Those
+      // are fixed keys from the server's own vocabulary, so they carry nothing about the
+      // person; j.role/j.name emphatically are not sent.
+      if(opening) this.track("mentorship_open",(j.dims||[]).join(" ").toLowerCase());
       this._mentorShown=true;
       try{ console.info(`[Atlas] mentorship: ${j.role}, ${j.matches.length} match(es) on ${j.basis}`); }catch(e){}
     }catch(e){ try{ console.warn("[Atlas] mentorship matches unavailable:", (e&&e.message)||e); }catch(_){} }
@@ -1610,6 +1625,12 @@ class Component extends DCLogic {
       const tok=await Clerk.session.getToken();
       const r=await fetch("/api/exchange",{ method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok }, body:JSON.stringify(payload) });
       if(!r.ok) throw new Error("exchange_http_"+r.status);
+      // Counted only once the share actually succeeded — a failed post is not a post. Detail
+      // says which side they filled in, never a tag name and never their text: an ask tag is
+      // narrow enough that with a small cohort it could point at a person.
+      const hasAsk=!!((payload&&payload.askTags||[]).length||(payload&&payload.asks||"").trim());
+      const hasOffer=!!((payload&&payload.offerTags||[]).length||(payload&&payload.offers||"").trim());
+      this.track("ask_offer_post", hasAsk&&hasOffer?"both":hasAsk?"ask":hasOffer?"offer":"empty");
     }catch(e){
       try{ console.warn("[Atlas] asks & offers not shared:", (e&&e.message)||e); }catch(_){}
       const flash="Saved on this device — we couldn't reach the server, so nobody else can see it yet.";
@@ -2294,6 +2315,20 @@ class Component extends DCLogic {
       subject=`${PROG.replace("the ","")} — happy to help if useful`;
     }
     return { subject, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
+  }
+
+  // Anonymous usage count. Fire-and-forget in the strongest sense: no await anywhere, every
+  // failure swallowed, nothing rendered, nothing retried. If /api/track is down, missing, or
+  // rejects the payload, the visitor must never learn that — an analytics call is not worth
+  // one degraded interaction. `detail` is optional and must be a category-shaped label the
+  // server's character class will accept; it is never a name, an email or an id.
+  track(event, detail){
+    try{
+      const body=JSON.stringify(detail?{event,detail}:{event});
+      // keepalive so the page_view survives a fast navigation away
+      fetch("/api/track",{ method:"POST", headers:{"Content-Type":"application/json"}, body, keepalive:true })
+        .catch(()=>{});
+    }catch(e){}
   }
 
   copyText(text, which){
@@ -3128,7 +3163,8 @@ class Component extends DCLogic {
         label: mentorData.role==="student" ? "Mentors" : "Students",
         count: mentorData.matches.length,
         badgeStyle:`display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:999px;font-size:10px;font-weight:700;background:#211f1a;color:#fff;`,
-        onClick:()=>this.setState({mentorOpen:true}),
+        // reopened by hand from the pill, after the automatic first showing
+        onClick:()=>{ this.track("mentorship_open","reopened"); this.setState({mentorOpen:true}); },
       } : null,
       mentor: (mentorData && s.mentorOpen) ? {
         title: mentorData.role==="student" ? "Mentors worth writing to" : "Students in your areas",
@@ -3148,7 +3184,10 @@ class Component extends DCLogic {
           whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${(m.evidence&&m.evidence.length)?"#1c2f5e":"#8a877f"};background:${(m.evidence&&m.evidence.length)?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
           // opens the shared reach modal on this match. The panel stays open behind it, so
           // closing the draft puts you back in the list where you were.
-          draft:()=>this.setState({mentorReachIdx:i, reachCopied:false}),
+          // Detail is the register the draft will be written in, which is the interesting
+          // thing to count: is the evidence split actually reaching people, or is everyone
+          // getting the hedged version? It describes the MATCH's provenance, not the person.
+          draft:()=>{ this.track("mentorship_draft_email",(m.evidence&&m.evidence.length)?"evidence":"topics"); this.setState({mentorReachIdx:i, reachCopied:false}); },
           draftStyle:`margin-top:8px;margin-right:12px;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;padding:0;cursor:pointer;`,
           style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
         })),
@@ -3167,13 +3206,13 @@ class Component extends DCLogic {
             ? `Browse ${mentorBrowse.count} more students in your areas →`
             : `Browse ${mentorBrowse.count} students who've asked for something →`,
           style:`display:block;margin-top:8px;background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#8C1515;cursor:pointer;text-align:left;`,
-          onClick:()=>this.setState({
+          onClick:()=>{ this.track("mentorship_browse_more", mentorBrowse.sectors.length?"filtered":"all"); this.setState({
             mentorOpen:false, mode:"general", detailId:null, pinId:null,
             statusFilter:"current", activeSectors:mentorBrowse.sectors,
             // lead with people who have actually asked for something, rather than everyone
             exchangeFilter:"__all__", exchangeDir:"need", exchangePanelOpen:true,
             searchQuery:"", programFilter:"", resultsQuery:"", drawerOpen:true,
-          }),
+          }); },
         },
         onClose:()=>this.setState({mentorOpen:false}),
       } : null,
