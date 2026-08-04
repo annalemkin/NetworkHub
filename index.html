@@ -1945,15 +1945,62 @@ class Component extends DCLogic {
     const {df,n}=this.recipDf(), cap=Math.max(3, n*0.12);
     return (list||[]).filter(w=>(df[w]||0)<=cap);
   }
+  // ---- reciprocity: ONE rule for "who can help whom" ----
+  //
+  // The match card and the drafted email used to answer this question separately. egoData
+  // read the interview fields first (brings/seeks), then the exchange vocabulary tags, then
+  // keywords gated on distinctiveness; generateIntro did a plain keyword overlap on the raw
+  // asks/offers text. Two rules, one question, and nothing keeping them honest — a card could
+  // say "Two-way match" while the email it drafted said something else entirely.
+  //
+  // Today they happen to agree on every pair in the data, but only by accident: brings,
+  // seeks, needTags and offerTags are empty for all 204 people, so both rules are reading the
+  // same two fields. The moment anyone finishes an interview or posts exchange tags, they
+  // diverge. Merging them now is cheap; merging them after that data lands means reconciling
+  // two behaviours people have already seen.
+  //
+  // Split in two halves so the caller can hoist the expensive one: the "my side" work is
+  // per-viewer, and egoData runs the other half across ~200 candidates on every render.
+  reciprocitySelf(self){
+    const p = self && self.person;
+    if(!p) return null;
+    // one need + one offer per person: the interview answer if given, else the board value
+    const myN=this.needsOf(p), myO=this.offersOf(p);
+    return { p, needKw:this.keywords(p.seeks||p.asks), offerKw:this.keywords(p.brings||p.offers),
+             myN, myO, needTags:new Set(myN.tags), offerTags:new Set(myO.tags) };
+  }
+  reciprocity(me, o){
+    const EMPTY={ helpKw:[], giveKw:[], helpTags:[], giveTags:[], helpStated:false, giveStated:false,
+                  helpHit:null, giveHit:null, mutual:false, theyHelpMe:false, iHelpThem:false,
+                  theirOffer:"", theirAsk:"", myOffer:"", myAsk:"" };
+    if(!me || !o || !o.person) return EMPTY;
+    const op=o.person;
+    const helpKw=this.keywords(op.brings||op.offers).filter(w=>me.needKw.includes(w)).sort((a,b)=>b.length-a.length);  // they offer what you need
+    const giveKw=this.keywords(op.seeks||op.asks).filter(w=>me.offerKw.includes(w)).sort((a,b)=>b.length-a.length);    // you offer what they need
+    // exact overlap on the shared vocabulary — the trustworthy signal
+    const oN=this.needsOf(op), oO=this.offersOf(op);
+    const helpTags=oO.tags.filter(t=>me.needTags.has(t));
+    const giveTags=oN.tags.filter(t=>me.offerTags.has(t));
+    // both sides picked it themselves = stated; anything read from free text ranks lower
+    const helpStated=!!(helpTags.length&&me.myN.stated&&oO.stated);
+    const giveStated=!!(giveTags.length&&me.myO.stated&&oN.stated);
+    // fall back to keywords for anyone who hasn't picked yet, gated on distinctive words only
+    const sharpHelp=this.sharpKw(helpKw), sharpGive=this.sharpKw(giveKw);
+    const helpHit=helpTags[0]||sharpHelp[0]||null;
+    const giveHit=giveTags[0]||sharpGive[0]||null;
+    return { helpKw, giveKw, helpTags, giveTags, helpStated, giveStated, helpHit, giveHit, sharpHelp, sharpGive,
+      // a real two-way match: help flows both directions
+      mutual:!!(helpHit&&giveHit), theyHelpMe:!!helpHit, iHelpThem:!!giveHit,
+      theirOffer:this.snippet(op.offers||op.brings), theirAsk:this.snippet(op.asks||op.seeks),
+      myOffer:this.snippet(me.p.offers||me.p.brings), myAsk:this.snippet(me.p.asks||me.p.seeks) };
+  }
+
   egoData(self, limit){
     const RC=this.REASON_COLOR;
     const myTags=(self.tags||[]).map(t=>this.norm(t));
-    // one need + one offer per person: the interview answer if given, else the reciprocity-board value
-    const myNeed=this.keywords(self.person.seeks || self.person.asks);
-    const myOffer=this.keywords(self.person.brings || self.person.offers);
-    // vocabulary view of me: my own picks, or what reads out of my board answer
-    const myN=this.needsOf(self.person), myO=this.offersOf(self.person);
-    const myNeedTags=new Set(myN.tags), myOfferTags=new Set(myO.tags);
+    // the self side of the shared reciprocity rule, computed once and reused across every
+    // candidate below — same rule generateIntro uses, so card and email cannot disagree
+    const meR=this.reciprocitySelf(self);
     // ---- signals from the profile interview (empty until the student fills it out) ----
     const myApp=new Set((self.person.approaches||[]).map(a=>this.norm(a)));
     const myChal=this.challengeKw(self.person);
@@ -1962,20 +2009,9 @@ class Component extends DCLogic {
     return this.state.nodes.filter(o=>o.id!==self.id).map(o=>{
       const co = o.ventureName===self.ventureName && self.ventureName && !/^solo/i.test(o.ventureName);
       const shared = (o.tags||[]).filter(t=>myTags.includes(this.norm(t)));
-      const helpKw = this.keywords(o.person.brings || o.person.offers).filter(w=>myNeed.includes(w)).sort((a,b)=>b.length-a.length);  // they offer what you need
-      const giveKw = this.keywords(o.person.seeks || o.person.asks).filter(w=>myOffer.includes(w)).sort((a,b)=>b.length-a.length);   // you offer what they need
-      // exact overlap on the shared vocabulary — the trustworthy signal
-      const oN=this.needsOf(o.person), oO=this.offersOf(o.person);
-      const helpTags=oO.tags.filter(t=>myNeedTags.has(t));   // they offer what you need
-      const giveTags=oN.tags.filter(t=>myOfferTags.has(t));  // you offer what they need
-      // both sides picked it themselves = stated; anything read from free text ranks lower
-      const helpStated=helpTags.length&&myN.stated&&oO.stated, giveStated=giveTags.length&&myO.stated&&oN.stated;
-      // fall back to keywords for anyone who hasn't picked yet, gated on distinctive words only
-      const sharpHelp=this.sharpKw(helpKw), sharpGive=this.sharpKw(giveKw);
-      const helpHit = helpTags[0] || sharpHelp[0] || null;
-      const giveHit = giveTags[0] || sharpGive[0] || null;
-      // a real two-way match: help flows both directions
-      const mutual = !!(helpHit && giveHit);
+      // every reciprocity signal on this pair, from the one shared rule
+      const rec=this.reciprocity(meR,o);
+      const { helpKw, giveKw, helpTags, giveTags, helpStated, giveStated, helpHit, giveHit, mutual, sharpHelp, sharpGive } = rec;
       const sim=this.jaccard(self.tags,o.tags);
       // deeper signals
       const appShared = (o.person.approaches||[]).filter(a=>myApp.has(this.norm(a)));   // same way of working
@@ -2191,16 +2227,13 @@ class Component extends DCLogic {
     const sharedStr=shared.slice(0,2).join(" and "); const tv=t.ventureName||"your project";
     const selfAlum=self&&self.status==="alum", tAlum=t.status==="alum";
 
-    // the specific reciprocity between the two people — what each can offer the other
-    let theyHelpMe=false, iHelpThem=false;
-    let theirOffer="", theirAsk="", myOffer="", myAsk="";
-    if(self){
-      const myAskKw=this.keywords(self.person.asks), myOffKw=this.keywords(self.person.offers);
-      theyHelpMe = !!(t.person.offers && this.keywords(t.person.offers).some(w=>myAskKw.includes(w)));
-      iHelpThem  = !!(t.person.asks   && this.keywords(t.person.asks).some(w=>myOffKw.includes(w)));
-      theirOffer=this.snippet(t.person.offers); theirAsk=this.snippet(t.person.asks);
-      myOffer=this.snippet(self.person.offers); myAsk=this.snippet(self.person.asks);
-    }
+    // The specific reciprocity between the two people — what each can offer the other. This is
+    // the SAME rule the match card in "Find your connections" runs on (see reciprocity()), so
+    // an email can never contradict the badge the person clicked to open it. It used to be a
+    // second, looser implementation here: a raw keyword overlap on asks/offers, with no
+    // distinctiveness gate, which would happily call a word like "supply" a two-way match.
+    const rec=this.reciprocity(this.reciprocitySelf(self), t);
+    const { theyHelpMe, iHelpThem, theirOffer, theirAsk, myOffer, myAsk } = rec;
 
     let intro,hook,why="",ask,subject;
     if(selfAlum&&!tAlum){
