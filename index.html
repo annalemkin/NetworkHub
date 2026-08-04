@@ -918,12 +918,17 @@ class Component extends DCLogic {
     // only where the line is honest and leaves the rest unmapped: there is no territory for
     // "batteries", so that topic borrows the two energy ones, and nothing here stands in for
     // "still exploring". A topic with no reasonable territory simply adds no filter.
+    // Keyed by the server's DOMAIN category names (api/mentorship.mjs, DIMS.domains). Those
+    // were renamed when the scorer split into four dimensions — "Grid infrastructure" became
+    // "Energy & grid", "Finance" became "Climate finance" — so these keys moved with them.
+    // myEvidence can now also carry skills / customer-group / solution categories; none of
+    // them appear here, which is fine and is the case the note above already covers.
     this.MENTOR_SECTORS = {
-      "Grid infrastructure": ["grid & electricity", "grid infrastructure", "energy transition"],
-      "Batteries & energy storage": ["grid & electricity", "energy transition"],
+      "Energy & grid": ["grid & electricity", "grid infrastructure", "energy transition"],
+      "Batteries & storage": ["grid & electricity", "energy transition"],
       "AI/Software": ["ai climate solutions", "planetary intelligence", "efficient datacenters"],
       "Policy & regulation": ["policy"],
-      "Finance": ["climate finance"],
+      "Climate finance": ["climate finance"],
     };
     // reason palette (why two people match) — deeper kinds get their own colors
     this.REASON_COLOR = { mutual:"#8C1515", team:"#3b5bdb", customer:"#6b3fa0", help:"#1c2f5e", give:"#3f6fa8", approach:"#0f766e", challenge:"#a15c00", stage:"#8a6d3b", sector:"#6f6c64", rel:"#9a968c", alum:"#8a6d3b" };

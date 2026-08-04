@@ -44,7 +44,14 @@ const profileKeyOf = (p) => (String(p.linkedin || "").trim().toLowerCase()) || n
 let _people = null;
 export async function loadPeople(host) {
   if (_people) return _people;
-  const base = process.env.VERCEL_URL || host;
+  // The REQUEST host first, VERCEL_URL only as a fallback. The other order looks harmless and
+  // is not: VERCEL_URL is the deployment's own generated hostname, which serves the app shell
+  // rather than the published static files, so /data.js came back as HTML. `new Function` then
+  // died on the first "<" with SyntaxError: Unexpected token '<' — which surfaced as every
+  // alum-side /api/mentorship request returning 500, since that side calls loadPeople to pull
+  // in the current-student map cohort. The signed-out path never touches this, so a 401 test
+  // says nothing about it.
+  const base = host || process.env.VERCEL_URL;
   if (!base) throw new Error("no_host_for_data_js");
   const src = await fetch(`${base.startsWith("http") ? base : "https://" + base}/data.js`).then((r) => {
     if (!r.ok) throw new Error("data_js_fetch_failed");
