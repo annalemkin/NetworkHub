@@ -311,6 +311,15 @@
             <button onClick="{{ backToMyNetwork }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">◂ Back to my network</button>
           </sc-if>
           <button onClick="{{ viewProfile }}" style="flex:none;font-size:12px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;transition:border-color .12s ease,background .12s ease;">My profile</button>
+          <!-- Peers and Your intros live HERE, not in the general-mode command bar. Both need
+               a linked profile, so the personal view is the only place they can apply — put
+               next to ★ Catalog they were invisible in exactly the mode that has them. -->
+          <sc-if value="{{ showPeersBtn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ openPeers }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;">{{ peersBtnLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ showIntrosBtn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ openIntros }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;">{{ introsBtnLabel }}</button>
+          </sc-if>
           <button onClick="{{ browseAll }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px;">Browse everyone</button>
           <sc-if value="{{ clerkSignedIn }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ clerkSignOut }}" class="atlas-quiet" style="flex:none;font-size:11.5px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px;">Sign out</button>
