@@ -61,6 +61,11 @@
   .atlas-field:hover{border-color:#c6c1b1;}
   .atlas-field:focus,.atlas-field:focus-visible{outline:none;border-color:#211f1a;box-shadow:0 0 0 3px rgba(33,31,26,.12);}
   @keyframes atlasPulse{0%{box-shadow:0 0 0 0 rgba(140,21,21,.45);}70%{box-shadow:0 0 0 15px rgba(140,21,21,0);}100%{box-shadow:0 0 0 0 rgba(140,21,21,0);}}
+  /* the signed-in feed: shed the sidebar before the cards get too narrow to read, and drop the
+     header's optional pieces before they start eliding mid-word */
+  @media (max-width:1040px){ #feed-grid{grid-template-columns:minmax(0,1fr) !important;} #feed-side{position:static !important;} }
+  @media (max-width:1180px){ #feed-search{display:none !important;} }
+  @media (max-width:880px){ #feed-who{display:none !important;} }
   /* the landing screen's background: the real network, drifting. Slow enough (75s) to read
      as alive rather than as motion, and applied to the stage wrapper — never to the world
      element, whose transform is written directly by applyView for pan and zoom. */
@@ -410,87 +415,6 @@
       </aside>
     </sc-if>
 
-    <sc-if value="{{ egoPanel }}" hint-placeholder-val="{{ false }}">
-      <!-- 386px, not the 344px the other panels use: the match card carries a 34px avatar, a
-           reason pill and an ask/offer pair on one line, and at 344 the pill was the thing that
-           got ellipsed — which is the one line on the card you can't afford to lose. -->
-      <aside style="width:386px;flex:none;border-left:1px solid #e6e2d7;background:#faf8f2;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
-        <div style="padding:15px 16px 13px;border-bottom:1px solid #e6e2d7;background:#fffefa;">
-          <div style="display:flex;align-items:flex-start;gap:8px;">
-            <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.2;flex:1;color:#211f1a;">{{ egoPanel.title }}</div>
-            <button onClick="{{ closeList }}" title="Collapse" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
-          </div>
-          <div style="font-size:11.5px;color:#6f6c63;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
-          <sc-if value="{{ egoPanel.canEdit }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;">
-              <button onClick="{{ egoPanel.onExchange }}" style="{{ egoPanel.exchangeBtnStyle }}">{{ egoPanel.exchangeLabel }}</button>
-              <button onClick="{{ egoPanel.onEnrich }}" style="{{ egoPanel.enrichBtnStyle }}">{{ egoPanel.enrichLabel }}</button>
-            </div>
-          </sc-if>
-          <sc-if value="{{ egoPanel.previewNote }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:9px;font-size:11.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:9px;padding:8px 10px;line-height:1.45;">{{ egoPanel.previewNote }}</div>
-          </sc-if>
-        </div>
-        <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
-          <sc-for list="{{ egoPanel.groups }}" as="g" hint-placeholder-count="2">
-            <div style="display:flex;align-items:baseline;gap:7px;margin:12px 2px 8px;">
-              <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#8a8579;">{{ g.label }}</span>
-              <span style="font-size:11px;color:#211f1a;font-weight:700;">{{ g.count }}</span>
-              <span style="font-size:10.5px;color:#a8a396;margin-left:auto;font-style:italic;">{{ g.hint }}</span>
-            </div>
-            <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
-              <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" style="{{ p.cardStyle }}">
-                <div style="padding:13px 14px 0;display:flex;gap:11px;align-items:flex-start;">
-                  <div style="{{ p.avStyle }}">{{ p.initials }}</div>
-                  <div style="flex:1;min-width:0;">
-                    <div onClick="{{ p.view }}" title="Open profile" style="font-family:Newsreader,serif;font-size:17.5px;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:#211f1a;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
-                    <div style="font-size:11.5px;color:#3a3833;margin-top:2px;line-height:1.4;">{{ p.venture }}</div>
-                    <div style="font-size:10.5px;color:#8a857a;margin-top:1px;">{{ p.meta }}</div>
-                  </div>
-                  <button onClick="{{ p.save }}" title="Save to my catalog" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
-                </div>
-                <sc-if value="{{ p.hasOneLine }}" hint-placeholder-val="{{ true }}">
-                  <div style="padding:9px 14px 0;font-size:12.5px;line-height:1.5;color:#2e2d29;">{{ p.oneLine }}</div>
-                </sc-if>
-                <div style="padding:10px 14px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <span style="{{ p.reasonStyle }}">{{ p.reason }}</span>
-                  <sc-if value="{{ p.mutualLine }}" hint-placeholder-val="{{ false }}">
-                    <span style="font-size:11px;color:#8a857a;">{{ p.mutualLine }}</span>
-                  </sc-if>
-                </div>
-                <sc-if value="{{ p.isOpen }}" hint-placeholder-val="{{ true }}">
-                  <div style="padding:12px 14px 0;animation:atlasFade .22s ease;">
-                    <div style="height:1px;background:#f0ece2;margin-bottom:11px;"></div>
-                    <sc-if value="{{ p.hasTheirAsk }}" hint-placeholder-val="{{ true }}">
-                      <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:10px;padding:9px 11px;margin-bottom:7px;">
-                        <div style="{{ p.miniLabelStyle }}">Their ask</div>
-                        <div style="font-size:12px;line-height:1.5;color:#2e2d29;">{{ p.theirAsk }}</div>
-                      </div>
-                    </sc-if>
-                    <sc-if value="{{ p.hasTheirOffer }}" hint-placeholder-val="{{ true }}">
-                      <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:10px;padding:9px 11px;">
-                        <div style="{{ p.miniLabelStyle }}">Their offer</div>
-                        <div style="font-size:12px;line-height:1.5;color:#2e2d29;">{{ p.theirOffer }}</div>
-                      </div>
-                    </sc-if>
-                    <div style="font-size:12px;line-height:1.55;color:#2e2d29;margin-top:10px;"><b>Why you two:</b> {{ p.whyDetail }}</div>
-                  </div>
-                </sc-if>
-                <div style="margin-top:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;background:#fdfcf8;border-top:1px solid #f0ece2;">
-                  <button onClick="{{ p.reach }}" style="flex:none;font-size:12px;font-weight:600;padding:7px 15px;border-radius:999px;cursor:pointer;background:#8C1515;color:#fff;border:1px solid #8C1515;transition:background .12s ease;">Reach out</button>
-                  <button onClick="{{ p.view }}" style="flex:none;font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;transition:border-color .12s ease,background .12s ease;">Full profile</button>
-                  <div style="flex:1;"></div>
-                  <button onClick="{{ p.toggle }}" class="atlas-quiet" style="flex:none;background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ p.toggleLabel }}</button>
-                </div>
-              </div>
-            </sc-for>
-            <sc-if value="{{ g.showMore }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ g.onMore }}" style="{{ g.moreStyle }}">{{ g.moreLabel }}</button>
-            </sc-if>
-          </sc-for>
-        </div>
-      </aside>
-    </sc-if>
 
     <sc-if value="{{ reopenTab }}" hint-placeholder-val="{{ false }}">
       <button onClick="{{ openList }}" style="position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:26;display:flex;align-items:center;gap:6px;writing-mode:vertical-rl;background:#211f1a;color:#fff;border:none;border-radius:8px 0 0 8px;padding:14px 8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:-3px 3px 12px rgba(33,31,26,.15);">{{ reopenLabel }}</button>
@@ -590,6 +514,199 @@
     </sc-if>
 
   </div>
+
+  <!-- ============ the personal view: a feed of people, map alongside ============
+       Sits over the map row rather than replacing it, so the map keeps its layout and its
+       zoom state underneath — "Open the full network map" is then a state flip, not a rebuild.
+       z-28: above the map and its furniture (18) and the reopen tab (26), below the profile
+       sheet (31) and every modal (60+), both of which must still open over the feed. -->
+  <sc-if value="{{ feed }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:28;display:flex;flex-direction:column;background:#f7f5ef;animation:atlasFade .2s ease;">
+
+      <header style="flex:none;display:flex;align-items:center;gap:18px;padding:0 22px;height:64px;background:#fbf9f4;border-bottom:1px solid #e6e2d7;position:relative;z-index:2;">
+        <div style="flex:0 1 auto;min-width:0;font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">The Ecopreneurship Network</div>
+        <!-- position:relative so the results hang off THIS box. The map's own ego-search
+             dropdown lives inside the map stage, which is underneath this whole screen — it
+             rendered, invisibly, and typing here did nothing at all. -->
+        <div id="feed-search" style="position:relative;flex:0 1 270px;min-width:170px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:8px 14px;">
+            <span style="flex:none;color:#9a968a;font-size:13px;">⌕</span>
+            <input type="text" value="{{ feed.searchVal }}" onInput="{{ feed.onSearch }}" placeholder="Find anyone" style="border:none;outline:none;background:none;font-size:13.5px;width:100%;min-width:0;color:#211f1a;" />
+            <sc-if value="{{ feed.searchOpen }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ feed.clearSearch }}" title="Clear" style="flex:none;background:none;border:none;padding:0;font-size:14px;line-height:1;color:#9b978d;cursor:pointer;">×</button>
+            </sc-if>
+          </div>
+          <sc-if value="{{ feed.searchOpen }}" hint-placeholder-val="{{ false }}">
+            <div class="atlas-scroll" style="position:absolute;left:0;top:46px;width:100%;min-width:250px;max-height:300px;overflow-y:auto;background:#fffefa;border:1px solid #e6e2d7;border-radius:10px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 12px 34px rgba(33,31,26,.12);z-index:5;">
+              <sc-for list="{{ feed.searchResults }}" as="r" hint-placeholder-count="3">
+                <div onClick="{{ r.onClick }}" style="padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid #f2eee4;"><b>{{ r.name }}</b> <span style="color:#8a877f;">· {{ r.sub }}</span></div>
+              </sc-for>
+              <sc-if value="{{ feed.searchEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:11px 12px;font-size:12.5px;color:#9b978d;">Nobody by that name.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <div style="flex:1;min-width:0;"></div>
+        <nav style="flex:none;display:flex;align-items:center;gap:6px;">
+          <button style="{{ feed.tabNetworkStyle }}">Your network</button>
+          <button onClick="{{ feed.onIntros }}" style="{{ feed.tabIntrosStyle }}">Intros<sc-if value="{{ feed.hasIntroCount }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:700;background:rgba(140,21,21,.1);color:#8C1515;border-radius:999px;padding:2px 6px;">{{ feed.introCount }}</span></sc-if></button>
+          <button onClick="{{ feed.onAsks }}" style="{{ feed.tabAsksStyle }}">Asks &amp; offers</button>
+        </nav>
+        <!-- My profile / Peers / Sign out live here because the old personal-view toolbar that
+             held them now sits permanently underneath this screen. Without them, signing in
+             left you with no way to see your own profile and no way to sign out. -->
+        <sc-if value="{{ showPeersBtn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openPeers }}" class="atlas-quiet" style="flex:none;font-size:12px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;">{{ peersBtnLabel }}</button>
+        </sc-if>
+        <div style="flex:none;display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid #e6e2d7;">
+          <div onClick="{{ viewProfile }}" title="My profile" style="cursor:pointer;{{ feed.avStyle }}">{{ feed.initials }}</div>
+          <div id="feed-who" onClick="{{ viewProfile }}" style="line-height:1.25;white-space:nowrap;cursor:pointer;">
+            <div style="font-size:13px;font-weight:600;">{{ feed.who }}</div>
+            <div style="font-size:11.5px;color:#6f6c63;">{{ feed.whoSub }}</div>
+          </div>
+          <button onClick="{{ feed.onBrowse }}" class="atlas-quiet" style="background:none;border:none;padding:0 0 0 6px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">Browse everyone</button>
+          <sc-if value="{{ clerkSignedIn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clerkSignOut }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">Sign out</button>
+          </sc-if>
+        </div>
+      </header>
+
+      <sc-if value="{{ previewBanner }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;display:flex;align-items:center;justify-content:center;gap:11px;background:#fdf6e0;border-bottom:1px solid #e6d08a;padding:8px 16px;">
+          <span style="font-size:12px;font-weight:600;color:#6b5410;">◉ {{ previewBanner }}</span>
+          <button onClick="{{ exitPreview }}" style="font-size:11.5px;font-weight:600;color:#fff;background:#8a6d00;border:none;border-radius:999px;padding:4px 12px;cursor:pointer;">Exit preview</button>
+        </div>
+      </sc-if>
+
+      <div class="atlas-scroll" style="flex:1;min-height:0;overflow-y:auto;padding:26px 30px 60px;">
+        <div id="feed-grid" style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px;align-items:start;">
+
+          <div style="min-width:0;">
+            <div style="display:flex;gap:6px;margin-bottom:15px;">
+              <button style="{{ feed.studentsStyle }}">Students <span style="opacity:.6;">{{ feed.studentsCount }}</span></button>
+              <sc-if value="{{ feed.hasMentors }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ feed.onMentors }}" style="{{ feed.mentorsStyle }}">Mentors <span style="opacity:.6;">{{ feed.mentorsCount }}</span></button>
+              </sc-if>
+            </div>
+            <div style="font-family:Newsreader,serif;font-size:30px;font-weight:600;line-height:1.15;letter-spacing:-.01em;color:#211f1a;">{{ feed.title }}</div>
+            <div style="font-size:14px;color:#6f6c63;line-height:1.55;margin:7px 0 20px;max-width:560px;">{{ feed.sub }}</div>
+            <sc-if value="{{ feed.previewNote }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:18px;font-size:12.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:10px;padding:10px 12px;line-height:1.45;">{{ feed.previewNote }}</div>
+            </sc-if>
+            <sc-if value="{{ feed.isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-bottom:6px;">
+                <button onClick="{{ feed.onEmptyCta }}" class="atlas-btn-primary" style="font-size:13.5px;font-weight:600;border-radius:999px;padding:11px 20px;cursor:pointer;">{{ feed.emptyCtaLabel }}</button>
+                <button onClick="{{ feed.onEmptySecondary }}" style="font-size:13px;font-weight:600;padding:11px 17px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;transition:border-color .12s ease,background .12s ease;">Answer a few questions</button>
+              </div>
+            </sc-if>
+
+            <sc-for list="{{ feed.groups }}" as="g" hint-placeholder-count="2">
+              <div style="display:flex;align-items:baseline;gap:8px;margin:22px 2px 10px;">
+                <span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#8a8579;">{{ g.label }}</span>
+                <span style="font-size:11.5px;color:#211f1a;font-weight:700;">{{ g.count }}</span>
+                <span style="font-size:11px;color:#a8a396;margin-left:auto;font-style:italic;">{{ g.hint }}</span>
+              </div>
+              <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
+                <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" style="{{ p.feedCardStyle }}">
+                  <div style="padding:18px 20px 0;display:flex;gap:15px;align-items:flex-start;">
+                    <div style="{{ p.feedAvStyle }}">{{ p.initials }}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+                        <div onClick="{{ p.view }}" title="Open profile" style="font-family:Newsreader,serif;font-size:21px;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:#211f1a;cursor:pointer;">{{ p.name }}</div>
+                        <div style="font-size:13px;color:#6f6c63;">{{ p.venture }} · {{ p.meta }}</div>
+                      </div>
+                      <sc-if value="{{ p.hasOneLine }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:14px;line-height:1.55;color:#2e2d29;margin-top:6px;">{{ p.oneLine }}</div>
+                      </sc-if>
+                      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;">
+                        <span style="{{ p.reasonStyle }}">{{ p.reason }}</span>
+                        <sc-if value="{{ p.mutualLine }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size:12.5px;color:#8a857a;">{{ p.mutualLine }}</span>
+                        </sc-if>
+                      </div>
+                    </div>
+                    <button onClick="{{ p.save }}" title="Save to my catalog" style="{{ p.feedSaveStyle }}">{{ p.saveIcon }}</button>
+                  </div>
+                  <sc-if value="{{ p.isOpen }}" hint-placeholder-val="{{ true }}">
+                    <div style="padding:0 20px 2px 80px;animation:atlasFade .22s ease;">
+                      <div style="height:1px;background:#f0ece2;margin:15px 0;"></div>
+                      <div style="{{ p.exGridStyle }}">
+                        <sc-if value="{{ p.hasTheirAsk }}" hint-placeholder-val="{{ true }}">
+                          <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:11px;padding:12px 14px;">
+                            <div style="{{ p.miniLabelStyle }}">Their ask</div>
+                            <div style="font-size:13.5px;line-height:1.55;color:#2e2d29;">{{ p.theirAsk }}</div>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ p.hasTheirOffer }}" hint-placeholder-val="{{ true }}">
+                          <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:11px;padding:12px 14px;">
+                            <div style="{{ p.miniLabelStyle }}">Their offer</div>
+                            <div style="font-size:13.5px;line-height:1.55;color:#2e2d29;">{{ p.theirOffer }}</div>
+                          </div>
+                        </sc-if>
+                      </div>
+                      <div style="font-size:13.5px;line-height:1.6;color:#2e2d29;margin-top:14px;"><b>Why you two:</b> {{ p.whyDetail }}</div>
+                    </div>
+                  </sc-if>
+                  <div style="margin-top:14px;padding:14px 20px;display:flex;align-items:center;gap:10px;background:#fdfcf8;border-top:1px solid #f0ece2;">
+                    <button onClick="{{ p.reach }}" style="flex:none;font-size:13px;font-weight:600;padding:9px 18px;border-radius:999px;cursor:pointer;background:#8C1515;color:#fff;border:1px solid #8C1515;transition:background .12s ease;">Draft an intro</button>
+                    <button onClick="{{ p.view }}" style="flex:none;font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;transition:border-color .12s ease,background .12s ease;">Full profile</button>
+                    <div style="flex:1;"></div>
+                    <button onClick="{{ p.toggle }}" class="atlas-quiet" style="flex:none;background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ p.feedToggleLabel }}</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ g.showMore }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ g.onMore }}" style="{{ g.moreStyle }}">{{ g.moreLabel }}</button>
+              </sc-if>
+            </sc-for>
+          </div>
+
+          <div id="feed-side" style="position:sticky;top:0;display:flex;flex-direction:column;gap:14px;min-width:0;">
+            <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,.07);overflow:hidden;">
+              <div style="padding:14px 15px 11px;">
+                <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Where you sit</div>
+                <div style="font-size:13px;color:#6f6c63;line-height:1.5;margin-top:5px;">
+                  <sc-if value="{{ feed.hasFam }}" hint-placeholder-val="{{ true }}">You’re in <b style="color:#211f1a;font-weight:600;">{{ feed.sitFam }}</b>{{ feed.sitTail }}</sc-if>
+                  <sc-if value="{{ feed.noFam }}" hint-placeholder-val="{{ false }}">{{ feed.sitPlain }}</sc-if>
+                </div>
+              </div>
+              <div style="position:relative;height:280px;background:radial-gradient(circle at 34% 28%,#faf8f2,#f1eee6);border-top:1px solid #f0ece2;border-bottom:1px solid #f0ece2;overflow:hidden;">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+                  <sc-for list="{{ feed.miniLinks }}" as="e" hint-placeholder-count="5">
+                    <line x1="{{ e.x1 }}" y1="{{ e.y1 }}" x2="{{ e.x2 }}" y2="{{ e.y2 }}" stroke="{{ e.color }}" stroke-width="1" stroke-dasharray="{{ e.dash }}" stroke-opacity=".55" vector-effect="non-scaling-stroke"></line>
+                  </sc-for>
+                </svg>
+                <sc-for list="{{ feed.miniLabels }}" as="t" hint-placeholder-count="6">
+                  <div style="{{ t.style }}">{{ t.label }}</div>
+                </sc-for>
+                <sc-for list="{{ feed.miniNodes }}" as="n" hint-placeholder-count="40">
+                  <div onMouseEnter="{{ n.onEnter }}" onMouseLeave="{{ n.onLeave }}" onClick="{{ n.onClick }}" style="{{ n.style }}"></div>
+                </sc-for>
+                <div style="position:absolute;left:10px;bottom:8px;font-size:10.5px;color:#8b8679;">{{ feed.litLine }}</div>
+              </div>
+              <div style="padding:12px 15px;display:flex;flex-direction:column;gap:9px;">
+                <div style="font-size:12.5px;color:#6f6c63;line-height:1.5;min-height:34px;">{{ feed.hoverBlurb }}</div>
+                <button onClick="{{ feed.onFullMap }}" style="align-self:flex-start;background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#8C1515;cursor:pointer;">Open the full network map →</button>
+              </div>
+            </div>
+
+            <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,.07);padding:15px;">
+              <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;margin-bottom:8px;">Your ask, in your words</div>
+              <div style="font-size:13.5px;line-height:1.55;color:#2e2d29;">{{ feed.myAsk }}</div>
+              <sc-if value="{{ feed.canEdit }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:13px;">
+                  <button onClick="{{ feed.onEditAsks }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Edit asks &amp; offers</button>
+                  <button onClick="{{ feed.onSetup }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Improve my matches</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </sc-if>
 
   <sc-if value="{{ landing }}" hint-placeholder-val="{{ false }}">
     <div style="{{ landingStyle }}">
@@ -951,6 +1068,7 @@ class Component extends DCLogic {
       // is set to the same person so every panel renders as they'd see it; this key is what
       // tells the app the view is borrowed, and it gates every write path in the app.
       previewId:null,
+      miniHover:null,   // id of the dot being hovered in the sidebar's small map
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
       clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
@@ -2800,7 +2918,11 @@ class Component extends DCLogic {
     const explore = (self && !s.showFullMap && s.exploreId && s.exploreId!==self.id) ? this.byId[s.exploreId] : null;
     const exploreCands = explore ? this.egoData(explore) : null;
     let highlight=null, links=[], reciprocitySet=new Set();
-    if(self){
+    // egoActive, not self: lighting only your own corner is right for the personal map, and
+    // wrong for the full map, which someone reached by asking to see the whole network. This
+    // used to be `if(self)`, which faded 188 of 196 people on a screen labelled "the full
+    // network map" — invisible while that screen was unreachable, obvious now it isn't.
+    if(egoActive){
       highlight=new Set([self.id]);
       egoCands.forEach(c=>{
         highlight.add(c.o.id);
@@ -2838,7 +2960,7 @@ class Component extends DCLogic {
       this.neighbors(activeNode,7).forEach(r=>{ highlight.add(r.o.id); const col=kindColor[r.kind]||"#8C1515"; links.push({ key:"h-"+activeNode.id+"-"+r.o.id, x1:activeNode.x,y1:activeNode.y,x2:r.o.x,y2:r.o.y, color:col, w:1.8, dash:r.kind==="recip"?"1.8 4":"" }); });
     }
     const focusNode = activeNode || self || null;
-    const dimOp = self ? 0.05 : 0.16;   // background map fades further back when a student/hover is active
+    const dimOp = egoActive ? 0.05 : 0.16;   // background map fades further back when a student/hover is active
 
     // the student connection backbone — each person's strongest ties, colored by why they connect
     // every connection is one neutral grey; ask↔offer is the same colour but dotted
@@ -2948,9 +3070,20 @@ class Component extends DCLogic {
           // alumni get the ring treatment their map dot has, so the two readings agree
           avStyle:`flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;letter-spacing:.02em;background:${alum?"#fffefa":base};color:${alum?base:"#fff"};border:${alum?"2px solid "+base:"none"};`,
           hasOneLine:!!oneLine, oneLine,
-          mutualLine: both.length ? (both.length===1?`1 connection in common`:`${both.length} connections in common`) : "",
+          // one shared connection is worth naming — "You both know Diane Richard" is a sentence
+          // you can open an email with, where "1 person in common" is a statistic
+          mutualLine: both.length===1 ? `You both know ${both[0].name}`
+                    : both.length ? `${both.length} people in common` : "",
           isOpen, hasTheirAsk:!!theirAsk, theirAsk, hasTheirOffer:!!theirOffer, theirOffer, whyDetail,
           toggleLabel: isOpen?"Less":"More",
+          // ---- the feed's larger card: same data, sized for an ~800px column instead of a panel ----
+          feedToggleLabel: isOpen?"Hide details":"Their ask & offer",
+          feedCardStyle:`background:rgba(255,254,250,.95);border:1px solid ${hov?"#d9d5c8":"#e6e2d7"};border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,${hov?".1":".07"});overflow:hidden;margin-bottom:14px;transition:border-color .12s,box-shadow .12s;`,
+          feedAvStyle:`flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;letter-spacing:.02em;background:${alum?"#fffefa":base};color:${alum?base:"#fff"};border:${alum?"2px solid "+base:"none"};`,
+          feedSaveStyle:`flex:none;width:34px;height:34px;font-size:15px;line-height:1;border-radius:10px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e6e2d7"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};`,
+          // side by side only when there are two boxes to put side by side — one lone card
+          // stretched across the full width reads as an empty column next to it
+          exGridStyle:`display:grid;grid-template-columns:${(theirAsk&&theirOffer)?"1fr 1fr":"1fr"};gap:14px;`,
           toggle:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(st=>({ egoOpen:{...st.egoOpen, [o.id]:!isOpen} })); },
           miniLabelStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;margin-bottom:4px;`,
           cardStyle:`background:#fffefa;border:1px solid ${hov?"#211f1a":"#e6e2d7"};border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 8px 24px rgba(33,31,26,${hov?".09":".06"});overflow:hidden;margin-bottom:11px;transition:border-color .12s,box-shadow .12s;`,
@@ -3283,6 +3416,107 @@ class Component extends DCLogic {
       style:`${settleFade}position:absolute;left:${c.x}px;top:${c.y}px;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:${clusFont}px;font-weight:500;color:${dark?"#c9c7c1":"#5b584f"};white-space:nowrap;pointer-events:none;z-index:15;letter-spacing:.01em;text-shadow:0 1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"},0 -1px 0 ${dark?"rgba(24,24,22,.8)":"rgba(250,248,242,.85)"};`,
       countStyle:`display:none;`,
     })) : [];
+
+    // ---------- the personal view: a feed of people, with the map alongside it ----------
+    //
+    // Signed in, the map stops being the screen and becomes a card in the sidebar. The reasoning
+    // (owner, 2026-08-05): once the app knows who you are, the question stops being "what does
+    // this network look like" and becomes "who should I talk to" — and a ranked list answers that
+    // more directly than a picture you have to interpret. The full map is one click away, and the
+    // signed-out map is untouched: that one is the front door and stays a map.
+    //
+    // Built here rather than beside egoPanel because it reads this._famLabels, which the block
+    // above populates on first render.
+    let feed=null;
+    if(egoActive && egoPanel){
+      const W=s.world.w||1, HH=s.world.h||1;
+      // 4–96% rather than 0–100%: the box clips its overflow, and anyone the force layout left
+      // at the very edge of the world — which is where people with no tags end up — had their
+      // dot sliced in half by the border. Worst case that is YOUR dot.
+      const px=v=>(4+(v/W)*92).toFixed(2), py=v=>(4+(v/HH)*92).toFixed(2);
+      const litIds=new Set(egoCands.map(c=>c.o.id));
+      const hoverN = s.miniHover ? this.byId[s.miniHover] : null;
+      // Everyone is drawn, at the coordinates the real layout already gave them — this is the
+      // same map, scaled, never a second arrangement that could disagree with the big one.
+      // Unlit dots are 18% opacity: present as texture, never competing with your own matches.
+      const miniNodes=s.nodes.map(o=>{ const me=o.id===self.id, lit=litIds.has(o.id), col=personFill(o,false), on=me||lit;
+        return { key:"mm-"+o.id,
+          style:`position:absolute;left:${px(o.x)}%;top:${py(o.y)}%;width:${me?10:(lit?7:4)}px;height:${me?10:(lit?7:4)}px;border-radius:50%;transform:translate(-50%,-50%);background:${me?"#8C1515":col};opacity:${on?1:.18};z-index:${me?7:(lit?5:1)};cursor:${on?"pointer":"default"};${me?"box-shadow:0 0 0 2.5px rgba(140,21,21,.22);":""}`,
+          onEnter: on ? (()=>this.setState({miniHover:o.id})) : (()=>{}),
+          onLeave: on ? (()=>this.setState(st=>st.miniHover===o.id?{miniHover:null}:null)) : (()=>{}),
+          onClick: on ? (()=>this.openDetailCentered(o.id)) : (()=>{}) };
+      });
+      const miniLinks=egoCands.map(c=>({ key:"ml-"+c.o.id, x1:px(self.x)+"%", y1:py(self.y)+"%", x2:px(c.o.x)+"%", y2:py(c.o.y)+"%",
+        color:c.rColor, dash: c.rKind==="mutual"?"":"2 3" }));
+      const miniLabels=(this._famLabels||[]).map(c=>({ key:"mml-"+c.label, label:c.label.replace(/,.*$/,""),
+        style:`position:absolute;left:${px(c.x)}%;top:${py(c.y)}%;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:11px;font-weight:500;color:#5b584f;white-space:nowrap;pointer-events:none;z-index:6;text-shadow:0 1px 0 rgba(250,248,242,.9),0 -1px 0 rgba(250,248,242,.9);` }));
+      const myFam=(self.tags&&self.tags[0])||"";
+      const mentorCount=((s.mentorship&&s.mentorship.matches)||[]).length;
+      const introCount=(s.intros||[]).length;
+      const pill=(on)=>`white-space:nowrap;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};transition:background .12s ease,border-color .12s ease;`;
+      const tab=(on)=>`white-space:nowrap;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"transparent"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"transparent"};display:flex;align-items:center;gap:7px;transition:background .12s ease;`;
+      feed={
+        title: egoPanel.total ? "People worth meeting" : "No strong matches yet",
+        // Deliberately NOT the mock's "a new batch every Monday… they only see your contact
+        // details once they accept": neither is true here. Matches recompute the moment anyone's
+        // asks and offers change, and there is no accept step — the intro is an email you send.
+        sub: egoPanel.total
+          ? "Ranked from your asks and offers. The list changes as people fill theirs in."
+          : "Add what you're looking for and what you can give, and the matching has something to work with.",
+        groups: egoPanel.groups,
+        canEdit: egoPanel.canEdit, previewNote: egoPanel.previewNote,
+        // 164 of the 196 people in the data have written no ask at all, so the empty feed is the
+        // COMMON first screen, not a rare one. It used to offer nothing to press: the headline
+        // said "add what you're looking for" and the only way to do that was a quiet grey link
+        // in the sidebar. The primary action belongs where the instruction is.
+        isEmpty: !egoPanel.total && !previewing,
+        onEmptyCta:()=>this.openExchangeEdit(),
+        emptyCtaLabel: ((self.person.needTags||[]).length||(self.person.offerTags||[]).length) ? "⇄ Edit my asks & offers" : "⇄ Set my asks & offers",
+        onEmptySecondary:()=>this.openInterview(),
+        // Students / Mentors. The mentor pill only exists for people the mentorship programme
+        // actually matched — for everyone else there is nothing behind it, so it isn't shown.
+        studentsStyle: pill(true), studentsCount: egoPanel.total,
+        hasMentors: mentorCount>0, mentorsStyle: pill(false), mentorsCount: mentorCount,
+        onMentors:()=>this.setState({mentorOpen:true}),
+        tabNetworkStyle: tab(true), tabIntrosStyle: tab(false), tabAsksStyle: tab(false),
+        hasIntroCount: introCount>0, introCount,
+        onIntros:()=>this.openIntros(), onAsks:()=>this.openExchangeEdit(),
+        who: self.name, whoSub: `${self.ventureName&&!/^solo/i.test(self.ventureName)?self.ventureName+" · ":""}${(self.person.programs||[]).join(", ")}${self.person.year?" ’"+String(self.person.year).slice(-2):""}`,
+        initials: this.initialsOf(self.name),
+        avStyle:`flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:${personFill(self,false)};`,
+        // "Where you sit"
+        // three bindings, not one string with <b> in it — {{ }} renders as text, so markup
+        // inside a value is printed literally rather than parsed
+        hasFam: !!myFam, noFam: !myFam, sitFam: myFam,
+        sitTail: `, among ${s.nodes.length} people across five programs.`,
+        sitPlain: `You’re among ${s.nodes.length} people across five programs.`,
+        miniNodes, miniLinks, miniLabels,
+        litLine: egoCands.length
+          ? `You + ${egoCands.length} ${egoCands.length===1?"match":"matches"} lit · ${s.nodes.length} total`
+          : `${s.nodes.length} people · none matched to you yet`,
+        // with nothing lit, "your matches are lit" is simply untrue — say what's actually there
+        hoverBlurb: hoverN
+          ? `${hoverN.name}${hoverN.ventureName&&!/^solo/i.test(hoverN.ventureName)?" · "+hoverN.ventureName:""}`
+          : (egoCands.length
+              ? "Your matches are lit. Hover a dot to see who it is; click to open."
+              : "Only your own dot is lit so far. Fill in your asks and offers and your matches light up here."),
+        onFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
+        // "Your ask, in your words"
+        myAsk: (self.person.seeks||self.person.asks||"").trim() || "You haven’t written an ask yet — that’s the one thing the matching reads.",
+        onEditAsks:()=>this.openExchangeEdit(), onSetup:()=>this.openInterview(),
+        searchVal: s.egoSearch, onSearch:(e)=>this.setState({egoSearch:e.target.value}),
+        clearSearch:()=>this.setState({egoSearch:""}),
+        searchOpen: s.egoSearch.trim().length>=2,
+        searchResults: s.egoSearch.trim().length>=2
+          ? s.nodes.filter(n=>n.id!==self.id && n.name.toLowerCase().includes(s.egoSearch.trim().toLowerCase())).slice(0,8)
+              .map(n=>({ key:"fs-"+n.id, name:n.name, sub:`${n.ventureName||"Independent"} · ${n.status==="alum"?"Alumni":"Current"}`,
+                onClick:()=>this.setState({egoSearch:""}, ()=>this.openDetailCentered(n.id)) }))
+          : [],
+        searchEmpty: s.egoSearch.trim().length>=2 &&
+          !s.nodes.some(n=>n.id!==self.id && n.name.toLowerCase().includes(s.egoSearch.trim().toLowerCase())),
+        onBrowse:()=>this.setState({mode:"general", selfId:null, previewId:null, detailId:null, interview:null}, ()=>this.fitView(true)),
+      };
+    }
 
     // ---------- results panel (live list of matching people) ----------
     const resultsPanel = !egoActive && (s.activeSectors.length>0 || !!s.searchQuery || !!s.exchangeFilter);
@@ -3744,6 +3978,7 @@ class Component extends DCLogic {
       onResultsSearch:e=>this.setState({resultsQuery:e.target.value}),
       clearResultsSearch:()=>this.setState({resultsQuery:""}),
       statusLine,
+      feed,
       previewBanner: previewing ? `Previewing ${previewName}` : "",
       exitPreview:()=>this.exitPreview(),
       ego, egoActive, egoPanel: (egoPanel && !s.listCollapsed) ? egoPanel : null, focus, namePrompt,
@@ -3765,7 +4000,10 @@ class Component extends DCLogic {
       dark, toggleTheme:()=>this.setState(st=>{ const d=!st.dark; try{ localStorage.setItem("ecoatlas_theme_v1", d?"dark":"light"); }catch(e){} return {dark:d}; }),
       themeToggleLabel: dark?"☀ Light":"☾ Dark",
       // ---- map furniture (full-bleed layout): layer pills top-right, legend strip bottom-left ----
-      showMapFurniture: !egoActive && !namePrompt && !landing && s.mode==="general",
+      // …and on the full map reached from the personal view. That screen used to be unreachable,
+      // so nobody noticed it arrived with no legend and no layer pills; the sidebar's "Open the
+      // full network map" makes it a real destination, and a real map needs its key.
+      showMapFurniture: !egoActive && !namePrompt && !landing && (s.mode==="general" || s.showFullMap),
       layerPills: [
         { label:"Territories", on:s.showTerritories, onClick:()=>this.setState(st=>({showTerritories:!st.showTerritories})) },
         { label:"Connections", on:s.showConnections, onClick:()=>this.setState(st=>({showConnections:!st.showConnections})) },
