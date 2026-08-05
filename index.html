@@ -307,6 +307,12 @@
         <div style="position:absolute;top:0;left:0;right:0;z-index:14;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,254,251,.95);backdrop-filter:blur(6px);border-bottom:1px solid #e6e2d7;">
           <input type="text" value="{{ egoSearchVal }}" onInput="{{ onEgoSearch }}" placeholder="Find anyone…" style="flex:none;width:150px;padding:6px 11px;border:1px solid #e6e2d7;border-radius:999px;font-size:12px;background:#fff;" />
           <div style="flex:1;min-width:0;font-size:12px;color:#6b6a65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ egoToolbarLabel }}</div>
+          <sc-if value="{{ previewBanner }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:none;display:inline-flex;align-items:center;gap:9px;background:#fdf6e0;border:1px solid #e6d08a;border-radius:999px;padding:5px 7px 5px 13px;white-space:nowrap;">
+              <span style="font-size:11.5px;font-weight:600;color:#6b5410;">◉ {{ previewBanner }}</span>
+              <button onClick="{{ exitPreview }}" style="font-size:11.5px;font-weight:600;color:#fff;background:#8a6d00;border:none;border-radius:999px;padding:4px 11px;cursor:pointer;">Exit preview</button>
+            </div>
+          </sc-if>
           <sc-if value="{{ exploring }}" hint-placeholder-val="{{ false }}">
             <button onClick="{{ backToMyNetwork }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;">◂ Back to my network</button>
           </sc-if>
@@ -415,10 +421,15 @@
             <button onClick="{{ closeList }}" title="Collapse" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
           <div style="font-size:11.5px;color:#6f6c63;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;">
-            <button onClick="{{ egoPanel.onExchange }}" style="{{ egoPanel.exchangeBtnStyle }}">{{ egoPanel.exchangeLabel }}</button>
-            <button onClick="{{ egoPanel.onEnrich }}" style="{{ egoPanel.enrichBtnStyle }}">{{ egoPanel.enrichLabel }}</button>
-          </div>
+          <sc-if value="{{ egoPanel.canEdit }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;">
+              <button onClick="{{ egoPanel.onExchange }}" style="{{ egoPanel.exchangeBtnStyle }}">{{ egoPanel.exchangeLabel }}</button>
+              <button onClick="{{ egoPanel.onEnrich }}" style="{{ egoPanel.enrichBtnStyle }}">{{ egoPanel.enrichLabel }}</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ egoPanel.previewNote }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;font-size:11.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:9px;padding:8px 10px;line-height:1.45;">{{ egoPanel.previewNote }}</div>
+          </sc-if>
         </div>
         <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:10px 13px 26px;">
           <sc-for list="{{ egoPanel.groups }}" as="g" hint-placeholder-count="2">
@@ -568,6 +579,9 @@
             <!-- "Draft" not "Request": this opens the composer and hands you an editable email.
                  Nothing is sent from here, and the label shouldn't imply otherwise. -->
             <button onClick="{{ detail.reach }}" class="atlas-btn-primary" style="width:100%;font-size:13px;font-weight:600;padding:11px 14px;border-radius:999px;cursor:pointer;">Draft an intro</button>
+          </sc-if>
+          <sc-if value="{{ detail.canPreview }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ detail.onPreview }}" style="width:100%;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px dashed #c6c1b1;transition:border-color .12s ease,background .12s ease;">◉ See the app as {{ detail.firstName }}</button>
           </sc-if>
           <button onClick="{{ detail.toggleBookmark }}" style="{{ detail.bookmarkStyle }}">{{ detail.bookmarkLabel }}</button>
           <a href="{{ detail.linkedin }}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
@@ -933,6 +947,10 @@ class Component extends DCLogic {
       // card follows its default: two-way matches open, everyone else collapsed.
       egoOpen:{},
       exploreId:null,   // in Student view: whose network you've clicked into (null = your own)
+      // Staff preview: the student whose view is being borrowed. null = not previewing. selfId
+      // is set to the same person so every panel renders as they'd see it; this key is what
+      // tells the app the view is borrowed, and it gates every write path in the app.
+      previewId:null,
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
       clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
@@ -1141,7 +1159,11 @@ class Component extends DCLogic {
   // back to unsafeMetadata (the interim client-set value from the retired picker flow).
   syncClerk(){
     const u=(typeof Clerk!=="undefined"&&Clerk.user)||null;
-    const cu=u?{ id:u.id, first:u.firstName||"", last:u.lastName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
+    // `staff` reads publicMetadata ONLY — that half of the metadata is server-set and arrives
+    // signed in the session token, so a visitor can't grant it to themselves by editing the page.
+    // unsafeMetadata is client-writable and is deliberately NOT consulted here, unlike profileKey
+    // below, which still falls back to it for accounts linked under the retired picker flow.
+    const cu=u?{ id:u.id, first:u.firstName||"", last:u.lastName||"", email:(u.primaryEmailAddress&&u.primaryEmailAddress.emailAddress)||"", staff:!!(u.publicMetadata&&u.publicMetadata.staff), profileKey:(u.publicMetadata&&u.publicMetadata.profileKey)||(u.unsafeMetadata&&u.unsafeMetadata.profileKey)||null }:null;
     // they pressed "That's not me" — hold the key empty for the rest of this page load, even
     // if Clerk's cached copy of the user hasn't caught up with the server clearing it yet
     if(cu&&this._unlinkedFor===cu.id) cu.profileKey=null;
@@ -1670,6 +1692,10 @@ class Component extends DCLogic {
   // key would let anyone overwrite anyone's interview answers, and those answers drive who the
   // map recommends to whom.
   async persistProfile(node, data){
+    // The single choke point for every profile write — localStorage and /api/save both. Guarded
+    // here as well as at each caller: the callers are the readable check, this one is the one
+    // that still holds if a new caller is added later and its author forgets.
+    if(this.isPreview()) return false;
     try{ const store=this.loadProfiles(); const k=this.profileKey(node); store[k]={...(store[k]||{}), ...data}; localStorage.setItem("ecoatlas_profiles_v1", JSON.stringify(store)); }catch(e){}
     // a blurb-only edit has nothing the Responses table holds — don't spend a write on it
     const interviewish = ["challenge","customer","stage","approaches","brings","seeks"].some(k=>data&&data[k]!=null);
@@ -1707,6 +1733,7 @@ class Component extends DCLogic {
     if(typeof Clerk!=="undefined"&&Clerk.session) this.fetchMentorship();
   }
   saveProfile(id, data){
+    if(this.isPreview()) return;   // borrowed view — never write as the person being previewed
     const n=this.byId[id]; if(!n) return;
     this.mergeProfile(n.person, n.name, data);
     this._chalDf=null; this._recipDf=null;   // rarity tables depend on profile text
@@ -1719,6 +1746,7 @@ class Component extends DCLogic {
   // with the last answers, saving back over the same row through /api/save's upsert. There is
   // no separate edit form, and no way to end up with two rows for one person.
   openInterview(welcome){
+    if(this.isPreview()) return;
     const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
     const p=self.person||{};
     const fill=(src)=>({
@@ -1764,12 +1792,13 @@ class Component extends DCLogic {
   closeInterview(){ this.setState({interview:null}); }
 
   // ---------- edit-my-profile (the blurb / project description, not the interview) ----------
-  openProfileEdit(){ const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
+  openProfileEdit(){ if(this.isPreview()) return; const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
     this.setState({ profileEdit:{ focus:self.person.focus||"" } }); }
   closeProfileEdit(){ this.setState({profileEdit:null}); }
   profileEditType(val){ this.setState(st=>st.profileEdit?({profileEdit:{...st.profileEdit, focus:val}}):null); }
   saveProfileBlurb(){
     const self=this.state.selfId?this.byId[this.state.selfId]:null, pe=this.state.profileEdit;
+    if(this.isPreview()){ this.setState({profileEdit:null}); return; }
     if(!self||!pe){ this.setState({profileEdit:null}); return; }
     self.person.focus=pe.focus;
     this._descDf=null;              // description-keyword tables depend on this text
@@ -1780,7 +1809,7 @@ class Component extends DCLogic {
   }
   // ---------- asks & offers: the 30-second version of the interview's last two questions ----------
   // Reachable straight from the profile, because most people will set these and nothing else.
-  openExchangeEdit(){ const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
+  openExchangeEdit(){ if(this.isPreview()) return; const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
     const p=self.person||{};
     // first time through, start from what their Reciprocity Board answer already says rather
     // than a blank slate — they confirm or uncheck, which is far less work than starting over
@@ -1797,6 +1826,7 @@ class Component extends DCLogic {
   exchangeEditType(which, val){ this.setState(st=>st.exchangeEdit?({exchangeEdit:{...st.exchangeEdit, [which]:val}}):null); }
   saveExchangeEdit(){
     const self=this.state.selfId?this.byId[this.state.selfId]:null, ee=this.state.exchangeEdit;
+    if(this.isPreview()){ this.setState({exchangeEdit:null}); return; }
     if(!self||!ee){ this.setState({exchangeEdit:null}); return; }
     const before=new Set(this.egoData(self).map(c=>c.o.id));
     this.saveProfile(self.id, { needTags:ee.needTags, offerTags:ee.offerTags, seeks:ee.seeks, brings:ee.brings });
@@ -2075,6 +2105,39 @@ class Component extends DCLogic {
         this.setState({detailId:null, hoverId:null, exploreId:null, listCollapsed:false}, ()=>this.frameNetwork(st2.selfId, true));
       }
     } }; window.addEventListener("pointermove",move); window.addEventListener("pointerup",up); }
+
+  // ---------- staff preview: borrowing a student's view ----------
+  //
+  // The programme team has no dot on the map, so they can never reach the personal view — the
+  // half of the app that only exists for someone the matcher placed. This lets a staff account
+  // stand in a student's shoes to check what that student actually sees.
+  //
+  // It is a LOOKING GLASS, NOT AN ACCOUNT. Everything that would write as the borrowed person
+  // is refused while it's open — the interview, the profile edit, the asks & offers picker, and
+  // the intro log — because every one of those upserts on that student's profileKey and there
+  // would be no trace of who really pressed the button. isPreview() below is the single check;
+  // each write path calls it and returns rather than trusting the UI to have hidden the button.
+  //
+  // Entry is gated on Clerk's server-set publicMetadata.staff (see syncClerk). That gate is a
+  // UI affordance today rather than a wall around anything: every asks/offers value the personal
+  // view shows is already in data.js and already readable in Browse. It must NOT become what
+  // protects email addresses if those ever reach the browser — data.js is email-free today, and
+  // when emails arrive they belong behind a server session check, not behind this flag.
+  isPreview(){ return !!this.state.previewId; }
+  previewAs(id){
+    const n=this.byId[id]; if(!n) return;
+    // deliberately not selectSelf: that opens the profile interview on a first-ever visit, which
+    // would put staff inside a form that writes to this student's record
+    this.setState({ previewId:id, selfId:id, mode:"student", loginOpen:false, detailId:null,
+      showFullMap:false, egoLayout:"map", listCollapsed:false, exploreId:null, pinId:null,
+      searchQuery:"", resultsQuery:"", interview:null, profileEdit:null, exchangeEdit:null },
+      ()=>this.frameNetwork(id, true));
+  }
+  exitPreview(){
+    this.setState({ previewId:null, selfId:null, mode:"general", detailId:null, exploreId:null,
+      interview:null, profileEdit:null, exchangeEdit:null, reachId:null, listCollapsed:false },
+      ()=>this.fitView(true));
+  }
 
   selectSelf(id){
     this.setState({ selfId:id, loginOpen:false, detailId:null, showFullMap:false, egoLayout:"map", listCollapsed:false }, ()=>{
@@ -2586,6 +2649,8 @@ class Component extends DCLogic {
   // same person on another day is a new page load and logs again.
   async logIntro(targetName, targetKey, channel){
     try{
+      // a borrowed view must not file outreach under the student whose shoes we're standing in
+      if(this.isPreview()) return;
       if(typeof Clerk==="undefined"||!Clerk.session) return;   // signed out: nothing to attribute
       const dedupe=`${channel}|${targetKey||targetName}`;
       this._introLogged=this._introLogged||new Set();
@@ -2691,6 +2756,11 @@ class Component extends DCLogic {
     const density=this.props.nameDensity||"balanced";
     const showPersonLabels = zoom >= (density==="sparse"?1.15:(density==="dense"?0.5:0.82));
     const selfMode = s.mode!=="general";
+    // staff preview: `isStaff` unlocks the entry button, `previewing` puts the whole view in
+    // borrowed mode — banner up, every write control hidden (and refused; see isPreview)
+    const isStaff = !!(s.clerkUser && s.clerkUser.staff);
+    const previewing = !!s.previewId;
+    const previewName = previewing && this.byId[s.previewId] ? this.byId[s.previewId].name : "";
     const namePrompt = s.loginOpen;   // the old name-prompt overlay is now the login overlay — same card, same gating of the panels behind it
     const anyFilter = !!(s.programFilter||s.statusFilter||s.activeSectors.length||s.searchQuery);
     const selSet = new Set(s.activeSectors);
@@ -2954,6 +3024,10 @@ class Component extends DCLogic {
       if(alumniRows.length) groups.push({ key:"alumni", label:"Alumni to connect with", hint:"they've worked your ground", count:alumniRows.length, rows:alumniRows, ...moreBtn("alumni", alumMoreAvail.length) });
       const totalRows=mutualRows.length+help.length+give.length+shared.length+alumniRows.length;
       egoPanel={ title:"Find your connections", sub: totalRows?`${totalRows} strong matches, ranked for you`:"No strong matches yet — add more to your asks & offers", groups, total:totalRows,
+        // in a borrowed view both buttons below are refused by their handlers, so they're hidden
+        // rather than left sitting there doing nothing when pressed
+        canEdit: !previewing,
+        previewNote: previewing ? "Read-only preview — nothing you do here is saved to this person's profile." : "",
         enriched:!!self.person.enriched,
         enrichLabel: (function(f){ return f>=5?"Edit my answers":(f>0?`Finish your profile · ${f} of 5`:"Improve my matches →"); })(this.profileFilled(self.person)),
         // secondary next to the asks/offers button, so there's only one primary action here
@@ -3342,8 +3416,16 @@ class Component extends DCLogic {
       const ch0 = (p.challenges&&p.challenges[0])||{};
       detail={
         name:n.name,
-        isSelf:isSelfDetail, notSelf:!isSelfDetail,
-        selfBadge: isSelfDetail ? "Your profile" : "",
+        // while previewing, the borrowed person is "self" for rendering but must not be offered
+        // the edit controls — those write to their record, not the viewer's
+        isSelf: isSelfDetail && !previewing, notSelf:!isSelfDetail,
+        selfBadge: isSelfDetail ? (previewing?"Previewing this person":"Your profile") : "",
+        // staff entry point: borrow this person's view. Only from Browse, and never on the person
+        // already being previewed — hopping between students has to go back through Browse so the
+        // banner can never claim one name while the panels show another.
+        canPreview: isStaff && !previewing && !isSelfDetail,
+        firstName:n.name.split(" ")[0],
+        onPreview:()=>this.previewAs(n.id),
         editProfile:()=>this.openProfileEdit(),
         editExchange:()=>this.openExchangeEdit(),
         // interview answers are the signed-in experience — never shown on the public Browse view
@@ -3662,6 +3744,8 @@ class Component extends DCLogic {
       onResultsSearch:e=>this.setState({resultsQuery:e.target.value}),
       clearResultsSearch:()=>this.setState({resultsQuery:""}),
       statusLine,
+      previewBanner: previewing ? `Previewing ${previewName}` : "",
+      exitPreview:()=>this.exitPreview(),
       ego, egoActive, egoPanel: (egoPanel && !s.listCollapsed) ? egoPanel : null, focus, namePrompt,
       egoFocus, egoMapView, egoLayout:s.egoLayout,
       egoHeaderSub: self?`${self.name}${self.ventureName?" · "+self.ventureName:""}`:"",
@@ -3697,7 +3781,9 @@ class Component extends DCLogic {
       showBackToEgo: !!self && s.showFullMap,
       backToEgo:()=>this.setState({showFullMap:false}, ()=>{ if(this.state.selfId) this.frameNetwork(this.state.selfId, true); }),
       exploreFullMap:()=>this.setState({showFullMap:true}, ()=>this.fitView(true)),
-      browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
+      // leaving for Browse ends a preview too — otherwise previewId lingers and keeps refusing
+      // writes for a view nobody is borrowing any more
+      browseAll:(e)=>{ if(e&&e.preventDefault)e.preventDefault(); this.setState({mode:"general", selfId:null, previewId:null, detailId:null, interview:null}, ()=>this.fitView(true)); },
       viewProfile:()=>{ if(this.state.selfId) this.openDetailCentered(this.state.selfId); },
       exploring: !!explore,
       backToMyNetwork:()=>this.setState({exploreId:null, detailId:null, hoverId:null, listCollapsed:false},
