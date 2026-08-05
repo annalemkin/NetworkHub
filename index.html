@@ -96,7 +96,7 @@
 <div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;background:#f7f5ef;position:relative;">
 
   <sc-if value="{{ showCommandBar }}" hint-placeholder-val="{{ true }}">
-    <div style="position:absolute;left:50%;transform:translateX(-50%);top:20px;z-index:30;">
+    <div style="{{ cmdWrapStyle }}">
       <div style="{{ cmdBarStyle }}">
         <div onClick="{{ showLanding }}" title="Back to the front screen" style="padding:0 16px;font-family:Newsreader,serif;font-size:15.5px;font-weight:600;white-space:nowrap;cursor:pointer;">The Ecopreneurship Network</div>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
@@ -364,7 +364,7 @@
       <aside style="width:344px;flex:none;border-left:1px solid #e6e2d7;background:#fffefa;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
         <div style="padding:15px 16px 12px;border-bottom:1px solid #e6e2d7;">
           <div style="display:flex;align-items:flex-start;gap:10px;">
-            <div style="flex:1;font-size:14.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3;color:#211f1a;">{{ results.countLine }}</div>
+            <div style="flex:1;font-family:Newsreader,serif;font-size:20px;font-weight:600;letter-spacing:-.01em;line-height:1.25;color:#211f1a;">{{ results.countLine }}</div>
             <button onClick="{{ closeList }}" title="Collapse list" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
           <div style="font-size:11.5px;color:#6f6c63;margin-top:3px;line-height:1.35;">{{ results.subLine }}</div>
@@ -405,10 +405,13 @@
     </sc-if>
 
     <sc-if value="{{ egoPanel }}" hint-placeholder-val="{{ false }}">
-      <aside style="width:344px;flex:none;border-left:1px solid #e6e2d7;background:#fffefa;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
-        <div style="padding:15px 16px 13px;border-bottom:1px solid #e6e2d7;">
+      <!-- 386px, not the 344px the other panels use: the match card carries a 34px avatar, a
+           reason pill and an ask/offer pair on one line, and at 344 the pill was the thing that
+           got ellipsed — which is the one line on the card you can't afford to lose. -->
+      <aside style="width:386px;flex:none;border-left:1px solid #e6e2d7;background:#faf8f2;display:flex;flex-direction:column;min-height:0;animation:atlasFade .2s ease;">
+        <div style="padding:15px 16px 13px;border-bottom:1px solid #e6e2d7;background:#fffefa;">
           <div style="display:flex;align-items:flex-start;gap:8px;">
-            <div style="font-size:14.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3;flex:1;color:#211f1a;">{{ egoPanel.title }}</div>
+            <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.2;flex:1;color:#211f1a;">{{ egoPanel.title }}</div>
             <button onClick="{{ closeList }}" title="Collapse" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:18px;line-height:1;color:#9a968a;cursor:pointer;margin:-2px -4px 0 0;">×</button>
           </div>
           <div style="font-size:11.5px;color:#6f6c63;margin:3px 0 0;line-height:1.35;">{{ egoPanel.sub }}</div>
@@ -425,28 +428,49 @@
               <span style="font-size:10.5px;color:#a8a396;margin-left:auto;font-style:italic;">{{ g.hint }}</span>
             </div>
             <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="3">
-              <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" onClick="{{ p.view }}" title="Open profile" style="{{ p.rowStyle }}">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="{{ p.dotStyle }}"></span>
-                  <div style="font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
-                  <button onClick="{{ p.save }}" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
+              <div onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" style="{{ p.cardStyle }}">
+                <div style="padding:13px 14px 0;display:flex;gap:11px;align-items:flex-start;">
+                  <div style="{{ p.avStyle }}">{{ p.initials }}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div onClick="{{ p.view }}" title="Open profile" style="font-family:Newsreader,serif;font-size:17.5px;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:#211f1a;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</div>
+                    <div style="font-size:11.5px;color:#3a3833;margin-top:2px;line-height:1.4;">{{ p.venture }}</div>
+                    <div style="font-size:10.5px;color:#8a857a;margin-top:1px;">{{ p.meta }}</div>
+                  </div>
+                  <button onClick="{{ p.save }}" title="Save to my catalog" style="{{ p.saveStyle }}">{{ p.saveIcon }}</button>
                 </div>
-                <div style="font-size:11px;color:#3a3833;margin:4px 0 1px;">{{ p.venture }}</div>
-                <div style="font-size:10.5px;color:#8a857a;">{{ p.meta }}</div>
-                <div style="{{ p.reasonStyle }}">{{ p.reason }}</div>
-                <sc-if value="{{ p.twoWay }}" hint-placeholder-val="{{ false }}">
-                  <div style="margin-top:8px;border:1px solid #e6e2d7;background:#faf8f2;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
-                    <div style="display:flex;gap:7px;align-items:baseline;">
-                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#55534a;">They give you</span>
-                      <span style="flex:1;min-width:0;font-size:11.5px;line-height:1.4;color:#3a3833;">{{ p.theyGive }}</span>
-                    </div>
-                    <div style="display:flex;gap:7px;align-items:baseline;">
-                      <span style="flex:none;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:#55534a;">You give them</span>
-                      <span style="flex:1;min-width:0;font-size:11.5px;line-height:1.4;color:#3a3833;">{{ p.youGive }}</span>
-                    </div>
+                <sc-if value="{{ p.hasOneLine }}" hint-placeholder-val="{{ true }}">
+                  <div style="padding:9px 14px 0;font-size:12.5px;line-height:1.5;color:#2e2d29;">{{ p.oneLine }}</div>
+                </sc-if>
+                <div style="padding:10px 14px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="{{ p.reasonStyle }}">{{ p.reason }}</span>
+                  <sc-if value="{{ p.mutualLine }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:#8a857a;">{{ p.mutualLine }}</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ p.isOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="padding:12px 14px 0;animation:atlasFade .22s ease;">
+                    <div style="height:1px;background:#f0ece2;margin-bottom:11px;"></div>
+                    <sc-if value="{{ p.hasTheirAsk }}" hint-placeholder-val="{{ true }}">
+                      <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:10px;padding:9px 11px;margin-bottom:7px;">
+                        <div style="{{ p.miniLabelStyle }}">Their ask</div>
+                        <div style="font-size:12px;line-height:1.5;color:#2e2d29;">{{ p.theirAsk }}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ p.hasTheirOffer }}" hint-placeholder-val="{{ true }}">
+                      <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:10px;padding:9px 11px;">
+                        <div style="{{ p.miniLabelStyle }}">Their offer</div>
+                        <div style="font-size:12px;line-height:1.5;color:#2e2d29;">{{ p.theirOffer }}</div>
+                      </div>
+                    </sc-if>
+                    <div style="font-size:12px;line-height:1.55;color:#2e2d29;margin-top:10px;"><b>Why you two:</b> {{ p.whyDetail }}</div>
                   </div>
                 </sc-if>
-                <button onClick="{{ p.reach }}" style="margin-top:9px;width:100%;font-size:12px;font-weight:600;color:#fff;background:#8C1515;border:none;border-radius:8px;padding:8px 0;cursor:pointer;">Reach out</button>
+                <div style="margin-top:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;background:#fdfcf8;border-top:1px solid #f0ece2;">
+                  <button onClick="{{ p.reach }}" style="flex:none;font-size:12px;font-weight:600;padding:7px 15px;border-radius:999px;cursor:pointer;background:#8C1515;color:#fff;border:1px solid #8C1515;transition:background .12s ease;">Reach out</button>
+                  <button onClick="{{ p.view }}" style="flex:none;font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;transition:border-color .12s ease,background .12s ease;">Full profile</button>
+                  <div style="flex:1;"></div>
+                  <button onClick="{{ p.toggle }}" class="atlas-quiet" style="flex:none;background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ p.toggleLabel }}</button>
+                </div>
               </div>
             </sc-for>
             <sc-if value="{{ g.showMore }}" hint-placeholder-val="{{ false }}">
@@ -463,10 +487,15 @@
 
     <sc-if value="{{ detail }}" hint-placeholder-val="{{ false }}">
       <div style="{{ detail.panelStyle }}" class="atlas-scroll">
-        <button onClick="{{ closeDetail }}" style="float:right;width:26px;height:26px;border:1px solid #e6e2d7;border-radius:6px;background:#fff;font-size:13px;line-height:1;color:#6f6c63;cursor:pointer;">×</button>
-        <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;">Selected person</div>
-        <div style="font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.2;padding-right:20px;margin-top:8px;color:#211f1a;">{{ detail.name }}</div>
-        <div style="font-size:12.5px;color:#6b6a65;margin:5px 0 12px;line-height:1.5;">{{ detail.sub }}</div>
+        <button onClick="{{ closeDetail }}" style="float:right;width:30px;height:30px;border:1px solid #e6e2d7;border-radius:9px;background:#fff;font-size:13px;line-height:1;color:#6f6c63;cursor:pointer;">×</button>
+        <div style="display:flex;gap:13px;align-items:flex-start;padding-right:26px;">
+          <div style="{{ detail.avStyle }}">{{ detail.initials }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.15;color:#211f1a;">{{ detail.name }}</div>
+            <div style="font-size:12.5px;color:#6b6a65;margin-top:4px;line-height:1.45;">{{ detail.sub }}</div>
+          </div>
+        </div>
+        <div style="height:12px;"></div>
         <sc-if value="{{ detail.isSelf }}" hint-placeholder-val="{{ false }}">
           <div style="display:inline-block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#55534a;background:#faf8f2;border:1px solid #e6e2d7;border-radius:999px;padding:3px 10px;margin-bottom:11px;">{{ detail.selfBadge }}</div>
         </sc-if>
@@ -536,7 +565,9 @@
             <button onClick="{{ detail.editProfile }}" style="font-size:12.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #d9d5c8;border-radius:999px;padding:8px 15px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">Edit my profile</button>
           </sc-if>
           <sc-if value="{{ detail.notSelf }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ detail.reach }}" style="width:100%;font-size:12px;font-weight:600;padding:10px 14px;border-radius:999px;cursor:pointer;background:#211f1a;color:#fff;border:1px solid #211f1a;">Request an intro</button>
+            <!-- "Draft" not "Request": this opens the composer and hands you an editable email.
+                 Nothing is sent from here, and the label shouldn't imply otherwise. -->
+            <button onClick="{{ detail.reach }}" class="atlas-btn-primary" style="width:100%;font-size:13px;font-weight:600;padding:11px 14px;border-radius:999px;cursor:pointer;">Draft an intro</button>
           </sc-if>
           <button onClick="{{ detail.toggleBookmark }}" style="{{ detail.bookmarkStyle }}">{{ detail.bookmarkLabel }}</button>
           <a href="{{ detail.linkedin }}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#0a66c2;text-decoration:none;">LinkedIn →</a>
@@ -570,7 +601,9 @@
   </sc-if>
 
   <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;background:#211f1a;color:#fff;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(33,31,26,.3);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">{{ flash }}</div>
+    <!-- bottom-centre, not top: at top:64px this landed under the command bar and over the
+         layer pills, so the one message confirming a save was the one thing partly hidden. -->
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:70;background:#211f1a;color:#fdfcf9;font-size:13px;font-weight:500;padding:12px 20px;border-radius:999px;box-shadow:0 12px 34px rgba(33,31,26,.28);max-width:90vw;text-align:center;animation:atlasFade .25s ease;">{{ flash }}</div>
   </sc-if>
 
   <sc-if value="{{ matchToast }}" hint-placeholder-val="{{ false }}">
@@ -587,7 +620,7 @@
 
   <sc-if value="{{ interview }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="width:30px;height:30px;border-radius:50%;background:#211f1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✦</div>
           <div style="flex:1;min-width:0;">
@@ -653,7 +686,7 @@
 
   <sc-if value="{{ profileEdit }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ profileEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
             <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">Edit my profile</div>
@@ -674,10 +707,10 @@
 
   <sc-if value="{{ mentor }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ mentor.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
         <div style="display:flex;align-items:flex-start;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
-            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ mentor.title }}</div>
+            <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ mentor.title }}</div>
             <div style="font-size:11.5px;color:#8a877f;margin-top:2px;line-height:1.45;">{{ mentor.sub }}</div>
           </div>
           <button onClick="{{ mentor.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
@@ -711,7 +744,7 @@
 
   <sc-if value="{{ exchangeEdit }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ exchangeEdit.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:580px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:580px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
             <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">My asks &amp; offers</div>
@@ -757,13 +790,27 @@
     <!-- z-index 70: above the mentorship panel (65), which stays open behind the draft so
          closing it returns you to the list. Was 60, which put the draft underneath it. -->
     <div onClick="{{ closeReachBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:70;">
-      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
-        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Reach out to {{ reach.name }}</div>
-        <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 4px;line-height:1.5;">{{ reach.sub }}</div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="display:flex;gap:13px;align-items:flex-start;">
+          <div style="{{ reach.avStyle }}">{{ reach.initials }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">Intro to {{ reach.name }}</div>
+            <div style="font-size:12.5px;color:#6b6a65;margin-top:4px;line-height:1.5;">{{ reach.sub }}</div>
+          </div>
+        </div>
+        <div style="background:#f7f5ef;border:1px solid #e9e5da;border-radius:11px;padding:10px 12px;margin-top:14px;font-size:12.5px;line-height:1.5;color:#2e2d29;"><b>Prefilled from:</b> {{ reach.basis }}</div>
         <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Subject</label>
         <input type="text" ref="{{ reachSubjRef }}" defaultValue="{{ reach.subject }}" class="atlas-field" style="width:100%;padding:8px 12px;border-radius:6px;font-size:13px;" />
         <label style="display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9a968a;font-weight:600;margin:14px 0 4px;">Message</label>
         <textarea ref="{{ reachBodyRef }}" rows="9" defaultValue="{{ reach.body }}" class="atlas-field" style="width:100%;padding:10px 12px;border-radius:6px;font-size:13px;line-height:1.55;resize:vertical;"></textarea>
+        <sc-if value="{{ reach.hasSnippets }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;">
+            <span style="font-size:11.5px;color:#9a968a;margin-right:1px;">Add a line:</span>
+            <sc-for list="{{ reach.snippets }}" as="sn" hint-placeholder-count="3">
+              <button onClick="{{ sn.onClick }}" style="font-size:11.5px;font-weight:500;border:1px solid #e6e2d7;background:#fff;color:#211f1a;border-radius:999px;padding:5px 11px;cursor:pointer;transition:border-color .12s ease,background .12s ease;">{{ sn.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ reach.hasEmail }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12px;color:#6b6a65;margin-top:10px;">Their email: <b style="color:#211f1a;">{{ reach.email }}</b></div>
         </sc-if>
@@ -782,10 +829,10 @@
 
   <sc-if value="{{ peersPanel }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ peersPanel.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
         <div style="display:flex;align-items:flex-start;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
           <div style="flex:1;">
-            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ peersPanel.title }}</div>
+            <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ peersPanel.title }}</div>
             <div style="font-size:11.5px;color:#8a877f;margin-top:2px;line-height:1.45;">{{ peersPanel.sub }}</div>
           </div>
           <button onClick="{{ peersPanel.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
@@ -810,8 +857,8 @@
 
   <sc-if value="{{ intros }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeIntrosBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
-      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
-        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;">Your intros</div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-family:Newsreader,serif;font-size:23px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">Your intros</div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 14px;line-height:1.5;">People you've reached out to. Only you can see this.</div>
         <sc-if value="{{ introsEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12.5px;color:#9b978d;padding:16px 0;">Nothing yet. Copy or send a reach-out draft and it'll be listed here.</div>
@@ -831,8 +878,8 @@
 
   <sc-if value="{{ catalog }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeCatalogBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
-      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
-        <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#211f1a;display:flex;align-items:center;gap:9px;">My catalog <span style="{{ catModalBadgeStyle }}">{{ catCount }}</span></div>
+      <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-family:Newsreader,serif;font-size:23px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;display:flex;align-items:center;gap:9px;">My catalog <span style="{{ catModalBadgeStyle }}">{{ catCount }}</span></div>
         <div style="font-size:12.5px;color:#6b6a65;margin:4px 0 14px;line-height:1.5;">People you've saved on this device — your shortlist to follow up with.</div>
         <sc-if value="{{ catEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12.5px;color:#9b978d;padding:16px 0;">No saved people yet. Click ★ on anyone to add them here.</div>
@@ -882,6 +929,9 @@ class Component extends DCLogic {
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:true, profileEdit:null, egoSearch:"",
       exchangeEdit:null, exchangeFilter:"", exchangeDir:"offer", egoMore:{}, exchangePanelOpen:false,
+      // per-card overrides for the match card's expanded half (id → bool). Absent means the
+      // card follows its default: two-way matches open, everyone else collapsed.
+      egoOpen:{},
       exploreId:null,   // in Student view: whose network you've clicked into (null = your own)
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
@@ -2343,6 +2393,10 @@ class Component extends DCLogic {
     this.setState({bookmarks:bm});
   }
 
+  // avatar initials: first letter of the first and last name parts. Two letters, never three —
+  // a 34px circle can't hold more, and "MvdB" reads as noise rather than as a person.
+  initialsOf(name){ const w=String(name||"").trim().split(/\s+/).filter(Boolean); if(!w.length) return "?"; return ((w[0][0]||"")+(w.length>1?w[w.length-1][0]:"")).toUpperCase(); }
+
   // short, readable phrase from a free-text asks/offers field
   snippet(text, words){
     if(!text) return "";
@@ -2413,7 +2467,15 @@ class Component extends DCLogic {
       // signed in: name both ventures; browsing (no self): a natural note about their project
       subject = self ? `Stanford Ecopreneurship — ${selfVenture} ↔ ${tv}` : `Stanford Ecopreneurship - connect re: ${tv}`;
     }
-    return { subject, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
+    // What the draft actually drew on, named for the composer's "Prefilled from" line. Reads the
+    // same three signals the body reads, in the same priority order, so the box above the message
+    // can never claim a basis the message below it didn't use.
+    const basis = (theyHelpMe&&iHelpThem&&theirOffer&&myOffer) ? `a two-way match — they can help with ${theirOffer}, and you can offer ${myOffer}`
+      : (theyHelpMe&&theirOffer) ? `their offer — ${theirOffer}`
+      : (iHelpThem&&theirAsk) ? `their ask — ${theirAsk}`
+      : sharedStr ? `your shared focus on ${sharedStr}`
+      : `their project, ${tv}`;
+    return { subject, basis, body:`Hi ${first},\n\n${intro} ${hook}${why}\n\n${ask}\n\nThanks,\n${selfFirst}` };
   }
 
   // A draft for a MENTORSHIP match. Same spirit as generateIntro, different raw material:
@@ -2779,22 +2841,54 @@ class Component extends DCLogic {
         headerTitle:"Your neighborhood",
         headerSub:`${self.name}${self.ventureName?" · "+self.ventureName:""}`
       };
+      // ---- the match card (Student Network redesign, 2026-08-05) ----
+      // Wider than the old row and built in three bands — who they are, why they matched, and
+      // what to do about it — so the reason for the match is never the thing that gets cropped.
+      // Every field below is read from data we already hold; nothing here is written for effect.
       const mkEgoRow=(c)=>{ const o=c.o, alum=o.status==="alum", base=personFill(o,false), hov=s.hoverId===o.id, saved=!!s.bookmarks[this.norm(o.name)];
+        // Two-way matches open by default — their ask/offer pair IS the match, and putting it
+        // behind a click buries the strongest thing this panel knows. Everyone else starts
+        // collapsed so a list of a dozen stays scannable.
+        const isOpen = Object.prototype.hasOwnProperty.call(s.egoOpen,o.id) ? !!s.egoOpen[o.id] : c.rKind==="mutual";
+        const theirAsk=this.snippet(o.person.asks||o.person.seeks), theirOffer=this.snippet(o.person.brings||o.person.offers);
+        const oneLine=this.snippet(o.person.focus,26);
+        // "people you both know" — the intersection of the two adjacency lists the map already
+        // built, so this names the same connections the map draws rather than a second guess.
+        const theirAdj=new Set((((this.affAdj||{})[o.id])||[]).map(e=>e.id));
+        const both=(((this.affAdj||{})[self.id])||[]).filter(e=>e.id!==o.id&&theirAdj.has(e.id)).map(e=>this.byId[e.id]).filter(Boolean);
+        // the long form of the reason chip, always built from the concrete matched phrase
+        const whyDetail = (c.rKind==="mutual"&&c.theyGive&&c.youGive)
+            ? `They offer ${c.theyGive}, which is on your ask list — and you offer ${c.youGive}, which is on theirs.`
+          // fragOf cuts a window out of their sentence, so the fragment can open on a preposition
+          // ("in sustainable energy sector"). Quoting it makes any fragment grammatical, and it's
+          // the more honest framing anyway — these are their words, not ours.
+          : (c.hk&&c.hk.length&&(o.person.brings||o.person.offers))
+            ? `Their offer mentions “${this.fragOf(o.person.brings||o.person.offers,c.hk[0])}” — which is what you asked for.`
+          : (c.gk&&c.gk.length&&(o.person.asks||o.person.seeks))
+            ? `Their ask mentions “${this.fragOf(o.person.asks||o.person.seeks,c.gk[0])}” — which you said you can help with.`
+          : (c.shared&&c.shared.length) ? `You both work in ${c.shared.slice(0,2).join(" and ")}.`
+          : c.reason;
         return { id:o.id, name:o.name, venture:o.ventureName||"Independent",
           meta:`${(o.person.programs||[]).join(", ")}${o.person.year?" · "+o.person.year:""} · ${alum?"Alumni":"Current"}`,
           reason:c.reason,
           reasonStyle: c.rKind==="mutual"
-            ? `display:inline-block;font-size:10px;font-weight:700;letter-spacing:.02em;color:#fff;background:${c.rColor};border:1px solid ${c.rColor};border-radius:7px;padding:3px 8px;margin-top:7px;`
-            : `display:inline-block;font-size:10px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:7px;padding:2px 7px;margin-top:7px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
-          twoWay: c.rKind==="mutual", theyGive:c.theyGive, youGive:c.youGive,
-          dotStyle:`display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:${alum?"#fffefa":base};border:${alum?"2px solid "+base:"1.5px solid #fffefa"};box-shadow:0 0 0 1px #e6e2d9;`,
-          rowStyle:`border:1px solid ${hov?"#211f1a":"#e6e2d7"};background:${hov?"#faf8f2":"#fff"};border-radius:8px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:background .12s,border-color .12s;`,
+            ? `display:inline-block;font-size:11px;font-weight:700;letter-spacing:.01em;color:#fff;background:${c.rColor};border:1px solid ${c.rColor};border-radius:999px;padding:4px 10px;`
+            : `display:inline-block;font-size:11px;font-weight:600;color:${c.rColor};background:${c.rColor}14;border:1px solid ${c.rColor}33;border-radius:999px;padding:3px 10px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`,
+          initials:this.initialsOf(o.name),
+          // alumni get the ring treatment their map dot has, so the two readings agree
+          avStyle:`flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;letter-spacing:.02em;background:${alum?"#fffefa":base};color:${alum?base:"#fff"};border:${alum?"2px solid "+base:"none"};`,
+          hasOneLine:!!oneLine, oneLine,
+          mutualLine: both.length ? (both.length===1?`1 connection in common`:`${both.length} connections in common`) : "",
+          isOpen, hasTheirAsk:!!theirAsk, theirAsk, hasTheirOffer:!!theirOffer, theirOffer, whyDetail,
+          toggleLabel: isOpen?"Less":"More",
+          toggle:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(st=>({ egoOpen:{...st.egoOpen, [o.id]:!isOpen} })); },
+          miniLabelStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;margin-bottom:4px;`,
+          cardStyle:`background:#fffefa;border:1px solid ${hov?"#211f1a":"#e6e2d7"};border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 8px 24px rgba(33,31,26,${hov?".09":".06"});overflow:hidden;margin-bottom:11px;transition:border-color .12s,box-shadow .12s;`,
           enter:()=>this.setState({hoverId:o.id}), leave:()=>this.setState(st2=>st2.hoverId===o.id?{hoverId:null}:null),
-          click:()=>this.setState({hoverId:o.id}),
           view:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.openDetailCentered(o.id); },
           reach:(e)=>{ e.stopPropagation(); this.setState({reachId:o.id, reachCopied:false}); },
           save:(e)=>{ e.stopPropagation(); this.toggleBookmark(o.id); }, saveIcon:saved?"★":"☆",
-          saveStyle:`flex:none;width:32px;font-size:13px;border-radius:7px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e6e2d7"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
+          saveStyle:`flex:none;width:30px;height:30px;font-size:13px;line-height:1;border-radius:9px;cursor:pointer;border:1px solid ${saved?"#c9a227":"#e6e2d7"};background:${saved?"#fdf6e0":"#fff"};color:${saved?"#8a6d00":"#8a857a"};` };
       };
       const isAlum=c=>c.o.status==="alum";
       const mutualRows=egoCands.filter(c=>c.rKind==="mutual" && !isAlum(c)).map(mkEgoRow);
@@ -3259,7 +3353,16 @@ class Component extends DCLogic {
         hasApproaches:selfMode&&(p.approaches||[]).length>0, approaches:(p.approaches||[]).map(a=>({ label:a, style:"display:inline-block;font-size:10.5px;font-weight:600;color:#55534a;background:#faf8f2;border:1px solid #e6e2d7;border-radius:999px;padding:2px 9px;" })),
         // full-bleed layout: the person opens as a sheet flush to the right edge, not a
         // floating card — full height, hairline left border, soft leftward shadow
-        panelStyle:`position:absolute;right:0;top:0;bottom:0;width:344px;background:rgba(255,254,250,.97);border-left:1px solid ${LINE};box-shadow:-18px 0 44px rgba(33,31,26,.07);padding:24px 26px;overflow-y:auto;z-index:31;animation:atlasSlide .22s cubic-bezier(.2,.7,.3,1);`,
+        // The sheet is z-31 and the personal view's toolbar is z-14, so the sheet covers it — but
+        // only at 97% opacity, and the toolbar reads straight through. 54px of top padding in
+        // that view clears the 40px toolbar instead of printing the name on top of it.
+        // Stays 344px — the same width as the results panel it sits exactly on top of. Widening
+        // it left the results list poking out down one side in Browse view, because this sheet is
+        // positioned against the window, not against the stage.
+        panelStyle:`position:absolute;right:0;top:0;bottom:0;width:344px;background:rgba(255,254,250,.97);border-left:1px solid ${LINE};box-shadow:-18px 0 50px rgba(33,31,26,.09);padding:${egoActive?54:24}px 26px 24px;overflow-y:auto;z-index:31;animation:atlasSlide .22s cubic-bezier(.2,.7,.3,1);`,
+        // the same avatar the match card uses, so a person looks like themselves in both places
+        initials:this.initialsOf(n.name),
+        avStyle:`flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;letter-spacing:.02em;background:${n.status==="alum"?"#fffefa":personFill(n,false)};color:${n.status==="alum"?personFill(n,false):"#fff"};border:${n.status==="alum"?"2px solid "+personFill(n,false):"none"};`,
         sub:`${n.ventureName?n.ventureName+" · ":""}${n.status==="alum"?"Alumni":"Current"} · ${p.cohortLabel||((p.programs||[]).join(", ")+(p.year?" "+p.year:""))}`,
         tags:(n.tags||[]).map(t=>({ label:t, style:"display:inline-block;font-size:10.5px;color:#5a584f;border:1px solid #e6e2d7;border-radius:8px;padding:2px 8px;" })),
         hasCohorts:(p.cohorts||[]).length>0,
@@ -3284,6 +3387,19 @@ class Component extends DCLogic {
     if(s.reachId && this.byId[s.reachId]){
       const t=this.byId[s.reachId]; const intro=this.generateIntro(self,t);
       const liUrl=t.person.linkedin||this.linkedin(t.name);
+      // Same reciprocity rule the card and the draft run on — called, not reimplemented — so the
+      // chips can only offer lines that are true of this pair.
+      const rec=this.reciprocity(this.reciprocitySelf(self), t);
+      // Insert BEFORE the sign-off. Appending put new sentences underneath "Thanks, <name>",
+      // which is the one place in a letter a sentence cannot go.
+      const addLine=(txt)=>()=>{ const el=this.reachBodyRef.current; if(!el||!txt) return;
+        const v=el.value, i=v.lastIndexOf("\n\nThanks,");
+        el.value = i>=0 ? v.slice(0,i)+" "+txt+v.slice(i) : v.replace(/\s+$/,"")+" "+txt;
+        el.focus(); };
+      const snips=[];
+      if(rec.myAsk) snips.push({ label:"My ask", text:`Right now I'm looking for ${rec.myAsk}.` });
+      if(rec.myOffer) snips.push({ label:"What I can offer", text:`If it's useful, I can offer ${rec.myOffer}.` });
+      snips.push({ label:"Suggest a time", text:`Would either of the next two weeks work for a short call?` });
       // in the login-gated student view, email (when shared) is the lowest-friction channel —
       // it becomes the primary action, prefilled from the edited subject/message
       const hasEmail = selfMode && t.status==="current" && !!(t.person.email||"").trim();
@@ -3291,6 +3407,10 @@ class Component extends DCLogic {
         name:t.name,
         sub:`${t.ventureName?t.ventureName+" · ":""}${t.status==="alum"?"Alumni":"Current"} · ${(t.person.programs||[]).join(", ")}. Edit it, then ${hasEmail?"send it by email or LinkedIn":"copy and send on LinkedIn"}.`,
         subject:intro.subject, body:intro.body,
+        initials:this.initialsOf(t.name),
+        avStyle:`flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;letter-spacing:.02em;background:${t.status==="alum"?"#fffefa":personFill(t,false)};color:${t.status==="alum"?personFill(t,false):"#fff"};border:${t.status==="alum"?"2px solid "+personFill(t,false):"none"};`,
+        basis:intro.basis,
+        hasSnippets:snips.length>0, snippets:snips.map((sn,i)=>({ key:"sn"+i, label:sn.label, onClick:addLine(sn.text) })),
         hasEmail, email:(t.person.email||"").trim(),
         emailLabel:`✉ Email ${t.name.split(" ")[0]}`,
         sendEmail:()=>{ const subj=this.reachSubjRef.current?this.reachSubjRef.current.value:intro.subject;
@@ -3317,6 +3437,14 @@ class Component extends DCLogic {
         name:m.name,
         sub:`${[m.detail,m.location].filter(Boolean).join(" · ")}. Edit it, then copy and send on LinkedIn.`,
         subject:intro.subject, body:intro.body,
+        initials:this.initialsOf(m.name),
+        // no map node, so no sector family to colour by — the neutral ink avatar says "person
+        // we know of" without implying a place on the map they don't have
+        avStyle:`flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700;letter-spacing:.02em;background:#211f1a;color:#fff;`,
+        basis: m.detail ? `their background — ${m.detail}` : `your mentorship match`,
+        // no chips: the sender has no asks/offers on file in the mentorship programme, and a
+        // "Suggest a time" line alone isn't worth a row of controls
+        hasSnippets:false, snippets:[],
         // NEVER an email button here. /api/mentorship deliberately returns no address —
         // these people consented to a mentorship programme, and the introduction is the
         // programme's to make. LinkedIn is the only channel this panel offers.
@@ -3498,6 +3626,10 @@ class Component extends DCLogic {
       } : null,
       // command bar
       showCommandBar: s.mode==="general" && !landing,
+      // Centred on the MAP, not on the window. The bar is z-30 and the results list is in normal
+      // flow, so with the list open the bar's right end printed over the list's header and clipped
+      // the "N of 196" count that header exists to show. Half the list's 344px width moves it clear.
+      cmdWrapStyle:`position:absolute;left:calc(50% - ${panelOpen?172:0}px);transform:translateX(-50%);top:20px;z-index:30;`,
       cmdBarStyle:`display:flex;align-items:center;overflow:hidden;${CARD}border-radius:8px;`,
       // kept after discussion (2026-07-28): at rest it says the scale of the network, and
       // while filtering it becomes the "42 of 196" feedback — one slot, two jobs
