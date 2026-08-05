@@ -110,6 +110,9 @@
         </sc-if>
         <div style="width:1px;height:38px;background:#e6e2d7;flex:none;"></div>
         <button onClick="{{ openCatalog }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">★ Catalog <span style="{{ catBadgeStyle }}">{{ catCount }}</span></button>
+        <sc-if value="{{ showPeersBtn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openPeers }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ peersBtnLabel }}</button>
+        </sc-if>
         <sc-if value="{{ showIntrosBtn }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ openIntros }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ introsBtnLabel }}</button>
         </sc-if>
@@ -768,6 +771,34 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ peersPanel }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ peersPanel.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.5);display:flex;align-items:center;justify-content:center;padding:22px;z-index:65;animation:atlasFade .2s ease;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:600px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(33,31,26,.3);">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:16px 20px 13px;border-bottom:1px solid #e6e2d7;">
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:#211f1a;">{{ peersPanel.title }}</div>
+            <div style="font-size:11.5px;color:#8a877f;margin-top:2px;line-height:1.45;">{{ peersPanel.sub }}</div>
+          </div>
+          <button onClick="{{ peersPanel.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
+        </div>
+        <div class="atlas-scroll" style="padding:14px 20px 18px;flex:1;overflow-y:auto;">
+          <sc-for list="{{ peersPanel.rows }}" as="p2" hint-placeholder-count="4">
+            <div style="{{ p2.style }}">
+              <div style="font-size:13.5px;font-weight:600;color:#211f1a;">{{ p2.name }}</div>
+              <div style="font-size:12.5px;color:#55534a;margin-top:2px;line-height:1.45;">{{ p2.detail }}</div>
+              <div style="{{ p2.whyStyle }}">{{ p2.why }}</div>
+              <div style="font-size:11.5px;color:#8a877f;margin-top:6px;line-height:1.5;">{{ p2.hoping }}</div>
+              <sc-if value="{{ p2.linkedin }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ p2.linkedin }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:7px;font-size:11.5px;font-weight:600;color:#8C1515;text-decoration:none;">View LinkedIn ↗</a>
+              </sc-if>
+            </div>
+          </sc-for>
+          <div style="{{ peersPanel.noteStyle }}">{{ peersPanel.note }}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ intros }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ closeIntrosBackdrop }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:60;">
       <div style="background:#fffefa;border:1px solid #e6e2d7;border-radius:8px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
@@ -835,6 +866,9 @@ class Component extends DCLogic {
       mentorReachIdx:null,
       // "Your intros" — the signed-in person's own outreach log from /api/intros
       introsOpen:false, intros:[],
+      // /api/peers: dimension-based student-to-student matches, a second view alongside the
+      // reciprocity-based "Find your connections". null = none, or not signed in.
+      peers:null, peersOpen:false,
       showConnections:true,
       egoLayout:"map",
       interview:null, flash:null, filtersOpen:false, showTerritories:true, profileEdit:null, egoSearch:"",
@@ -1064,14 +1098,17 @@ class Component extends DCLogic {
       // mentorship matches are independent of the map: asked for once per sign-in, whether or
       // not they turn out to have a dot (one person on each list does)
       if(cu&&this._mentorTriedFor!==cu.id){ this._mentorTriedFor=cu.id; this.fetchMentorship(); }
-      if(!cu){ this._mentorTriedFor=null; this._mentorShown=false; }
+      // peer matches need a linked profile key, so this runs after linking rather than here;
+      // clerkAutoSelect and tryLink both land on _peersTriedFor below
+      if(cu&&cu.profileKey&&this._peersTriedFor!==cu.id){ this._peersTriedFor=cu.id; this.fetchPeers(true); }
+      if(!cu){ this._mentorTriedFor=null; this._mentorShown=false; this._peersTriedFor=null; }
       if(cu&&cu.profileKey) this.clerkAutoSelect();
       // signed in but not yet linked to a person → ask the server to match them (once per account)
       else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
       // signed out — one site, one rule: no account, no personal view. Back to the public map.
       // signing out drops the intro log with everything else — it is one person's private
       // list, and the next person at this browser must not see a trace of it
-      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this._introsCache=null; this._introLogged=null; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false, mentorReachIdx:null, introsOpen:false, intros:[] }); }
+      else if(!cu&&wasIn){ this._autoSelected=false; this._linkTriedFor=null; this._introsCache=null; this._introLogged=null; this._peersCache=null; this._myAnswers=undefined; this.setState({ selfId:null, exploreId:null, detailId:null, mode:"general", loginOpen:false, linkPhase:null, linkInput:"", mentorship:null, mentorOpen:false, mentorReachIdx:null, introsOpen:false, intros:[], peers:null, peersOpen:false }); }
     });
   }
   // ---- identity: /api/link matches the signed-in person server-side (BACKEND.md) ----
@@ -1564,30 +1601,102 @@ class Component extends DCLogic {
     const store=this.loadProfiles();
     nodes.forEach(n=>{ const d=store[this.profileKey(n)]; if(d) this.mergeProfile(n.person, n.name, d); });
   }
-  // ---- the save seam: today writes to this device; a backend swaps in here (see /api docs) ----
+  // ---- the save seam ----
+  // Device copy first, server second, and in that order on purpose: the local write is
+  // synchronous and cannot fail, so someone's answers survive a flaky network, a signed-out
+  // session, or a 500. The server write is what makes them portable and what feeds matching
+  // for everybody else.
+  //
+  // No key is sent. /api/save derives the row from the verified session — a browser-supplied
+  // key would let anyone overwrite anyone's interview answers, and those answers drive who the
+  // map recommends to whom.
   async persistProfile(node, data){
     try{ const store=this.loadProfiles(); const k=this.profileKey(node); store[k]={...(store[k]||{}), ...data}; localStorage.setItem("ecoatlas_profiles_v1", JSON.stringify(store)); }catch(e){}
-    // FUTURE: await fetch("/api/save",{method:"POST",body:JSON.stringify({key:this.profileKey(node),...data})})
+    // a blurb-only edit has nothing the Responses table holds — don't spend a write on it
+    const interviewish = ["challenge","customer","stage","approaches","brings","seeks"].some(k=>data&&data[k]!=null);
+    if(!interviewish) return false;
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return false;   // signed out: device copy only
+      const p=node.person||{};
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/save",{ method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok },
+        body:JSON.stringify({
+          name:node.name, linkedin:p.linkedin||"", program:(p.programs||[])[0]||"",
+          challenge:(p.challenges&&p.challenges[0]&&p.challenges[0].text)||data.challenge||"",
+          customer:p.customer||"", stage:p.stage||"",
+          approaches:p.approaches||[], brings:p.brings||"", seeks:p.seeks||"",
+        }) });
+      if(!r.ok) throw new Error("save_http_"+r.status);
+      return true;
+    }catch(e){
+      try{ console.warn("[Atlas] answers saved on this device only:", (e&&e.message)||e); }catch(_){}
+      return false;
+    }
+  }
+
+  // Everything downstream of "my answers changed". The matching surfaces each hold their own
+  // cache; a save invalidates all of them and refetches the two that live on the server, in
+  // the same style as _introsCache.
+  refreshMatchesAfterSave(){
+    this._chalDf=null; this._recipDf=null; this._descDf=null;   // rarity tables read profile text
+    this._peersCache=null;                                      // /api/peers
+    this._mentorTriedFor=null;                                  // let the mentorship fetch run again
+    // the ego panel is computed from the in-memory person object, which mergeProfile already
+    // updated — it re-renders on the next setState with no fetch at all
+    this.fetchPeers(true);
+    if(typeof Clerk!=="undefined"&&Clerk.session) this.fetchMentorship();
   }
   saveProfile(id, data){
     const n=this.byId[id]; if(!n) return;
     this.mergeProfile(n.person, n.name, data);
     this._chalDf=null; this._recipDf=null;   // rarity tables depend on profile text
-    this.persistProfile(n, data);
+    // mergeProfile ran first, so the person object is current before the server write reads it
+    return this.persistProfile(n, data);
   }
 
   // ---------- interview flow ----------
+  // Opening the interview a second time IS the update path — same six questions, pre-filled
+  // with the last answers, saving back over the same row through /api/save's upsert. There is
+  // no separate edit form, and no way to end up with two rows for one person.
   openInterview(welcome){
     const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self) return;
     const p=self.person||{};
-    const answers={
-      challenge:(p.challenges&&p.challenges[0]&&p.challenges[0].text)||"",
-      customer:p.customer||"", stage:p.stage||"",
-      approaches:(p.approaches||[]).slice(),
-      brings:p.brings||"", seeks:p.seeks||"",
+    const fill=(src)=>({
+      challenge:(src.challenges&&src.challenges[0]&&src.challenges[0].text)||src.challenge||"",
+      customer:src.customer||"", stage:src.stage||"",
+      approaches:(src.approaches||[]).slice(),
+      brings:src.brings||"", seeks:src.seeks||"",
       needTags:this.needsOf(p).tags.slice(), offerTags:this.offersOf(p).tags.slice(),
-    };
-    this.setState({ interview:{ idx:0, answers, welcome:!!welcome }, detailId:null });
+    });
+    this.setState({ interview:{ idx:0, answers:fill(p), welcome:!!welcome }, detailId:null });
+    // Then top it up from the server. localStorage only ever knew about this device, so
+    // someone answering on their laptop and editing on their phone would otherwise be handed
+    // a blank form and would overwrite their own answers with it. Applied only to fields the
+    // local copy has nothing for, so a fetch landing mid-typing can't clobber what they've
+    // just written.
+    this.fetchMyAnswers().then(server=>{
+      if(!server) return;
+      this.setState(st=>{
+        if(!st.interview) return null;
+        const a={...st.interview.answers};
+        for(const k of ["challenge","customer","stage","brings","seeks"]) if(!a[k] && server[k]) a[k]=server[k];
+        if(!(a.approaches||[]).length && (server.approaches||[]).length) a.approaches=server.approaches.slice();
+        return { interview:{...st.interview, answers:a} };
+      });
+    });
+  }
+  // this person's own saved answers, session-scoped. Cached per page load.
+  async fetchMyAnswers(){
+    if(this._myAnswers!==undefined) return this._myAnswers;
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return (this._myAnswers=null);
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/save",{ headers:{ Authorization:"Bearer "+tok } });
+      if(!r.ok) return (this._myAnswers=null);
+      const j=await r.json();
+      return (this._myAnswers=(j&&j.answers)||null);
+    }catch(e){ return (this._myAnswers=null); }
   }
   // how many of the 6 interview topics a person has filled in (drives the panel nudge)
   profileFilled(person){ const p=person||{}; const c=p.challenges&&p.challenges[0]||{};
@@ -1694,7 +1803,11 @@ class Component extends DCLogic {
   finishInterview(iv){
     const self=this.state.selfId?this.byId[this.state.selfId]:null; if(!self){ this.setState({interview:null}); return; }
     const before=new Set(this.egoData(self).map(c=>c.o.id));
-    this.saveProfile(self.id, iv.answers);
+    // saveProfile resolves once the server write has landed (or been given up on); the match
+    // surfaces are refreshed off the back of it rather than optimistically, so nobody is shown
+    // "refreshed" matches computed from answers that never saved
+    const saving=this.saveProfile(self.id, iv.answers);
+    Promise.resolve(saving).then(ok=>{ if(ok) this.refreshMatchesAfterSave(); });
     const after=this.egoData(self);
     const deep=new Set(["mutual","customer","approach","challenge","stage"]);
     const fresh=after.filter(c=>!before.has(c.o.id) || deep.has(c.rKind));
@@ -2423,6 +2536,49 @@ class Component extends DCLogic {
 
   // "Your intros": the signed-in person's own outreach log. Cached per page load; cleared
   // whenever a new one is logged.
+  // ---------- peer matches (/api/peers) ----------
+  // The dimension-based view of who works your ground, alongside — not instead of — the
+  // reciprocity-based "Find your connections". Same engine as the mentorship panel, so the
+  // provenance rules come with it: every match carries byDim[d].source, and peerWhy below
+  // applies the same claim / hedge / share split the drafted emails use.
+  async fetchPeers(force){
+    if(this._peersCache && !force) return this._peersCache;
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return null;
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/peers",{ headers:{ Authorization:"Bearer "+tok } });
+      if(!r.ok) return null;
+      const j=await r.json();
+      if(!j||!(j.matches||[]).length){ this._peersCache=null; this.setState({peers:null}); return null; }
+      this._peersCache=j;
+      this.setState({peers:j});
+      try{ console.info(`[Atlas] peers: ${j.matches.length} match(es)`); }catch(e){}
+      return j;
+    }catch(e){ try{ console.warn("[Atlas] peer matches unavailable:", (e&&e.message)||e); }catch(_){} return null; }
+  }
+
+  // The one honesty rule, applied to a peer card. Identical in spirit and in wording to
+  // generateMentorIntro's: a category only becomes a claim about somebody when they said it
+  // themselves (source "form") AND their own text backs it up. Everything read off prose is
+  // hedged, and a bare overlap is never stated as a fact about them.
+  //
+  // On this surface almost everything is inferred, so most cards hedge. That is the correct
+  // and slightly uncomfortable answer — it is what the data actually supports.
+  peerWhy(m){
+    const claim=[], hedge=[], share=[]; const seen=new Set();
+    const put=(b,c)=>{ const k=String(c).toLowerCase(); if(!seen.has(k)){ seen.add(k); b.push(k); } };
+    const byDim=m.byDim||{};
+    Object.keys(byDim).forEach(d=>{ const b=byDim[d]||{};
+      (b.evidence||[]).forEach(c=>put(b.source==="form"?claim:hedge,c)); });
+    Object.keys(byDim).forEach(d=>{ const b=byDim[d]||{};
+      (b.shared||[]).forEach(c=>put(b.source==="form"?share:hedge,c)); });
+    const list=a=>{ const x=a.slice(0,2); return x.length>1?x[0]+" and "+x[1]:(x[0]||""); };
+    if(claim.length) return { text:`You both work in ${list(claim)}`, firm:true };
+    if(hedge.length) return { text:`Their project suggests ${list(hedge)}`, firm:false };
+    if(share.length) return { text:`You both picked ${list(share)}`, firm:true };
+    return { text:"Related ground", firm:false };
+  }
+
   async fetchIntros(){
     if(this._introsCache) return this._introsCache;
     try{
@@ -3553,6 +3709,33 @@ class Component extends DCLogic {
       closeReach:()=>this.setState({reachId:null, mentorReachIdx:null}),
       closeReachBackdrop:e=>{ if(e.target===e.currentTarget) this.setState({reachId:null, mentorReachIdx:null}); },
       // catalog
+      // ---- Peer matches: the dimension view, alongside the reciprocity one ----
+      // Deliberately a separate surface from "Find your connections" (see api/peers.mjs for
+      // the reasoning). The sub-line says which question this list answers, so the two are
+      // never read as competing answers to the same one.
+      showPeersBtn: !!(s.peers && (s.peers.matches||[]).length),
+      peersBtnLabel: s.peers ? `◇ Peers · ${(s.peers.matches||[]).length}` : "◇ Peers",
+      openPeers:()=>this.setState({peersOpen:true}),
+      peersPanel: (s.peers && s.peersOpen) ? {
+        title:"People working your ground",
+        sub:"Matched on domain, skills, customer and solution — a different question from “Find your connections”, which ranks who can help whom.",
+        rows:(s.peers.matches||[]).map((m,i)=>{
+          const why=this.peerWhy(m);
+          return {
+            name:m.name, detail:m.detail||"", linkedin:m.linkedin||"",
+            why:why.text,
+            // firm and hedged reasons are coloured differently for the same reason the
+            // mentorship card does it: a reader should be able to see at a glance which
+            // statements the person stands behind and which the system inferred
+            whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${why.firm?"#1c2f5e":"#8a877f"};background:${why.firm?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
+            hoping:(m.hoping||"").slice(0,140),
+            style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
+          };
+        }),
+        note:"Read these as adjacency, not reciprocity — they work on ground like yours, which is not the same as having something you need.",
+        noteStyle:`margin-top:14px;padding-top:12px;border-top:1px solid #e6e2d7;font-size:11.5px;line-height:1.5;color:#9a968a;`,
+        onClose:()=>this.setState({peersOpen:false}),
+      } : null,
       // ---- Your intros: the signed-in person's own outreach log ----
       // Only ever their own rows — /api/intros filters on the session server-side. The pill
       // only exists for someone signed in, since there is nothing to show otherwise.
