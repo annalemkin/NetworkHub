@@ -118,6 +118,9 @@
         <sc-if value="{{ showPeersBtn }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ openPeers }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ peersBtnLabel }}</button>
         </sc-if>
+        <sc-if value="{{ showAdminBtn }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openAdmin }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#8C1515;cursor:pointer;white-space:nowrap;">◈ Pairings</button>
+        </sc-if>
         <sc-if value="{{ showIntrosBtn }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ openIntros }}" style="display:flex;align-items:center;gap:7px;background:none;border:none;padding:12px 15px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">{{ introsBtnLabel }}</button>
         </sc-if>
@@ -943,6 +946,126 @@
     </div>
   </sc-if>
 
+  <!-- ============ the owner's pairings view ============
+       Staff only, and the only screen in this app that shows an email address. z-32: above the
+       feed, the desk and the profile sheet, below the modals — including its own draft. -->
+  <sc-if value="{{ admin }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:32;display:flex;flex-direction:column;background:#f7f5ef;animation:atlasFade .2s ease;">
+      <header style="flex:none;display:flex;align-items:center;gap:16px;padding:0 24px;height:64px;background:#fbf9f4;border-bottom:1px solid #e6e2d7;">
+        <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;">Pairings</div>
+        <div style="font-size:12px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:999px;padding:4px 11px;white-space:nowrap;">Staff only · shows email addresses</div>
+        <div style="flex:1;"></div>
+        <button onClick="{{ admin.onClose }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Close</button>
+      </header>
+
+      <div class="atlas-scroll" style="flex:1;min-height:0;overflow-y:auto;padding:24px 30px 60px;">
+        <div style="max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">
+
+          <div style="display:flex;gap:7px;flex-wrap:wrap;">
+            <sc-for list="{{ admin.tabs }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ admin.loading }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:#6f6c63;padding:20px 0;">Working out who is matched with whom…</div>
+          </sc-if>
+          <sc-if value="{{ admin.forbidden }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:11px;padding:14px 16px;line-height:1.6;">This view is staff only, and this account isn’t marked as staff.</div>
+          </sc-if>
+          <sc-if value="{{ admin.failed }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:#6f6c63;background:#fffefa;border:1px solid #e6e2d7;border-radius:11px;padding:14px 16px;line-height:1.6;">Couldn’t load the pairings just now. Close and try again.</div>
+          </sc-if>
+
+          <!-- the three pair lists share one row, so a pairing reads the same however it arose -->
+          <sc-if value="{{ admin.hasRows }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ admin.rows }}" as="r" hint-placeholder-count="4">
+                <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 8px 24px rgba(33,31,26,.05);padding:16px 18px;display:flex;flex-direction:column;gap:11px;">
+                  <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:240px;">
+                      <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;line-height:1.25;">{{ r.a }} <span style="color:#9a968a;">&lt;&gt;</span> {{ r.b }}</div>
+                      <div style="font-size:12.5px;color:#6f6c63;margin-top:3px;">{{ r.aSub }} · {{ r.bSub }}</div>
+                    </div>
+                    <span style="{{ r.kindStyle }}">{{ r.kindLabel }}</span>
+                  </div>
+                  <div style="font-size:13.5px;line-height:1.55;color:#2e2d29;">{{ r.why }}</div>
+                  <sc-if value="{{ r.noEmail }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:12.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:9px;padding:8px 11px;">{{ r.noEmail }} — the draft is still below, ready for when you have it.</div>
+                  </sc-if>
+                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+                    <sc-if value="{{ r.hasMailto }}" hint-placeholder-val="{{ true }}">
+                      <a href="{{ r.mailto }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 16px;text-decoration:none;display:inline-block;">Email them both</a>
+                    </sc-if>
+                    <button onClick="{{ r.onDraft }}" style="font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">Read the draft</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ admin.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:#9b978d;line-height:1.6;padding:8px 0;">{{ admin.emptyLine }}</div>
+          </sc-if>
+
+          <!-- ---- mentor lookup: the whole roster, filtered by sector ---- -->
+          <sc-if value="{{ admin.isRoster }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <input type="text" value="{{ admin.query }}" onInput="{{ admin.onQuery }}" placeholder="Search mentors by name or role…" class="atlas-field" style="flex:1;min-width:240px;padding:9px 13px;border-radius:999px;font-size:13.5px;" />
+                <div style="font-size:12.5px;color:#8a857a;white-space:nowrap;">{{ admin.rosterCount }}</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <sc-for list="{{ admin.sectorChips }}" as="c" hint-placeholder-count="6">
+                  <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <sc-for list="{{ admin.rosterRows }}" as="m" hint-placeholder-count="6">
+                  <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:11px;padding:13px 15px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:220px;">
+                      <div style="font-size:14.5px;font-weight:700;">{{ m.name }}</div>
+                      <div style="font-size:12.5px;color:#6f6c63;margin-top:2px;line-height:1.45;">{{ m.detail }}</div>
+                      <div style="font-size:11.5px;color:#9a968a;margin-top:2px;">{{ m.cohort }} · {{ m.location }}</div>
+                      <div style="font-size:12px;color:#3a3833;margin-top:5px;">{{ m.domains }}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                      <span style="{{ m.loadStyle }}">{{ m.load }}</span>
+                      <sc-if value="{{ m.noEmail }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:11.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:999px;padding:3px 9px;white-space:nowrap;">{{ m.noEmail }}</span>
+                      </sc-if>
+                      <sc-if value="{{ m.hasLinkedIn }}" hint-placeholder-val="{{ false }}">
+                        <a href="{{ m.linkedin }}" target="_blank" rel="noopener" style="font-size:11.5px;font-weight:600;color:#8C1515;text-decoration:none;">LinkedIn ↗</a>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ admin.rosterEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13.5px;color:#9b978d;">No mentors match that filter.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ admin.draft }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ admin.draft.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:72;">
+      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
+        <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.2;">{{ admin.draft.subject }}</div>
+        <div style="font-size:12.5px;color:#6b6a65;margin-top:6px;">To: {{ admin.draft.to }}</div>
+        <div style="white-space:pre-wrap;font-size:13.5px;line-height:1.65;color:#2e2d29;background:#faf8f2;border:1px solid #e9e5da;border-radius:11px;padding:14px 15px;margin-top:14px;">{{ admin.draft.body }}</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-top:14px;">
+          <button onClick="{{ admin.draft.onCopy }}" style="font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #d9d5c8;">Copy message</button>
+          <span style="{{ admin.draft.copiedStyle }}">Copied ✓</span>
+          <button onClick="{{ admin.draft.onClose }}" class="atlas-quiet" style="margin-left:auto;font-size:13px;color:#9a968a;background:none;border:none;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ landing }}" hint-placeholder-val="{{ false }}">
     <div style="{{ landingStyle }}">
       <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;">
@@ -1313,6 +1436,10 @@ class Component extends DCLogic {
       // history. null = not fetched, or nobody on either mentorship list.
       desk:null, deskTab:"suggested", deskSel:null, deskSaving:false,
       feedTab:"network",   // which screen the signed-in student is on: "network" | "mentors"
+      // the owner's pairings view. adminOpen is the screen; admin holds /api/admin-pairs —
+      // the one payload in this app that carries email addresses.
+      adminOpen:false, admin:null, adminLoading:false, adminTab:"reciprocity",
+      adminSector:"", adminQuery:"", adminDraft:null,
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
       clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
@@ -2626,6 +2753,122 @@ class Component extends DCLogic {
   //
   // Split in two halves so the caller can hoist the expensive one: the "my side" work is
   // per-viewer, and egoData runs the other half across ~200 candidates on every render.
+  // ---------- the owner's pairings view ----------
+  // Sends only the profile KEYS of the pairs computed here and gets back addresses, the mentor
+  // pairings and the roster. The keys are the whole request: this endpoint never lists people,
+  // it answers about the ones already on screen.
+  async openAdmin(){
+    this.setState({ adminOpen:true, adminLoading:!this.state.admin });
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return;
+      const pairs=this.allReciprocityPairs();
+      this._adminPairs=pairs;
+      const keys=[...new Set(pairs.flatMap(p=>[p.aKey,p.bKey]))];
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/admin-pairs",{ method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok },
+        body:JSON.stringify({ keys }) });
+      if(r.status===403){ this.setState({adminLoading:false, admin:{forbidden:true}}); return; }
+      if(!r.ok) throw new Error("admin_http_"+r.status);
+      const j=await r.json();
+      this.setState({ admin:j, adminLoading:false });
+    }catch(e){
+      // message only, never the payload — it holds addresses
+      try{ console.warn("[Atlas] pairings view unavailable:", (e&&e.message)||"error"); }catch(_){}
+      this.setState({ adminLoading:false, admin:{ failed:true } });
+    }
+  }
+  closeAdmin(){ this.setState({adminOpen:false, adminDraft:null}); }
+
+  // ---------- every two-way reciprocity match in the network, not one person's view ----------
+  //
+  // Runs the SAME reciprocity() the ego card and the drafted email already share — no second
+  // engine, no server-side approximation of it. O(n²/2) over ~180 people with a profile is a
+  // few thousand comparisons and takes a few milliseconds, so it runs on demand rather than
+  // being cached and going stale.
+  //
+  // Deduped by construction: the inner loop starts at i+1, so A↔B is considered once and never
+  // also as B↔A. `mutual` is what makes a pairing — help has to flow BOTH ways, which is the
+  // same bar the two-way badge on the map uses.
+  allReciprocityPairs(){
+    const people=(this.state.nodes||[]).filter(n=>n.person && ((n.person.asks||n.person.seeks||"").trim() || (n.person.offers||n.person.brings||"").trim()));
+    const selves=people.map(n=>({ n, r:this.reciprocitySelf(n) }));
+    const out=[];
+    for(let i=0;i<selves.length;i++){
+      const a=selves[i]; if(!a.r) continue;
+      for(let j=i+1;j<selves.length;j++){
+        const b=selves[j]; if(!b.r) continue;
+        // teammates aren't an introduction — they already work together
+        if(a.n.ventureName && b.n.ventureName && this.norm(a.n.ventureName)===this.norm(b.n.ventureName)) continue;
+        const rec=this.reciprocity(a.r, b.n);
+        if(!rec.mutual) continue;
+        out.push({
+          aId:a.n.id, bId:b.n.id, aName:a.n.name, bName:b.n.name,
+          aKey:this.profileKey(a.n), bKey:this.profileKey(b.n),
+          aVenture:a.n.ventureName||"", bVenture:b.n.ventureName||"",
+          // Whose words are whose, and it matters: reciprocity() is written from the caller's
+          // point of view, so "my*" is A (the reciprocitySelf passed in) and "their*" is B.
+          // Getting this backwards puts one person's offer under the other's name in an email
+          // addressed to them both — which is exactly what the first draft did.
+          aGives: rec.myOffer || rec.giveHit || "", bGives: rec.theirOffer || rec.helpHit || "",
+          aAsk: rec.myAsk || "", bAsk: rec.theirAsk || "",
+          helpHit: rec.helpHit||"", giveHit: rec.giveHit||"",
+          // both sides picked it from the shared vocabulary themselves — the difference between
+          // "they said this" and "we read it out of their prose", which the draft has to respect
+          stated: !!(rec.helpStated && rec.giveStated),
+        });
+      }
+    }
+    return out;
+  }
+
+  // ---------- the introduction the OWNER sends, addressed to both people ----------
+  //
+  // A different voice from every other draft in this app. generateIntro and generateMentorIntro
+  // are one person writing to another; this is the programme lead writing to two people at once
+  // about each other, so it needs its own template rather than a reworded version of theirs.
+  //
+  // The honesty split is NOT rebuilt here — it is the same rule the other drafts follow. What
+  // somebody wrote down themselves is stated as fact; what was read out of their prose is
+  // hedged ("looks like", "from what you've written"). One shared paragraph, because the point
+  // is that both of them read the same reason.
+  pairIntro(p){
+    const first=(n)=>String(n||"").trim().split(/\s+/)[0]||"there";
+    const me=((this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"").split(/\s+/)[0]||"Anna";
+    const A=first(p.aName), B=first(p.bName);
+    const subject=`${p.aName} <> ${p.bName} intro`;
+    const vent=(name,v)=>v?`${name} is working on ${v}`:`${name}`;
+    // stated → a claim; inferred → hedged. Same distinction the mentorship drafts make.
+    // Each clause names the right person's own words. Stated = both sides picked it from the
+    // shared vocabulary, so it's reported as fact; otherwise it was read out of their prose and
+    // is hedged. Same claim/hedge rule the mentorship drafts follow — not a second set of it.
+    const why = p.stated
+      ? `${A} asked for ${p.aAsk||"help in an area"}, which is something ${B} offers. And ${B} is looking for ${p.bAsk||"something"} that ${A} can help with. You both said so yourselves.`
+      : `From what you've each written it looks like a two-way fit: ${A} can help with ${p.aGives||"what ${B} is looking for"}, and ${B} with ${p.bGives||"what ${A} needs"}.`;
+    const body=`Hi ${A} and ${B},
+
+I'm introducing you two because it looks like there's something useful here in both directions.
+
+${vent(p.aName,p.aVenture)}. ${vent(p.bName,p.bVenture)}.
+
+${why}
+
+I'll leave you to it from here — I'd love to hear if it goes anywhere.
+
+Best,
+${me}`;
+    return { subject, body };
+  }
+  // A mailto with BOTH addresses in to=, so it opens as one message to the pair rather than two
+  // separate notes. Returns "" when either side has no address on file — the caller disables the
+  // link rather than producing a mailto that silently drops a recipient.
+  pairMailto(p, emails){
+    const a=emails[p.aKey], b=emails[p.bKey];
+    if(!a||!b) return "";
+    const { subject, body }=this.pairIntro(p);
+    return `mailto:${encodeURIComponent(a)},${encodeURIComponent(b)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
   reciprocitySelf(self){
     const p = self && self.person;
     if(!p) return null;
@@ -4033,6 +4276,100 @@ class Component extends DCLogic {
       };
     }
 
+    // ---------- the owner's pairings view ----------
+    let admin=null;
+    if(s.adminOpen && isStaff){
+      const d=s.admin||{}, em=d.emails||{};
+      const pairs=this._adminPairs||[];
+      const noEmail=(k)=>!em[k];
+      const tab=s.adminTab||"reciprocity";
+      const chip=(on)=>`white-space:nowrap;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};transition:background .12s ease;`;
+      // one row shape for all three kinds, so the list reads the same however the pair arose
+      const mkPair=(o)=>{
+        const missing=[o.aMissing?o.aName:"", o.bMissing?o.bName:""].filter(Boolean);
+        return { key:o.key, a:o.aName, b:o.bName, aSub:o.aSub||"", bSub:o.bSub||"",
+          why:o.why, kind:o.kind, kindLabel:o.kindLabel,
+          kindStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;border-radius:999px;padding:3px 9px;color:${o.kindInk};background:${o.kindBg};border:1px solid ${o.kindLine};`,
+          hasMailto:!!o.mailto, mailto:o.mailto||"#",
+          // shown either way — the copy is useful before the address is found
+          noEmail: missing.length ? `No email on file for ${missing.join(" or ")}` : "",
+          onDraft:()=>this.setState({adminDraft:o.draft}),
+        };
+      };
+      const recRows=pairs.map(p=>{
+        const { subject, body }=this.pairIntro(p);
+        return mkPair({ key:"ap-"+p.aKey+"|"+p.bKey, aName:p.aName, bName:p.bName,
+          aSub:p.aVenture, bSub:p.bVenture,
+          why: p.stated ? `Both picked it themselves — ${p.helpHit} ⇄ ${p.giveHit}` : `Two-way fit read from what they wrote — ${p.helpHit} ⇄ ${p.giveHit}`,
+          kind:"reciprocity", kindLabel:"Two-way match", kindInk:"#1c2f5e", kindBg:"#eef1f8", kindLine:"#1c2f5e33",
+          aMissing:noEmail(p.aKey), bMissing:noEmail(p.bKey),
+          mailto:this.pairMailto(p, em), draft:{ subject, body, to:[em[p.aKey]||"", em[p.bKey]||""] } });
+      });
+      const mkMentorRow=(m,confirmed)=>{
+        const p={ aName:m.mentorName, bName:m.studentName, aKey:m.mentorKey, bKey:m.studentKey,
+          aVenture:m.mentorDetail, bVenture:m.studentDetail,
+          aGives:(m.offers||[]).join(", "), bGives:"", aAsk:"", bAsk:"", stated:false };
+        const { subject, body }=this.pairIntro(p);
+        return mkPair({ key:"am-"+m.mentorKey+"|"+m.studentKey, aName:m.mentorName, bName:m.studentName,
+          aSub:m.mentorDetail, bSub:m.studentDetail,
+          why: confirmed
+            ? (m.note || (m.formalised ? `Paired${m.since?" since "+m.since:""}.` : "Mentor accepted — not written up as a pairing yet."))
+            : `Top-ranked and nobody has acted on it${(m.evidence||[]).length?" — both work in "+this.canonCats(m.evidence).slice(0,2).join(" and ").toLowerCase():""}.`,
+          kind: confirmed?"confirmed":"suggested",
+          kindLabel: confirmed?(m.formalised?"Confirmed":"Accepted, not written up"):"Suggested — no action yet",
+          kindInk: confirmed?"#2f5c28":"#8a6d00", kindBg: confirmed?"#2f5c2814":"#fdf6e0", kindLine: confirmed?"#2f5c2833":"#f0e2b4",
+          aMissing:noEmail(m.mentorKey), bMissing:noEmail(m.studentKey),
+          mailto:this.pairMailto(p, em), draft:{ subject, body, to:[em[m.mentorKey]||"", em[m.studentKey]||""] } });
+      };
+      const confirmedRows=((d.mentors&&d.mentors.confirmed)||[]).map(m=>mkMentorRow(m,true));
+      const suggestedRows=((d.mentors&&d.mentors.suggested)||[]).map(m=>mkMentorRow(m,false));
+
+      // ---- the sector lookup over the whole mentor roster ----
+      // Domains only, canonicalised through the same fold the chips use, so a sector here means
+      // exactly what it means on a match card.
+      const roster=d.roster||[];
+      const sectors=[...new Set(roster.flatMap(r=>this.canonCats(r.domains||[])))].sort();
+      const q=this.norm(s.adminQuery);
+      const sec=s.adminSector;
+      const filtered=roster.filter(r=>{
+        const doms=this.canonCats(r.domains||[]);
+        if(sec && !doms.some(x=>this.norm(x)===this.norm(sec))) return false;
+        if(q && !(this.norm(r.name).includes(q) || this.norm(r.detail).includes(q))) return false;
+        return true;
+      });
+      admin={
+        loading: !!s.adminLoading,
+        forbidden: !!(s.admin&&s.admin.forbidden), failed: !!(s.admin&&s.admin.failed),
+        tabs: [["reciprocity",`Two-way matches ${recRows.length}`],["confirmed",`Mentor pairings ${confirmedRows.length}`],["suggested",`Suggested ${suggestedRows.length}`],["roster",`Mentor lookup ${roster.length}`]]
+          .map(([k,label])=>({ key:"at-"+k, label, style:chip(tab===k), onClick:()=>this.setState({adminTab:k}) })),
+        isRec: tab==="reciprocity", isConfirmed: tab==="confirmed", isSuggested: tab==="suggested", isRoster: tab==="roster",
+        rows: tab==="reciprocity"?recRows : tab==="confirmed"?confirmedRows : tab==="suggested"?suggestedRows : [],
+        hasRows: (tab==="reciprocity"?recRows.length : tab==="confirmed"?confirmedRows.length : tab==="suggested"?suggestedRows.length : 0)>0,
+        empty: (tab==="reciprocity"&&!recRows.length) || (tab==="confirmed"&&!confirmedRows.length) || (tab==="suggested"&&!suggestedRows.length),
+        emptyLine: tab==="reciprocity" ? "No two-way matches in the network yet — both sides have to have posted an ask and an offer."
+                 : tab==="confirmed" ? "No mentor has accepted anyone yet."
+                 : "Nothing suggested that hasn't already been decided.",
+        // roster lookup
+        sectorChips: [{ key:"as-all", label:"All sectors", style:chip(!sec), onClick:()=>this.setState({adminSector:""}) }]
+          .concat(sectors.map(x=>({ key:"as-"+x, label:x, style:chip(this.norm(sec)===this.norm(x)), onClick:()=>this.setState({adminSector:x}) }))),
+        query: s.adminQuery, onQuery:(e)=>this.setState({adminQuery:e.target.value}),
+        rosterRows: filtered.map(r=>({ key:"ar-"+r.key, name:r.name, detail:r.detail||"", location:r.location||"",
+          cohort:r.cohort||"", hasLinkedIn:!!r.linkedin, linkedin:r.linkedin||"",
+          domains: this.canonCats(r.domains||[]).join(" · "),
+          load: r.mentees===0?"No mentees":(r.mentees===1?"1 mentee":`${r.mentees} mentees`),
+          loadStyle:`font-size:11.5px;font-weight:600;color:${r.mentees?"#2f5c28":"#8a857a"};background:${r.mentees?"#2f5c2814":"#f4f2ec"};border:1px solid ${r.mentees?"#2f5c2833":"#e6e2d7"};border-radius:999px;padding:3px 9px;white-space:nowrap;`,
+          noEmail: r.hasEmail?"":"No email on file" })),
+        rosterEmpty: filtered.length===0,
+        rosterCount: `${filtered.length} of ${roster.length} mentors`,
+        onClose:()=>this.closeAdmin(),
+        draft: s.adminDraft ? { subject:s.adminDraft.subject, body:s.adminDraft.body,
+          to: s.adminDraft.to.filter(Boolean).join(", ") || "— no address on file —",
+          onClose:()=>this.setState({adminDraft:null}),
+          onCopy:()=>this.copyText(s.adminDraft.body,"adminCopied"),
+          copiedStyle:`font-size:12px;color:#2f5c28;${s.adminCopied?"":"display:none;"}` } : null,
+      };
+    }
+
     // ---------- results panel (live list of matching people) ----------
     const resultsPanel = !egoActive && (s.activeSectors.length>0 || !!s.searchQuery || !!s.exchangeFilter);
     const panelOpen = resultsPanel && !s.listCollapsed;
@@ -4489,7 +4826,10 @@ class Component extends DCLogic {
       onResultsSearch:e=>this.setState({resultsQuery:e.target.value}),
       clearResultsSearch:()=>this.setState({resultsQuery:""}),
       statusLine,
-      feed, desk,
+      feed, desk, admin,
+      // staff-only entry to the pairings view, in the command bar next to ★ Catalog
+      showAdminBtn: isStaff && !s.adminOpen,
+      openAdmin:()=>this.openAdmin(),
       // "Mentors worth reaching" opens the same suggestions panel the pill does, so there's one
       // list of suggested mentors in the app rather than two that could disagree
       hasMentorSuggestions: this.mentorMatches().length>0,

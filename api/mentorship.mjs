@@ -477,7 +477,7 @@ async function airtable(pathname, opts = {}) {
 
 // Whole table, every page. Both tables are small (111 and 12) and read at most once per
 // sign-in, so this is cheaper than filtering twice against Airtable.
-async function loadTable(table, map) {
+export async function loadTable(table, map) {
   const out = [];
   let offset;
   do {
@@ -498,9 +498,9 @@ export const dedupe = (rows) => {
 
 // The one intake question that exists today answers `domains`. The other three are filled in
 // by withInferredTicks below, from the person's own text, and stamped "inferred".
-const dimsFromForm = (f) => ({ ...emptyDims(), domains: ticksOf(f["Topic areas"], "domains") });
+export const dimsFromForm = (f) => ({ ...emptyDims(), domains: ticksOf(f["Topic areas"], "domains") });
 
-const studentOf = (f) => withInferredTicks({
+export const studentOf = (f) => withInferredTicks({
   key: norm(f["Profile key"] || f.Name), name: f.Name || "", email: norm(f.Email),
   dims: dimsFromForm(f),
   stage: f["Stanford Affiliation"] || "",          // how far along: undergrad, master's, PhD, GSB
@@ -514,7 +514,7 @@ const studentOf = (f) => withInferredTicks({
 // about their venture, which `mapText` gathers for the `map` maps to read — for inferred
 // ticks now as well as for evidence. Their key is the LinkedIn slug so it lands in the same
 // space as the mentorship tables' Profile key.
-const mapStudentOf = (p) => withInferredTicks({
+export const mapStudentOf = (p) => withInferredTicks({
   key: liKey(p.linkedin) || norm(p.name), name: p.name || "", email: "",
   dims: emptyDims(), stage: (p.programs || [])[0] || "", program: (p.venture || "").trim(),
   location: "", linkedin: p.linkedin || "",
@@ -524,7 +524,7 @@ const mapStudentOf = (p) => withInferredTicks({
   mapText: [p.venture, p.focus, p.asks, p.offers, (p.tags || []).join(" ")].filter(Boolean).join(" · "),
 }, { formDomains: false });
 
-const alumOf = (f) => withInferredTicks({
+export const alumOf = (f) => withInferredTicks({
   key: norm(f["Profile key"] || f.Name), name: f.Name || "", email: norm(f.Email),
   dims: dimsFromForm(f), stage: (f["Career Stage"] && f["Career Stage"].name) || f["Career Stage"] || "",
   role: f["Current Role and Institution"] || "", location: f.Location || "", linkedin: f["LinkedIn URL"] || "",
