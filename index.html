@@ -269,11 +269,11 @@
       </sc-if>
 
       <sc-if value="{{ showMapFurniture }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;right:20px;top:88px;z-index:18;display:flex;gap:6px;">
-          <sc-for list="{{ layerPills }}" as="lp" hint-placeholder-count="3">
-            <button onClick="{{ lp.onClick }}" style="{{ lp.style }}">{{ lp.label }}</button>
-          </sc-for>
-        </div>
+        <!-- The Territories / Connections / Names toggles are gone (owner, 2026-08-05): the
+             defaults are what everyone wants, and three switches over the map asked a question
+             nobody was trying to answer. All three flags stay TRUE in the constructor and the
+             render still reads them, so the map draws exactly as it did with the pills lit —
+             this removes the controls, not the layers. -->
         <div style="position:absolute;left:20px;bottom:20px;z-index:18;display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
           <sc-if value="{{ helpOpen }}" hint-placeholder-val="{{ false }}">
             <div style="{{ helpPopStyle }}">
@@ -977,7 +977,11 @@
             <div style="font-size:14px;color:#6f6c63;background:#fffefa;border:1px solid #e6e2d7;border-radius:11px;padding:14px 16px;line-height:1.6;">Couldn’t load the pairings just now. Close and try again.</div>
           </sc-if>
 
-          <!-- the three pair lists share one row, so a pairing reads the same however it arose -->
+          <sc-if value="{{ admin.blurb }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13.5px;color:#6f6c63;line-height:1.55;max-width:70ch;margin:-6px 0 -2px;">{{ admin.blurb }}</div>
+          </sc-if>
+
+          <!-- the four pair lists share one row, so a pairing reads the same however it arose -->
           <sc-if value="{{ admin.hasRows }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;flex-direction:column;gap:12px;">
               <sc-for list="{{ admin.rows }}" as="r" hint-placeholder-count="4">
@@ -2801,8 +2805,27 @@ class Component extends DCLogic {
         // teammates aren't an introduction — they already work together
         if(a.n.ventureName && b.n.ventureName && this.norm(a.n.ventureName)===this.norm(b.n.ventureName)) continue;
         const rec=this.reciprocity(a.r, b.n);
-        if(!rec.mutual) continue;
+        // Keep the one-way matches too — they're a different claim, not a weaker version of the
+        // same one, and the owner asked to see them separately.
+        //
+        // Orientation matters and is easy to invert: reciprocity() runs from A's point of view,
+        // so helpHit means B offers what A needs (B helps A) and giveHit means A offers what B
+        // needs (A helps B). Getting this backwards would name the wrong person as the helper in
+        // an email addressed to both of them.
+        if(!rec.helpHit && !rec.giveHit) continue;
+        const direction = rec.mutual ? "mutual" : (rec.giveHit ? "aToB" : "bToA");
+        const aHelpsB = direction==="aToB";
         out.push({
+          direction, mutual: !!rec.mutual, oneWay: !rec.mutual,
+          // who is offering and who is asking, for the one-way copy
+          helperName: aHelpsB ? a.n.name : b.n.name,
+          askerName:  aHelpsB ? b.n.name : a.n.name,
+          helperKey:  aHelpsB ? this.profileKey(a.n) : this.profileKey(b.n),
+          askerKey:   aHelpsB ? this.profileKey(b.n) : this.profileKey(a.n),
+          // the matched thing, in the direction it actually flows
+          thing: (aHelpsB ? rec.giveHit : rec.helpHit) || "",
+          helperOffer: aHelpsB ? (rec.myOffer||"") : (rec.theirOffer||""),
+          askerAsk:    aHelpsB ? (rec.theirAsk||"") : (rec.myAsk||""),
           aId:a.n.id, bId:b.n.id, aName:a.n.name, bName:b.n.name,
           aKey:this.profileKey(a.n), bKey:this.profileKey(b.n),
           aVenture:a.n.ventureName||"", bVenture:b.n.ventureName||"",
@@ -2813,9 +2836,12 @@ class Component extends DCLogic {
           aGives: rec.myOffer || rec.giveHit || "", bGives: rec.theirOffer || rec.helpHit || "",
           aAsk: rec.myAsk || "", bAsk: rec.theirAsk || "",
           helpHit: rec.helpHit||"", giveHit: rec.giveHit||"",
-          // both sides picked it from the shared vocabulary themselves — the difference between
-          // "they said this" and "we read it out of their prose", which the draft has to respect
-          stated: !!(rec.helpStated && rec.giveStated),
+          // Did the people involved pick this themselves, or did we read it out of their prose?
+          // The draft says "you both said so" only when they did. Direction-aware: a one-way
+          // match has only one side to be stated, so requiring both would hedge a claim the
+          // person actually made.
+          stated: rec.mutual ? !!(rec.helpStated && rec.giveStated)
+                : aHelpsB ? !!rec.giveStated : !!rec.helpStated,
         });
       }
     }
@@ -2839,15 +2865,28 @@ class Component extends DCLogic {
     const subject=`${p.aName} <> ${p.bName} intro`;
     const vent=(name,v)=>v?`${name} is working on ${v}`:`${name}`;
     // stated → a claim; inferred → hedged. Same distinction the mentorship drafts make.
-    // Each clause names the right person's own words. Stated = both sides picked it from the
-    // shared vocabulary, so it's reported as fact; otherwise it was read out of their prose and
-    // is hedged. Same claim/hedge rule the mentorship drafts follow — not a second set of it.
-    const why = p.stated
-      ? `${A} asked for ${p.aAsk||"help in an area"}, which is something ${B} offers. And ${B} is looking for ${p.bAsk||"something"} that ${A} can help with. You both said so yourselves.`
-      : `From what you've each written it looks like a two-way fit: ${A} can help with ${p.aGives||"what ${B} is looking for"}, and ${B} with ${p.bGives||"what ${A} needs"}.`;
+    // Each clause names the right person's own words. Stated = they picked it from the shared
+    // vocabulary, so it's reported as fact; otherwise it was read out of their prose and is
+    // hedged. Same claim/hedge rule the mentorship drafts follow — not a second set of it.
+    //
+    // A ONE-WAY match makes a different claim from a two-way one and has to say so. Telling two
+    // people there's "something useful in both directions" when the help only runs one way is
+    // the same class of error as putting one person's offer under the other's name.
+    const helper=first(p.helperName), asker=first(p.askerName);
+    const oneWay=!!p.oneWay;
+    const opener = oneWay
+      ? `I'm introducing you because I think ${helper} can help ${asker} with something specific.`
+      : `I'm introducing you two because it looks like there's something useful here in both directions.`;
+    const why = oneWay
+      ? (p.stated
+          ? `${asker} asked for ${p.askerAsk||p.thing||"help in an area"}, and ${helper} offers exactly that${p.thing?` — ${p.thing}`:""}. You both said so yourselves.`
+          : `From what you've each written it looks like ${helper} can help with ${p.helperOffer||p.thing||"what "+asker+" is after"}, which is close to what ${asker} is looking for. It may not run both ways, but this direction looks worth a conversation.`)
+      : (p.stated
+          ? `${A} asked for ${p.aAsk||"help in an area"}, which is something ${B} offers. And ${B} is looking for ${p.bAsk||"something"} that ${A} can help with. You both said so yourselves.`
+          : `From what you've each written it looks like a two-way fit: ${A} can help with ${p.aGives||"what "+B+" is looking for"}, and ${B} with ${p.bGives||"what "+A+" needs"}.`);
     const body=`Hi ${A} and ${B},
 
-I'm introducing you two because it looks like there's something useful here in both directions.
+${opener}
 
 ${vent(p.aName,p.aVenture)}. ${vent(p.bName,p.bVenture)}.
 
@@ -4296,15 +4335,25 @@ ${me}`;
           onDraft:()=>this.setState({adminDraft:o.draft}),
         };
       };
-      const recRows=pairs.map(p=>{
+      const mkRecRow=(p)=>{
         const { subject, body }=this.pairIntro(p);
+        // the arrow points the way the help actually flows, so the list is readable at a glance
+        const why = p.oneWay
+          ? `${p.helperName} → ${p.askerName}${p.thing?" · "+p.thing:""}${p.stated?" — they picked it themselves":" — read from what they wrote"}`
+          : (p.stated ? `Both picked it themselves — ${p.helpHit} ⇄ ${p.giveHit}` : `Two-way fit read from what they wrote — ${p.helpHit} ⇄ ${p.giveHit}`);
         return mkPair({ key:"ap-"+p.aKey+"|"+p.bKey, aName:p.aName, bName:p.bName,
-          aSub:p.aVenture, bSub:p.bVenture,
-          why: p.stated ? `Both picked it themselves — ${p.helpHit} ⇄ ${p.giveHit}` : `Two-way fit read from what they wrote — ${p.helpHit} ⇄ ${p.giveHit}`,
-          kind:"reciprocity", kindLabel:"Two-way match", kindInk:"#1c2f5e", kindBg:"#eef1f8", kindLine:"#1c2f5e33",
+          aSub:p.aVenture, bSub:p.bVenture, why,
+          kind:"reciprocity",
+          kindLabel: p.oneWay?"One-way match":"Two-way match",
+          kindInk: p.oneWay?"#7a5c12":"#1c2f5e", kindBg: p.oneWay?"#f7f1e2":"#eef1f8", kindLine: p.oneWay?"#7a5c1233":"#1c2f5e33",
           aMissing:noEmail(p.aKey), bMissing:noEmail(p.bKey),
           mailto:this.pairMailto(p, em), draft:{ subject, body, to:[em[p.aKey]||"", em[p.bKey]||""] } });
-      });
+      };
+      const recRows=pairs.filter(p=>p.mutual).map(mkRecRow);
+      // One-way matches are far more numerous than two-way ones, so the ones where somebody
+      // actually picked the thing from the vocabulary lead — those are a claim, the rest are a
+      // reading of their prose.
+      const oneWayRows=pairs.filter(p=>p.oneWay).sort((x,y)=>(y.stated?1:0)-(x.stated?1:0)).map(mkRecRow);
       const mkMentorRow=(m,confirmed)=>{
         const p={ aName:m.mentorName, bName:m.studentName, aKey:m.mentorKey, bKey:m.studentKey,
           aVenture:m.mentorDetail, bVenture:m.studentDetail,
@@ -4340,13 +4389,20 @@ ${me}`;
       admin={
         loading: !!s.adminLoading,
         forbidden: !!(s.admin&&s.admin.forbidden), failed: !!(s.admin&&s.admin.failed),
-        tabs: [["reciprocity",`Two-way matches ${recRows.length}`],["confirmed",`Mentor pairings ${confirmedRows.length}`],["suggested",`Suggested ${suggestedRows.length}`],["roster",`Mentor lookup ${roster.length}`]]
+        tabs: [["reciprocity",`Two-way matches ${recRows.length}`],["oneway",`One-way matches ${oneWayRows.length}`],["confirmed",`Mentor pairings ${confirmedRows.length}`],["suggested",`Suggested ${suggestedRows.length}`],["roster",`Mentor lookup ${roster.length}`]]
           .map(([k,label])=>({ key:"at-"+k, label, style:chip(tab===k), onClick:()=>this.setState({adminTab:k}) })),
-        isRec: tab==="reciprocity", isConfirmed: tab==="confirmed", isSuggested: tab==="suggested", isRoster: tab==="roster",
-        rows: tab==="reciprocity"?recRows : tab==="confirmed"?confirmedRows : tab==="suggested"?suggestedRows : [],
-        hasRows: (tab==="reciprocity"?recRows.length : tab==="confirmed"?confirmedRows.length : tab==="suggested"?suggestedRows.length : 0)>0,
-        empty: (tab==="reciprocity"&&!recRows.length) || (tab==="confirmed"&&!confirmedRows.length) || (tab==="suggested"&&!suggestedRows.length),
+        isRec: tab==="reciprocity", isOneWay: tab==="oneway", isConfirmed: tab==="confirmed", isSuggested: tab==="suggested", isRoster: tab==="roster",
+        // a line saying what this tab's list actually claims, since the four make different ones
+        blurb: tab==="reciprocity" ? "Both people can help each other. The strongest kind of introduction to make."
+             : tab==="oneway" ? "Help runs one way only — the arrow shows which. Still worth an introduction, but say so honestly."
+             : tab==="confirmed" ? "Mentors who accepted a student. Yours to formalise."
+             : tab==="suggested" ? "Top-ranked mentor per student that nobody has acted on yet."
+             : "",
+        rows: tab==="reciprocity"?recRows : tab==="oneway"?oneWayRows : tab==="confirmed"?confirmedRows : tab==="suggested"?suggestedRows : [],
+        hasRows: (tab==="reciprocity"?recRows.length : tab==="oneway"?oneWayRows.length : tab==="confirmed"?confirmedRows.length : tab==="suggested"?suggestedRows.length : 0)>0,
+        empty: (tab==="reciprocity"&&!recRows.length) || (tab==="oneway"&&!oneWayRows.length) || (tab==="confirmed"&&!confirmedRows.length) || (tab==="suggested"&&!suggestedRows.length),
         emptyLine: tab==="reciprocity" ? "No two-way matches in the network yet — both sides have to have posted an ask and an offer."
+                 : tab==="oneway" ? "No one-way matches either — nobody's ask lines up with anybody's offer yet."
                  : tab==="confirmed" ? "No mentor has accepted anyone yet."
                  : "Nothing suggested that hasn't already been decided.",
         // roster lookup
@@ -4860,12 +4916,6 @@ ${me}`;
       // so nobody noticed it arrived with no legend and no layer pills; the sidebar's "Open the
       // full network map" makes it a real destination, and a real map needs its key.
       showMapFurniture: !egoActive && !namePrompt && !landing && (s.mode==="general" || s.showFullMap),
-      layerPills: [
-        { label:"Territories", on:s.showTerritories, onClick:()=>this.setState(st=>({showTerritories:!st.showTerritories})) },
-        { label:"Connections", on:s.showConnections, onClick:()=>this.setState(st=>({showConnections:!st.showConnections})) },
-        { label:"Names", on:s.showNames, onClick:()=>this.setState(st=>({showNames:!st.showNames})) },
-      ].map(p=>({ label:p.label, onClick:p.onClick,
-        style:`font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;${p.on?`background:${INK};color:#fff;border:1px solid ${INK};`:`background:rgba(250,248,242,.92);color:${MUT};border:1px solid ${LINE};`}` })),
       legendStripStyle:`display:flex;align-items:center;gap:16px;font-size:11px;color:${MUT};padding:9px 14px;white-space:nowrap;${CARD}border-radius:8px;`,
       helpPopStyle:`max-width:300px;padding:12px 14px;${CARD}border-radius:8px;`,
       helpOpen: !!s.helpOpen,
