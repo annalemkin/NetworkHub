@@ -2831,6 +2831,7 @@ class Component extends DCLogic {
           aId:a.n.id, bId:b.n.id, aName:a.n.name, bName:b.n.name,
           aKey:this.profileKey(a.n), bKey:this.profileKey(b.n),
           aVenture:a.n.ventureName||"", bVenture:b.n.ventureName||"",
+          aProgram:this.programLabel(a.n), bProgram:this.programLabel(b.n),
           // Whose words are whose, and it matters: reciprocity() is written from the caller's
           // point of view, so "my*" is A (the reciprocitySelf passed in) and "their*" is B.
           // Getting this backwards puts one person's offer under the other's name in an email
@@ -2860,12 +2861,31 @@ class Component extends DCLogic {
   // somebody wrote down themselves is stated as fact; what was read out of their prose is
   // hedged ("looks like", "from what you've written"). One shared paragraph, because the point
   // is that both of them read the same reason.
+  // "EcoSprint ’26" — the cohort line that follows a venture name in the intro
+  programLabel(n){ const p=(n&&n.person)||{}; const pr=(p.programs||[]).filter(Boolean).join(", ");
+    const yr=p.year?String(p.year).slice(-2):""; return pr ? (yr?`${pr} ’${yr}`:pr) : ""; }
+
+  // Light, reversible tidying of somebody's own words so they sit inside a sentence. Deliberately
+  // NOT a rewrite: these are things people wrote about themselves, and paraphrasing an offer can
+  // change what it promises. Only three transforms, each safe — collapse whitespace, turn a
+  // slash between words into "and", and lowercase a leading sentence-case word so the fragment
+  // reads mid-sentence. A word with internal capitals (PepsiCo, MRV) is left alone.
+  tidyPhrase(t){
+    let s=String(t||"").replace(/\s+/g," ").trim().replace(/[.;,]+$/,"");
+    if(!s) return "";
+    s=s.replace(/(\w)\s*\/\s*(\w)/g,"$1 and $2");
+    const w=s.split(" ")[0];
+    if(w && /^[A-Z][a-z]+$/.test(w)) s=s.charAt(0).toLowerCase()+s.slice(1);
+    return s;
+  }
+
   pairIntro(p){
     const first=(n)=>String(n||"").trim().split(/\s+/)[0]||"there";
     const me=((this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"").split(/\s+/)[0]||"Anna";
     const A=first(p.aName), B=first(p.bName);
     const subject=`${p.aName} <> ${p.bName} intro`;
-    const vent=(name,v)=>v?`${name} is working on ${v}`:`${name}`;
+    // "Katherine Sanz is working on Joulian (EcoSprint ’26)" — programme in brackets when known
+    const vent=(name,v,prog)=>v ? `${name} is working on ${v}${prog?` (${prog})`:""}` : name;
     // stated → a claim; inferred → hedged. Same distinction the mentorship drafts make.
     // Each clause names the right person's own words. Stated = they picked it from the shared
     // vocabulary, so it's reported as fact; otherwise it was read out of their prose and is
@@ -2876,25 +2896,32 @@ class Component extends DCLogic {
     // the same class of error as putting one person's offer under the other's name.
     const helper=first(p.helperName), asker=first(p.askerName);
     const oneWay=!!p.oneWay;
+    // Why they're being connected, then who's who — one paragraph, per the owner's wording.
     const opener = oneWay
-      ? `I'm introducing you because I think ${helper} can help ${asker} with something specific.`
-      : `I'm introducing you two because it looks like there's something useful here in both directions.`;
-    const why = oneWay
-      ? (p.stated
-          ? `${asker} asked for ${p.askerAsk||p.thing||"help in an area"}, and ${helper} offers exactly that${p.thing?` — ${p.thing}`:""}. You both said so yourselves.`
-          : `From what you've each written it looks like ${helper} can help with ${p.helperOffer||p.thing||"what "+asker+" is after"}, which is close to what ${asker} is looking for. It may not run both ways, but this direction looks worth a conversation.`)
-      : (p.stated
-          ? `${A} asked for ${p.aAsk||"help in an area"}, which is something ${B} offers. And ${B} is looking for ${p.bAsk||"something"} that ${A} can help with. You both said so yourselves.`
-          : `From what you've each written it looks like a two-way fit: ${A} can help with ${p.aGives||"what "+B+" is looking for"}, and ${B} with ${p.bGives||"what "+A+" needs"}.`);
+      ? `I'm connecting you two because I think ${helper} may be able to help ${asker}.`
+      : `I'm connecting you two because it looks like you can each help the other out.`;
+    const intro = `${opener} ${vent(p.aName,p.aVenture,p.aProgram)}, and ${vent(p.bName,p.bVenture,p.bProgram)}.`;
+
+    // Each person addressed in turn and told what the OTHER brings — the orientation that took
+    // a bug to get right, so it is spelled out: aGives is A's own offer, so it is what B hears.
+    const aOffer=this.tidyPhrase(p.aGives||p.thing), bOffer=this.tidyPhrase(p.bGives||p.thing);
+    // first names once you're inside the letter — full names appear in the opening paragraph,
+    // and repeating them here reads like a form letter rather than an introduction
+    const forA = bOffer ? `${A}, ${B}'s work on ${bOffer} could be useful given where ${p.aVenture||"your work"} is headed.` : "";
+    const forB = aOffer ? `${B}, ${A} brings ${aOffer}, all of which could be relevant for ${p.bVenture||"your work"}.` : "";
+    // one-way says only the half that is true, and says plainly that it is one half
+    const helperIsA = p.direction==="aToB";
+    const middle = oneWay
+      ? [(helperIsA?forB:forA), `It may not run both ways, but this direction looks worth a conversation.`].filter(Boolean).join(" ")
+      : [forA, forB].filter(Boolean).join(" ");
+
     const body=`Hi ${A} and ${B},
 
-${opener}
+${intro}
 
-${vent(p.aName,p.aVenture)}. ${vent(p.bName,p.bVenture)}.
+${middle}
 
-${why}
-
-I'll leave you to it from here — I'd love to hear if it goes anywhere.
+I'll let you two take it from here. Would love to hear if it goes anywhere.
 
 Best,
 ${me}`;
