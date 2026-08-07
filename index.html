@@ -1059,7 +1059,9 @@
     <div onClick="{{ admin.draft.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:72;">
       <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
         <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.2;">{{ admin.draft.subject }}</div>
-        <div style="font-size:12.5px;color:#6b6a65;margin-top:6px;">To: {{ admin.draft.to }}</div>
+        <sc-if value="{{ admin.draft.hasTo }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:#6b6a65;margin-top:6px;">To: {{ admin.draft.to }}</div>
+        </sc-if>
         <div style="white-space:pre-wrap;font-size:13.5px;line-height:1.65;color:#2e2d29;background:#faf8f2;border:1px solid #e9e5da;border-radius:11px;padding:14px 15px;margin-top:14px;">{{ admin.draft.body }}</div>
         <div style="display:flex;gap:9px;align-items:center;margin-top:14px;">
           <button onClick="{{ admin.draft.onCopy }}" style="font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #d9d5c8;">Copy message</button>
@@ -4419,7 +4421,11 @@ ${me}`;
         rosterCount: `${filtered.length} of ${roster.length} mentors`,
         onClose:()=>this.closeAdmin(),
         draft: s.adminDraft ? { subject:s.adminDraft.subject, body:s.adminDraft.body,
-          to: s.adminDraft.to.filter(Boolean).join(", ") || "— no address on file —",
+          // With no address at all the To: line said "— no address on file —", which is a row of
+          // furniture reporting its own emptiness. The card already says the address is missing;
+          // drop the line instead. One address still shows, so you can see who you do have.
+          hasTo: s.adminDraft.to.filter(Boolean).length>0,
+          to: s.adminDraft.to.filter(Boolean).join(", "),
           onClose:()=>this.setState({adminDraft:null}),
           onCopy:()=>this.copyText(s.adminDraft.body,"adminCopied"),
           copiedStyle:`font-size:12px;color:#2f5c28;${s.adminCopied?"":"display:none;"}` } : null,
