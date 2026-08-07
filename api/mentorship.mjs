@@ -26,6 +26,12 @@ const API = "https://api.airtable.com/v0";
 const STUDENTS = "Mentorship Students";
 const ALUMNI = "Mentorship Alumni";
 
+// Programmes held back from the map, lowercased. Must mirror HIDDEN_PROGRAMS in
+// Atlas Map.dc.html — the two are read by different runtimes and there is no shared module
+// between a static page and a serverless function, so they are kept in step by hand.
+// Change one, change the other, or this endpoint recommends people the map won't show.
+const HIDDEN_PROGRAMS = ["ecoramp"];
+
 // How many matches to show. Small on purpose: the point is a handful of people worth writing
 // to, and a long list is the same as no recommendation at all.
 const LIMIT = 5;
@@ -372,6 +378,17 @@ export const withInferredTicks = (person, { formDomains = true } = {}) => {
     dims[d] = inferTicks(person, d);
     dimsSource[d] = "inferred";
   }
+  // Domains is not inferred over a real answer — the note above stands, and the 111 alumni who
+  // ticked the form keep exactly what they ticked. But somebody who was never ASKED has no
+  // answer to guess over the top of, and domains is the one dimension those alumni hold real
+  // data in. Leaving a map student's domains empty meant they shared nothing with any mentor on
+  // the only populated dimension, so opening this to the map produced a panel that matched
+  // almost nobody. Read their venture prose instead, through the same `map` regexes that
+  // already back it as evidence.
+  if (!formDomains) {
+    dims.domains = inferTicks(person, "domains");
+    dimsSource.domains = dims.domains.length ? "inferred" : "none";
+  }
   return { ...person, dims, dimsSource };
 };
 
@@ -602,36 +619,59 @@ export default async function handler(req, res) {
       loadTable(ALUMNI, alumOf).then(dedupe),
     ]);
 
-    // WHO GETS A PANEL AT ALL is decided here, and only by the two mentorship tables. The
-    // pool an alum is *shown* grew to the whole current cohort below, but that must not make
-    // those 122 people eligible themselves — nobody gets an unasked-for mentors panel because
-    // they happen to be on the map.
+    // WHO GETS A PANEL AT ALL.
+    //
+    // Until 2026-08-05 this was the two mentorship tables and nothing else, so the ~10 people
+    // who filled in the interest form could see mentors and the other 122 on the map could not.
+    // The owner's intent was always the wider one: every student should be able to reach those
+    // 111 alumni, and those alumni should be reachable by students from every programme.
+    //
+    // So anyone the matcher has linked to a dot is eligible too. Note the key formats differ
+    // and MUST be reconciled: /api/link stores the whole lowercased LinkedIn URL in
+    // publicMetadata, while mapStudentOf keys on the "in/slug" short form. Comparing them raw
+    // matches only people who have no LinkedIn at all — which is almost nobody — so this would
+    // have failed silently for the entire cohort. liKey() normalises both to the slug.
     const isMe = (r) => (email && r.email === email) || (metaKey && r.key === metaKey);
     const meStudent = students.find(isMe);
     const meAlum = meStudent ? null : alumni.find(isMe);
-    const me = meStudent || meAlum;
-    // signed in, but not on either mentorship list — nothing to say, and nothing leaked
+    // the map, minus any programme held back from it — the app hides these people, and an
+    // endpoint that still recommended them would put names on screen the map denies exist
+    const mapPeople = (await loadPeople(req.headers.host))
+      .filter((p) => !((p.programs || []).length && (p.programs || []).every((x) => HIDDEN_PROGRAMS.includes(norm(x)))));
+    const myMapKey = liKey(metaKey) || metaKey;
+    const meMapRow = (meStudent || meAlum) ? null
+      : mapPeople.find((p) => myMapKey && (liKey(p.linkedin) || norm(p.name)) === myMapKey);
+    const me = meStudent || meAlum || (meMapRow ? mapStudentOf(meMapRow) : null);
+    // signed in, on neither list and not linked to a dot — nothing to say, and nothing leaked
     if (!me) return res.status(200).json({ role: null, matches: [] });
 
-    const side = meStudent ? "alum" : "student";
-    let pool;
-    if (meStudent) {
-      // a student's mentors: the 111 who volunteered to mentor, and nobody else
-      pool = alumni;
-    } else {
-      // An alum's students: the whole current cohort on the map, plus the handful who filled
-      // in the mentorship form but have no map profile yet. Ten form responses was never the
-      // real answer to "who could I help" — a hundred and twenty-two people are already here
-      // describing what they're building. Deduped on the LinkedIn slug for the one person who
-      // is on both lists; the form entry wins, since it carries their stated ticks.
-      const onMap = (await loadPeople(req.headers.host))
-        .filter((p) => p.status === "current")
-        .map(mapStudentOf);
-      pool = dedupe(students.concat(onMap));
-    }
-    pool = pool.filter((r) => r.key !== me.key);
-    const ranked = rankMatches(me, pool, { dims });
-    const matches = ranked.map((m) => publicMatch(m, side, dims));
+    // The mentor pool is the 111 who volunteered, and only them. Map alumni are eligible to
+    // RECEIVE mentor suggestions but are never offered AS mentors: they never agreed to that.
+    const mentorPool = alumni;
+    // Who an alum could help: current-cohort people on the map, plus form students with no map
+    // profile yet. Deduped on the LinkedIn slug; the form entry wins, it carries stated ticks.
+    const studentPool = () => dedupe(students.concat(mapPeople.filter((p) => p.status === "current").map(mapStudentOf)));
+
+    // A map alum gets both halves — they may still want a mentor AND have students to help.
+    const isMapAlum = !!(meMapRow && meMapRow.status === "alum");
+    const wants = meStudent ? ["alum"] : meAlum ? ["student"] : isMapAlum ? ["alum", "student"] : ["alum"];
+
+    const groups = wants.map((shows) => {
+      const pool = (shows === "alum" ? mentorPool : studentPool()).filter((r) => r.key !== me.key);
+      const ranked = rankMatches(me, pool, { dims });
+      return {
+        shows,
+        label: shows === "alum" ? "Mentors for you" : "Students you could help",
+        ranked,
+        matches: ranked.map((m) => publicMatch(m, shows, dims)),
+      };
+    }).filter((g) => g.matches.length);
+
+    // `matches` and `shows` stay as they were, holding the first group, so an older client and
+    // the mentorship panel's existing markup keep working untouched.
+    const side = groups.length ? groups[0].shows : (meStudent ? "alum" : "student");
+    const ranked = groups.flatMap((g) => g.ranked);
+    const matches = groups.length ? groups[0].matches : [];
 
     // How much these are worth, so the interface can say so rather than implying more than
     // the data supports: "role" means the ranking is standing on what people actually do or
@@ -646,7 +686,13 @@ export default async function handler(req, res) {
 
     res.setHeader("Cache-Control", "no-store");
     return res.status(200).json({
-      role: meStudent ? "student" : "alum", name: me.name, shows: side, basis,
+      // "student" and "alum" keep their old meanings — the two mentorship lists. The two map
+      // values are new and say where the person came from, so a client can tell a volunteered
+      // mentor from a map alum who is merely eligible to receive suggestions.
+      role: meStudent ? "student" : meAlum ? "alum" : isMapAlum ? "map-alum" : "map-student",
+      name: me.name, shows: side, basis,
+      // every half of the answer, in order. `matches` above is groups[0] for older callers.
+      groups: groups.map((g) => ({ shows: g.shows, label: g.label, matches: g.matches })),
       // which dimensions this ranking was actually scored on, echoed back so a caller can
       // see that its toggles landed
       dims,

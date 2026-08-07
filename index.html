@@ -214,13 +214,13 @@
               <div style="display:flex;gap:8px;">
                 <div style="flex:1;">
                   <div style="{{ lblStyle }}margin-bottom:7px;">Program</div>
+                  <!-- built from the people actually on the map, so a programme held back by
+                       HIDDEN_PROGRAMS can't be offered as a filter that returns nobody -->
                   <select value="{{ programFilter }}" onChange="{{ onProgram }}" style="{{ fieldStyle }}">
                     <option value="">All programs</option>
-                    <option value="EcoSprint">EcoSprint</option>
-                    <option value="EcoX">EcoX</option>
-                    <option value="EcoSIF">EcoSIF</option>
-                    <option value="EcoGlobal">EcoGlobal</option>
-                    <option value="EcoRAMP">EcoRAMP</option>
+                    <sc-for list="{{ programOptions }}" as="po" hint-placeholder-count="4">
+                      <option value="{{ po.value }}">{{ po.label }}</option>
+                    </sc-for>
                   </select>
                 </div>
                 <div style="flex:1;">
@@ -549,7 +549,10 @@
         </div>
         <div style="flex:1;min-width:0;"></div>
         <nav style="flex:none;display:flex;align-items:center;gap:6px;">
-          <button style="{{ feed.tabNetworkStyle }}">Your network</button>
+          <button onClick="{{ feed.onNetworkTab }}" style="{{ feed.tabNetworkStyle }}">Your network</button>
+          <sc-if value="{{ feed.hasMentorTab }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ feed.onMentorsTab }}" style="{{ feed.tabMentorsStyle }}">{{ feed.mentorTabLabel }}</button>
+          </sc-if>
           <button onClick="{{ feed.onIntros }}" style="{{ feed.tabIntrosStyle }}">Intros<sc-if value="{{ feed.hasIntroCount }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:700;background:rgba(140,21,21,.1);color:#8C1515;border-radius:999px;padding:2px 6px;">{{ feed.introCount }}</span></sc-if></button>
           <button onClick="{{ feed.onAsks }}" style="{{ feed.tabAsksStyle }}">Asks &amp; offers</button>
         </nav>
@@ -580,6 +583,77 @@
       </sc-if>
 
       <div class="atlas-scroll" style="flex:1;min-height:0;overflow-y:auto;padding:26px 30px 60px;">
+
+        <sc-if value="{{ feed.isMentors }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:Newsreader,serif;font-size:30px;font-weight:600;line-height:1.15;letter-spacing:-.01em;">Your mentors</div>
+              <div style="font-size:14px;color:#6f6c63;line-height:1.55;margin-top:7px;max-width:620px;">Alumni paired with you by the programme team. Bring one question to each conversation.</div>
+            </div>
+            <sc-if value="{{ feed.canEdit }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ feed.onEditAsks }}" style="flex:none;font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">Edit my ask</button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ feed.hasMyMentors }}" hint-placeholder-val="{{ true }}">
+            <div id="mentor-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+              <sc-for list="{{ feed.myMentors }}" as="mm" hint-placeholder-count="2">
+                <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,.07);padding:17px 19px;display:flex;flex-direction:column;gap:12px;">
+                  <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <div style="{{ mm.avStyle }}">{{ mm.initials }}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;line-height:1.15;">{{ mm.name }}</div>
+                      <div style="font-size:12.5px;color:#6f6c63;margin-top:3px;line-height:1.45;">{{ mm.title }}</div>
+                      <div style="font-size:11.5px;color:#9a968a;margin-top:2px;">{{ mm.since }}</div>
+                    </div>
+                  </div>
+                  <sc-if value="{{ mm.hasOffer }}" hint-placeholder-val="{{ true }}">
+                    <div style="border-top:1px solid #ece8dd;padding-top:11px;">
+                      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">They offer</div>
+                      <div style="font-size:13px;line-height:1.55;margin-top:5px;color:#2e2d29;">{{ mm.offer }}</div>
+                    </div>
+                  </sc-if>
+                  <div style="background:#f4f1e8;border-radius:10px;padding:10px 12px;">
+                    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Why you two</div>
+                    <div style="font-size:12.5px;line-height:1.55;margin-top:4px;color:#2e2d29;">{{ mm.why }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <button onClick="{{ mm.onDraft }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 16px;cursor:pointer;">Draft an intro</button>
+                    <sc-if value="{{ mm.hasLinkedIn }}" hint-placeholder-val="{{ true }}">
+                      <a href="{{ mm.linkedin }}" target="_blank" rel="noopener" style="font-size:12.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:8px 14px;text-decoration:none;">LinkedIn ↗</a>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ feed.mentorsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;padding:20px 22px;font-size:14px;color:#6f6c63;line-height:1.6;">{{ feed.mentorsEmptyLine }}</div>
+          </sc-if>
+
+          <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;padding:17px 19px;">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Your ask, as mentors see it</div>
+            <div style="font-size:14px;line-height:1.6;color:#2e2d29;margin-top:7px;max-width:70ch;">{{ feed.askAsMentorsSee }}</div>
+          </div>
+
+          <div>
+            <div style="font-family:Newsreader,serif;font-size:23px;font-weight:600;line-height:1.2;">Mentors worth reaching</div>
+            <div style="font-size:13px;color:#6f6c63;margin-top:5px;">Not paired with you — suggested from what you’re building.</div>
+            <div style="margin-top:14px;">
+              <sc-if value="{{ hasMentorSuggestions }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ feed.onMentors2 }}" style="font-size:13px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">{{ mentorSuggestLabel }}</button>
+              </sc-if>
+              <sc-if value="{{ noMentorSuggestions }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13.5px;color:#9b978d;line-height:1.6;">Nothing suggested yet. Fill in your asks and offers and mentors will start to appear.</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ feed.isNetwork }}" hint-placeholder-val="{{ true }}">
         <div id="feed-grid" style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px;align-items:start;">
 
           <div style="min-width:0;">
@@ -703,6 +777,158 @@
             </div>
           </div>
 
+        </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ the mentor's desk ============
+       A mentor has no dot, so none of the map's screens apply to them — this is their whole
+       signed-in experience. z-29: above the feed, below the profile sheet and the modals, so
+       the drafted intro still opens over it. -->
+  <sc-if value="{{ desk }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:29;display:flex;flex-direction:column;background:#f7f5ef;animation:atlasFade .2s ease;">
+      <header style="flex:none;display:flex;align-items:center;gap:18px;padding:0 22px;height:64px;background:#fbf9f4;border-bottom:1px solid #e6e2d7;">
+        <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;">The Ecopreneurship Network</div>
+        <div style="flex:1;"></div>
+        <button onClick="{{ desk.onOpenMap }}" class="atlas-quiet" style="flex:none;font-size:12px;font-weight:600;color:#6f6c63;background:none;border:none;cursor:pointer;white-space:nowrap;">Browse the map</button>
+        <div style="flex:none;display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid #e6e2d7;">
+          <div style="{{ desk.avStyle }}">{{ desk.initials }}</div>
+          <div style="line-height:1.25;white-space:nowrap;">
+            <div style="font-size:13px;font-weight:600;">{{ desk.whoSub }}</div>
+            <div style="font-size:11.5px;color:#6f6c63;">Mentor</div>
+          </div>
+          <button onClick="{{ desk.onSignOut }}" class="atlas-quiet" style="background:none;border:none;padding:0 0 0 6px;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Sign out</button>
+        </div>
+      </header>
+
+      <div id="desk-split" style="flex:1;min-height:0;display:flex;">
+
+        <aside id="desk-list" class="atlas-scroll" style="width:380px;flex:none;border-right:1px solid #e6e2d7;background:#faf8f2;overflow-y:auto;padding:22px 18px 30px;">
+          <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.15;letter-spacing:-.01em;">{{ desk.title }}</div>
+          <div style="font-size:13px;color:#6f6c63;line-height:1.55;margin:7px 0 14px;">{{ desk.sub }}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <sc-for list="{{ desk.tabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ desk.hasRows }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <sc-for list="{{ desk.rows }}" as="r" hint-placeholder-count="5">
+                <div onClick="{{ r.onClick }}" style="{{ r.style }}">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="{{ r.dotStyle }}"></span>
+                    <div style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.name }}</div>
+                    <div style="font-size:11.5px;color:#8a857a;white-space:nowrap;">{{ r.sub }}</div>
+                  </div>
+                  <div style="font-size:12.5px;color:#3a3833;line-height:1.5;margin-top:5px;">{{ r.line }}</div>
+                  <div style="font-size:12px;font-weight:600;color:#8C1515;margin-top:6px;">{{ r.why }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ desk.emptyShown }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:#9b978d;line-height:1.55;padding:14px 2px;">{{ desk.emptyLine }}</div>
+          </sc-if>
+        </aside>
+
+        <div class="atlas-scroll" style="flex:1;min-width:0;overflow-y:auto;padding:26px 30px 60px;">
+          <sc-if value="{{ desk.hasSel }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:900px;display:flex;flex-direction:column;gap:20px;">
+
+              <div style="display:flex;align-items:flex-start;gap:15px;flex-wrap:wrap;">
+                <div style="{{ desk.sel.avStyle }}">{{ desk.sel.initials }}</div>
+                <div style="flex:1;min-width:200px;">
+                  <div style="font-family:Newsreader,serif;font-size:29px;font-weight:600;line-height:1.15;letter-spacing:-.01em;">{{ desk.sel.name }}</div>
+                  <div style="font-size:13.5px;color:#6f6c63;margin-top:4px;">{{ desk.sel.sub }}</div>
+                </div>
+                <div style="display:flex;gap:9px;align-items:center;">
+                  <button onClick="{{ desk.sel.onDraft }}" class="atlas-btn-primary" style="font-size:13px;font-weight:600;border-radius:999px;padding:10px 18px;cursor:pointer;">Draft an intro</button>
+                  <sc-if value="{{ desk.sel.hasLinkedIn }}" hint-placeholder-val="{{ true }}">
+                    <a href="{{ desk.sel.linkedin }}" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:10px 16px;text-decoration:none;">LinkedIn ↗</a>
+                  </sc-if>
+                </div>
+              </div>
+
+              <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;padding:16px 18px;">
+                <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Why you were matched</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#2e2d29;margin-top:7px;">{{ desk.sel.why }}</div>
+              </div>
+
+              <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;">
+                <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:18px;">
+                  <sc-if value="{{ desk.sel.hasProject }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Project</div>
+                      <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.2;margin-top:4px;">{{ desk.sel.project }}</div>
+                      <div style="font-size:14px;line-height:1.6;color:#2e2d29;margin-top:6px;">{{ desk.sel.line }}</div>
+                      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;">
+                        <sc-for list="{{ desk.sel.tags }}" as="tg" hint-placeholder-count="3">
+                          <span style="font-size:12px;border:1px solid #e6e2d7;background:#fff;border-radius:999px;padding:4px 11px;">{{ tg.label }}</span>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ desk.sel.hasAsk }}" hint-placeholder-val="{{ true }}">
+                    <div style="border-top:1px solid #e6e2d7;padding-top:15px;">
+                      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Their current ask</div>
+                      <div style="font-size:14.5px;line-height:1.6;color:#2e2d29;margin-top:6px;">{{ desk.sel.ask }}</div>
+                    </div>
+                  </sc-if>
+                  <div style="border-top:1px solid #e6e2d7;padding-top:15px;">
+                    <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">What you could offer them</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;">
+                      <sc-for list="{{ desk.sel.offers }}" as="o" hint-placeholder-count="5">
+                        <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+                      </sc-for>
+                    </div>
+                    <div style="font-size:12px;color:#9a968a;margin-top:9px;line-height:1.5;">Shared with the programme team, so they know where you can help.</div>
+                  </div>
+                </div>
+
+                <sc-if value="{{ desk.sel.hasMini }}" hint-placeholder-val="{{ true }}">
+                  <div style="width:300px;flex:none;background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;overflow:hidden;">
+                    <div style="padding:13px 15px 10px;display:flex;align-items:baseline;gap:10px;">
+                      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;flex:1;">Where they sit</div>
+                      <button onClick="{{ desk.onOpenMap }}" style="background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#8C1515;cursor:pointer;">Open map</button>
+                    </div>
+                    <div style="position:relative;height:190px;background:radial-gradient(circle at 34% 28%,#faf8f2,#f1eee6);border-top:1px solid #f0ece2;border-bottom:1px solid #f0ece2;overflow:hidden;">
+                      <sc-for list="{{ desk.sel.mini.nodes }}" as="mn" hint-placeholder-count="40">
+                        <div style="{{ mn.style }}"></div>
+                      </sc-for>
+                    </div>
+                    <div style="padding:11px 15px;font-size:12.5px;color:#6f6c63;line-height:1.5;">{{ desk.sel.mini.line }}</div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="border-top:1px solid #e6e2d7;padding-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <sc-if value="{{ desk.sel.undecided }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ desk.sel.onAccept }}" style="font-size:13px;font-weight:600;padding:10px 20px;border-radius:999px;cursor:pointer;background:#2f5c28;color:#fff;border:1px solid #2f5c28;">I’m willing to mentor them</button>
+                  <button onClick="{{ desk.sel.onDecline }}" style="font-size:13px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;background:#fff;color:#6f6c63;border:1px solid #e6e2d7;">Not a fit</button>
+                </sc-if>
+                <sc-if value="{{ desk.sel.accepted }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:13px;font-weight:600;color:#2f5c28;background:#2f5c2814;border:1px solid #2f5c2833;border-radius:999px;padding:7px 14px;">✓ You said you’re willing</span>
+                  <button onClick="{{ desk.sel.onUndo }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Undo</button>
+                </sc-if>
+                <sc-if value="{{ desk.sel.declined }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:13px;font-weight:600;color:#6f6c63;background:#f4f2ec;border:1px solid #e6e2d7;border-radius:999px;padding:7px 14px;">Marked not a fit</span>
+                  <button onClick="{{ desk.sel.onUndo }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Undo</button>
+                </sc-if>
+              </div>
+
+              <sc-if value="{{ desk.noTables }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:10px;padding:10px 12px;line-height:1.5;">Accepting isn’t being saved yet — the Mentor Decisions table hasn’t been created in Airtable.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ desk.noSel }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:520px;padding-top:14px;">
+              <div style="font-family:Newsreader,serif;font-size:24px;font-weight:600;line-height:1.2;">{{ desk.emptyLine }}</div>
+            </div>
+          </sc-if>
         </div>
       </div>
     </div>
@@ -847,7 +1073,11 @@
           <button onClick="{{ mentor.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;font-size:20px;line-height:1;color:#9a968a;cursor:pointer;">×</button>
         </div>
         <div class="atlas-scroll" style="padding:14px 20px 18px;flex:1;overflow-y:auto;">
-          <sc-for list="{{ mentor.matches }}" as="m" hint-placeholder-count="4">
+          <sc-for list="{{ mentor.groups }}" as="mg" hint-placeholder-count="1">
+          <sc-if value="{{ mg.showLabel }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;color:#8a8579;margin:14px 0 2px;">{{ mg.label }}</div>
+          </sc-if>
+          <sc-for list="{{ mg.rows }}" as="m" hint-placeholder-count="4">
             <div style="{{ m.style }}">
               <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
                 <span style="font-size:13.5px;font-weight:600;color:#211f1a;">{{ m.name }}</span>
@@ -862,6 +1092,7 @@
                 </sc-if>
               </div>
             </div>
+          </sc-for>
           </sc-for>
           <div style="{{ mentor.noteStyle }}">{{ mentor.note }}
             <sc-if value="{{ mentor.browse }}" hint-placeholder-val="{{ false }}">
@@ -1069,6 +1300,10 @@ class Component extends DCLogic {
       // tells the app the view is borrowed, and it gates every write path in the app.
       previewId:null,
       miniHover:null,   // id of the dot being hovered in the sidebar's small map
+      // /api/mentor-desk: pairings the programme team made, and this mentor's own accept/decline
+      // history. null = not fetched, or nobody on either mentorship list.
+      desk:null, deskTab:"suggested", deskSel:null, deskSaving:false,
+      feedTab:"network",   // which screen the signed-in student is on: "network" | "mentors"
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
       clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
@@ -1297,13 +1532,23 @@ class Component extends DCLogic {
       // mentorship matches are independent of the map: asked for once per sign-in, whether or
       // not they turn out to have a dot (one person on each list does)
       if(cu&&this._mentorTriedFor!==cu.id){ this._mentorTriedFor=cu.id; this.fetchMentorship(); }
+      // pairings and decisions, for both sides — a student needs their mentors, a mentor needs
+      // their roster, and neither depends on having a dot
+      if(cu&&this._deskTriedFor!==cu.id){ this._deskTriedFor=cu.id; this.fetchDesk(true); }
       // peer matches need a linked profile key, so this runs after linking rather than here;
       // clerkAutoSelect and tryLink both land on _peersTriedFor below
       if(cu&&cu.profileKey&&this._peersTriedFor!==cu.id){ this._peersTriedFor=cu.id; this.fetchPeers(true); }
-      if(!cu){ this._mentorTriedFor=null; this._mentorShown=false; this._peersTriedFor=null; }
+      if(!cu){ this._mentorTriedFor=null; this._mentorShown=false; this._peersTriedFor=null; this._deskTriedFor=null; this._deskCache=null; this.setState({desk:null, deskSel:null}); }
       if(cu&&cu.profileKey) this.clerkAutoSelect();
-      // signed in but not yet linked to a person → ask the server to match them (once per account)
-      else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id; this.tryLink(null); }
+      // Signed in but not yet linked to a person. A MENTOR is the one case where that's the
+      // normal, permanent state — they're deliberately not on the map, so asking them for a
+      // LinkedIn URL to find their dot strands them in a prompt that can never succeed. Check
+      // the mentorship lists first; only fall through to map linking if they're not on one.
+      else if(cu&&this._linkTriedFor!==cu.id){ this._linkTriedFor=cu.id;
+        this.fetchDesk(true).then(d=>{
+          if(d&&d.role==="mentor") this.setState({ loginOpen:false, linkPhase:null, mode:"student" });
+          else this.tryLink(null);
+        }).catch(()=>this.tryLink(null)); }
       // signed out — one site, one rule: no account, no personal view. Back to the public map.
       // signing out drops the intro log with everything else — it is one person's private
       // list, and the next person at this browser must not see a trace of it
@@ -1696,8 +1941,19 @@ class Component extends DCLogic {
   }
 
   // merge cohort-participation rows into one node per person (name is the only reliable key — emails are blank in the source)
+  // Programmes held back from the map. A filter, deliberately, not a deletion: data.js is
+  // rebuilt from Airtable every Monday and anything removed there would simply come back, so
+  // the only durable place to hold a cohort back is here. Empty the array to restore them.
+  // (Owner, 2026-08-05: EcoRAMP — 13 people — out for now.)
+  HIDDEN_PROGRAMS = ["EcoRAMP"];
+
   mergePeople(list){
     const norm=s=>this.norm(s);
+    // drop a row only when EVERY programme on it is hidden — somebody who did EcoRAMP and
+    // EcoSprint is an EcoSprint person too, and should keep their dot
+    const hidden=this.HIDDEN_PROGRAMS.map(p=>norm(p));
+    if(hidden.length) list=list.filter(p=>{ const pr=(p.programs||[]).filter(Boolean);
+      return !pr.length || !pr.every(x=>hidden.includes(norm(x))); });
     const groups=new Map();
     list.forEach(p=>{ const k=norm(p.name); if(!k) return; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(p); });
     const yr=r=>{ const m=(""+(r.year||"")).match(/\d{4}/); return m?+m[0]:0; };
@@ -2788,6 +3044,54 @@ class Component extends DCLogic {
     }
   }
 
+  // ---------- the mentoring relationship (/api/mentor-desk) ----------
+  // A separate call from fetchMentorship because the two have different lifetimes: a match is
+  // recomputed on every request, a pairing outlives the ranking that suggested it.
+  async fetchDesk(force){
+    if(this._deskCache && !force) return this._deskCache;
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return null;
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/mentor-desk",{ headers:{ Authorization:"Bearer "+tok } });
+      if(!r.ok) return null;
+      const j=await r.json();
+      this._deskCache=j;
+      this.setState({desk:j});
+      return j;
+    }catch(e){ try{ console.warn("[Atlas] mentor desk unavailable:", (e&&e.message)||e); }catch(_){} return null; }
+  }
+  // Accept or decline one suggested student, and say what you'd give them. Optimistic: the
+  // roster moves the card immediately and the write follows, because a tab that waits on a
+  // round trip feels broken at exactly the moment someone is triaging a list.
+  async setDeskDecision(studentKey, decision, offers){
+    const prev=(this.state.desk&&this.state.desk.decisions)||{};
+    const next={...prev, [studentKey]:{ decision, offers:offers||((prev[studentKey]||{}).offers||[]) }};
+    this.setState(st=>({ desk:{...(st.desk||{}), decisions:next}, deskSaving:true }));
+    try{
+      if(typeof Clerk==="undefined"||!Clerk.session) return;
+      const tok=await Clerk.session.getToken();
+      const r=await fetch("/api/mentor-desk",{ method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:"Bearer "+tok },
+        body:JSON.stringify({ student:studentKey, decision, offers:next[studentKey].offers }) });
+      const j=await r.json().catch(()=>({}));
+      // the table doesn't exist yet — say so rather than pretending it saved
+      if(j && j.ok===false && j.reason==="no_table") this.flash("Not saved — the Mentor Decisions table hasn't been made yet.");
+      if(this._deskCache) this._deskCache.decisions=next;
+    }catch(e){
+      this.setState(st=>({ desk:{...(st.desk||{}), decisions:prev} }));
+      this.flash("Couldn't save that — try again.");
+    }finally{ this.setState({deskSaving:false}); }
+  }
+  flash(msg){ clearTimeout(this._flashT); this.setState({flash:msg});
+    this._flashT=setTimeout(()=>this.setState(st=>st.flash===msg?{flash:null}:null), 4000); }
+
+  // Every mentorship match in one flat list, in the order the panel draws them. The response's
+  // `matches` is only the FIRST group — that shape is kept for older clients — so anything that
+  // indexes into it must come through here instead. A map alum gets two groups, and indexing
+  // the short list would silently open the draft on the wrong person.
+  mentorMatches(){ const m=this.state.mentorship; if(!m) return [];
+    return (m.groups&&m.groups.length) ? m.groups.reduce((a,g)=>a.concat(g.matches||[]),[]) : (m.matches||[]); }
+
   // "Your intros": the signed-in person's own outreach log. Cached per page load; cleared
   // whenever a new one is logged.
   // ---------- peer matches (/api/peers) ----------
@@ -3220,7 +3524,10 @@ class Component extends DCLogic {
     // down — present enough to say "this is a real network", quiet enough to read over
     const landing = !!s.landing;
     // the mentorship panel only exists for someone the server recognised on one of those lists
-    const mentorData = (s.mentorship && (s.mentorship.matches||[]).length) ? s.mentorship : null;
+    const mentorData = (s.mentorship && this.mentorMatches().length) ? s.mentorship : null;
+    // what the FIRST group shows — the panel's copy keys on this rather than on which list the
+    // viewer came from, since a map student and a form student see the same thing
+    const mentorShows = mentorData ? ((mentorData.groups||[])[0] ? mentorData.groups[0].shows : mentorData.shows) : "";
     // the viewer's own evidenced topics, translated into territories that actually exist in
     // this dataset — an empty list just means "browse everyone current" rather than a filter
     // that would hide the whole map
@@ -3241,6 +3548,25 @@ class Component extends DCLogic {
     const listOf = arr => { const a=(arr||[]).slice(0,3).map(x=>String(x).toLowerCase()); const more=(arr||[]).length-a.length;
       const s2 = a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
       return more>0 ? `${s2} +${more} more` : s2; };
+    // One mentorship row, built once and used by both the grouped list and the flat `matches`
+    // the older markup reads, so the two can't drift. `i` is the index across ALL groups —
+    // mentorReachIdx is read back through mentorMatches(), which flattens the same way.
+    const mkMentorRow = (m,i)=>({
+      name:m.name, detail:m.detail||"", location:m.location||"", linkedin:m.linkedin||"",
+      // at most three, and read as a sentence — four topics strung together with "and"
+      // is a wall of words nobody finishes
+      why: (m.evidence&&m.evidence.length) ? `Works in ${listOf(m.evidence)}${m.sameCity?" · in your city":""}`
+         : `Shares ${listOf(m.shared)||"your focus areas"}${m.sameCity?" · in your city":""}`,
+      whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${(m.evidence&&m.evidence.length)?"#1c2f5e":"#8a877f"};background:${(m.evidence&&m.evidence.length)?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
+      // opens the shared reach modal on this match. The panel stays open behind it, so
+      // closing the draft puts you back in the list where you were.
+      // Detail is the register the draft will be written in, which is the interesting
+      // thing to count: is the evidence split actually reaching people, or is everyone
+      // getting the hedged version? It describes the MATCH's provenance, not the person.
+      draft:()=>{ this.track("mentorship_draft_email",(m.evidence&&m.evidence.length)?"evidence":"topics"); this.setState({mentorReachIdx:i, reachCopied:false}); },
+      draftStyle:`margin-top:8px;margin-right:12px;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;padding:0;cursor:pointer;`,
+      style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
+    });
     const settleSeed = s.settle==="seed", settleRun = s.settle==="run";
     // The connection lines and the neighborhood names fade in behind the dots: drawing them
     // over a spiral that hasn't sorted itself yet would spell out an arrangement that isn't
@@ -3451,7 +3777,7 @@ class Component extends DCLogic {
       const miniLabels=(this._famLabels||[]).map(c=>({ key:"mml-"+c.label, label:c.label.replace(/,.*$/,""),
         style:`position:absolute;left:${px(c.x)}%;top:${py(c.y)}%;transform:translate(-50%,-50%);font-family:Newsreader,serif;font-size:11px;font-weight:500;color:#5b584f;white-space:nowrap;pointer-events:none;z-index:6;text-shadow:0 1px 0 rgba(250,248,242,.9),0 -1px 0 rgba(250,248,242,.9);` }));
       const myFam=(self.tags&&self.tags[0])||"";
-      const mentorCount=((s.mentorship&&s.mentorship.matches)||[]).length;
+      const mentorCount=this.mentorMatches().length;   // all groups, not just the first
       const introCount=(s.intros||[]).length;
       const pill=(on)=>`white-space:nowrap;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};transition:background .12s ease,border-color .12s ease;`;
       const tab=(on)=>`white-space:nowrap;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"transparent"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"transparent"};display:flex;align-items:center;gap:7px;transition:background .12s ease;`;
@@ -3478,7 +3804,38 @@ class Component extends DCLogic {
         studentsStyle: pill(true), studentsCount: egoPanel.total,
         hasMentors: mentorCount>0, mentorsStyle: pill(false), mentorsCount: mentorCount,
         onMentors:()=>this.setState({mentorOpen:true}),
-        tabNetworkStyle: tab(true), tabIntrosStyle: tab(false), tabAsksStyle: tab(false),
+        onMentors2:()=>this.setState({mentorOpen:true}),
+        // ---- "Your mentors": the pairings the programme team made, plus who else to reach ----
+        // Pairings come from /api/mentor-desk and are the owner's own list. Suggestions come
+        // from the ranking. They are kept visibly apart because they mean different things:
+        // one is "this person agreed to help you", the other is "you might get on".
+        onNetworkTab:()=>this.setState({feedTab:"network"}),
+        onMentorsTab:()=>this.setState({feedTab:"mentors"}),
+        isNetwork: (s.feedTab||"network")==="network", isMentors: s.feedTab==="mentors",
+        hasMentorTab: !!(s.desk || mentorCount),
+        mentorTabLabel: ((s.desk&&s.desk.pairs)||[]).length ? `Mentors ${s.desk.pairs.length}` : "Mentors",
+        myMentors: (((s.desk&&s.desk.pairs)||[]).map(p=>({
+          key:"mp-"+p.key, name:p.name, title:p.detail||"", initials:this.initialsOf(p.name),
+          avStyle:`flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:#8C1515;`,
+          since: p.since ? `mentor since ${p.since}` : "",
+          hasOffer: !!p.offer, offer: this.snippet(p.offer,32),
+          why: p.note || `Paired with you by the programme team.`,
+          hasLinkedIn: !!p.linkedin, linkedin: p.linkedin||"",
+          // no Book time, no Message: contact is the drafted intro and LinkedIn, which is what
+          // these alumni agreed to. A button that opens a chat nobody reads is worse than none.
+          onDraft: ()=>{ const i=this.mentorMatches().findIndex(m=>this.norm(m.name)===this.norm(p.name));
+            if(i>=0) this.setState({mentorReachIdx:i, reachCopied:false});
+            else this.flash("No draft for this pairing yet — open their LinkedIn instead."); },
+        }))),
+        hasMyMentors: (((s.desk&&s.desk.pairs)||[]).length>0),
+        // the table isn't made yet, or nobody has been paired with this student
+        mentorsEmpty: !(((s.desk&&s.desk.pairs)||[]).length),
+        mentorsEmptyLine: (s.desk && s.desk.tables && s.desk.tables.pairings===false)
+          ? "No mentors assigned yet. Pairings are made by the programme team."
+          : "Nobody is paired with you yet. The suggestions below are a good place to start.",
+        askAsMentorsSee: (self.person.seeks||self.person.asks||"").trim() || "You haven’t written an ask yet.",
+        tabNetworkStyle: tab((s.feedTab||"network")==="network"), tabMentorsStyle: tab(s.feedTab==="mentors"),
+        tabIntrosStyle: tab(false), tabAsksStyle: tab(false),
         hasIntroCount: introCount>0, introCount,
         onIntros:()=>this.openIntros(), onAsks:()=>this.openExchangeEdit(),
         who: self.name, whoSub: `${self.ventureName&&!/^solo/i.test(self.ventureName)?self.ventureName+" · ":""}${(self.person.programs||[]).join(", ")}${self.person.year?" ’"+String(self.person.year).slice(-2):""}`,
@@ -3515,6 +3872,96 @@ class Component extends DCLogic {
         searchEmpty: s.egoSearch.trim().length>=2 &&
           !s.nodes.some(n=>n.id!==self.id && n.name.toLowerCase().includes(s.egoSearch.trim().toLowerCase())),
         onBrowse:()=>this.setState({mode:"general", selfId:null, previewId:null, detailId:null, interview:null}, ()=>this.fitView(true)),
+      };
+    }
+
+    // ---------- the mentor's desk: a roster of students, one open at a time ----------
+    //
+    // A mentor has no dot, so none of the map's own screens apply to them — this IS their
+    // signed-in experience. Roster left, one student open on the right, per the owner's mock.
+    //
+    // Deliberately absent from the mock: Message and Request a meeting. Contact is a drafted
+    // intro and a LinkedIn link, the same as everywhere else, because that is what these
+    // alumni agreed to — the introduction stays the programme's to make.
+    let desk=null;
+    const deskRole = (s.desk && s.desk.role) || null;
+    if(deskRole==="mentor"){
+      const dec=(s.desk&&s.desk.decisions)||{};
+      const all=this.mentorMatches();
+      const keyOfMatch=(m)=>this.norm(m.linkedin||"").replace(/^.*linkedin\.com\/(?:in|pub)\//,"in/").replace(/\/+$/,"") || this.norm(m.name);
+      const stateOf=(m)=>((dec[keyOfMatch(m)]||{}).decision)||"none";
+      const TABS=[["suggested","Suggested"],["accepted","Accepted"],["declined","Declined"]];
+      const inTab=(m,t)=>t==="suggested" ? stateOf(m)==="none" : stateOf(m)===t;
+      const tab=s.deskTab||"suggested";
+      const rows=all.filter(m=>inTab(m,tab));
+      // keep a selection that's still in the visible tab; otherwise open the first row
+      const selKey = rows.some(m=>keyOfMatch(m)===s.deskSel) ? s.deskSel : (rows[0]?keyOfMatch(rows[0]):null);
+      const sel = rows.find(m=>keyOfMatch(m)===selKey) || null;
+      const selNode = sel ? s.nodes.find(n=>this.norm(n.name)===this.norm(sel.name)) : null;
+      // the student's own words, from the map — the mentorship match object carries none of it
+      const selAsk = selNode ? (selNode.person.seeks||selNode.person.asks||"").trim() : "";
+      const listOf2=a=>{ const x=(a||[]).slice(0,3).map(v=>String(v).toLowerCase());
+        return x.length<2 ? (x[0]||"") : x.slice(0,-1).join(", ")+" and "+x[x.length-1]; };
+      desk={
+        who: (s.clerkUser&&s.clerkUser.first) ? s.clerkUser.first : (s.desk.name||"you"),
+        whoSub: s.desk.name||"",
+        initials: this.initialsOf(s.desk.name||(s.clerkUser&&s.clerkUser.first)||"?"),
+        avStyle:`flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:#8C1515;`,
+        title:"Students suggested for you",
+        sub:"Matched on your focus areas, what you offer, and the programme. Accepting tells the programme team you’re willing — they make the introduction.",
+        tabs: TABS.map(([k,label])=>({ key:"dt-"+k, label:`${label} ${all.filter(m=>inTab(m,k)).length}`,
+          style:`white-space:nowrap;font-size:12px;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer;background:${tab===k?"#8C1515":"#fff"};color:${tab===k?"#fff":"#211f1a"};border:1px solid ${tab===k?"#8C1515":"#e6e2d7"};transition:background .12s ease;`,
+          onClick:()=>this.setState({deskTab:k, deskSel:null}) })),
+        hasRows: rows.length>0, emptyShown: rows.length===0, noSel: !sel,
+        emptyLine: tab==="suggested" ? "Nothing new to look at. Accepted and declined are in the other tabs."
+                 : tab==="accepted" ? "You haven’t accepted anyone yet." : "You haven’t declined anyone.",
+        rows: rows.map(m=>{ const k=keyOfMatch(m), on=k===selKey, node=s.nodes.find(n=>this.norm(n.name)===this.norm(m.name));
+          return { key:"dr-"+k, name:m.name, sub:m.detail||"",
+            line: node ? this.snippet(node.person.focus,20) : "",
+            why: (m.evidence&&m.evidence.length) ? `Works in ${listOf2(m.evidence)}` : `Shares ${listOf2(m.shared)||"your focus areas"}`,
+            dotStyle:`display:inline-block;width:9px;height:9px;border-radius:50%;flex:none;background:${node?personFill(node,false):"#b9b5a8"};`,
+            style:`background:${on?"#fffefa":"transparent"};border:1px solid ${on?"#e6e2d7":"transparent"};border-radius:11px;padding:13px 14px;cursor:pointer;${on?"box-shadow:0 1px 2px rgba(33,31,26,.05),0 6px 18px rgba(33,31,26,.06);":""}transition:background .12s,border-color .12s;`,
+            onClick:()=>this.setState({deskSel:k}) }; }),
+        hasSel: !!sel,
+        sel: sel ? {
+          name: sel.name, sub: [sel.detail, sel.location].filter(Boolean).join(" · "),
+          initials: this.initialsOf(sel.name),
+          avStyle:`flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;background:${selNode?personFill(selNode,false):"#8C1515"};`,
+          why: (sel.evidence&&sel.evidence.length)
+            ? `You both work in ${listOf2(sel.evidence)}${sel.sameCity?", and you're in the same city":""}.`
+            : `You share ${listOf2(sel.shared)||"focus areas"}${sel.sameCity?", and you're in the same city":""}.`,
+          hasProject: !!(selNode&&selNode.ventureName), project: selNode?selNode.ventureName:"",
+          hasLine: !!(selNode&&selNode.person.focus), line: selNode?this.snippet(selNode.person.focus,40):"",
+          tags: selNode ? (selNode.tags||[]).slice(0,4).map(t=>({ key:"dtg-"+t, label:t })) : [],
+          hasAsk: !!selAsk, ask: selAsk,
+          hasLinkedIn: !!sel.linkedin, linkedin: sel.linkedin||"",
+          // the same drafted-intro modal every other reach-out uses
+          onDraft: (()=>{ const i=all.indexOf(sel); return ()=>this.setState({mentorReachIdx:i, reachCopied:false}); })(),
+          state: stateOf(sel), studentKey: selKey,
+          accepted: stateOf(sel)==="accepted", declined: stateOf(sel)==="declined", undecided: stateOf(sel)==="none",
+          onAccept:()=>this.setDeskDecision(selKey,"accepted"),
+          onDecline:()=>this.setDeskDecision(selKey,"declined"),
+          onUndo:()=>this.setDeskDecision(selKey,"none"),
+          // what this mentor would give THIS student, in the students' own vocabulary
+          offers: this.EXCHANGE.filter(x=>!/^Intros: /.test(x)).slice(0,6).map(label=>{
+            const cur=((dec[selKey]||{}).offers)||[], on=cur.includes(label);
+            return { key:"dof-"+label, label,
+              style:`font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};transition:background .12s ease;`,
+              onClick:()=>{ const set=new Set(cur); set.has(label)?set.delete(label):set.add(label);
+                this.setDeskDecision(selKey, stateOf(sel), [...set]); } };
+          }),
+          // where they sit, reusing the same normalisation the sidebar map uses
+          mini: selNode ? (()=>{ const W=s.world.w||1, H=s.world.h||1;
+            const px=v=>(4+(v/W)*92).toFixed(2), py=v=>(4+(v/H)*92).toFixed(2);
+            return { nodes: s.nodes.map(o=>({ key:"dm-"+o.id,
+              style:`position:absolute;left:${px(o.x)}%;top:${py(o.y)}%;width:${o.id===selNode.id?9:4}px;height:${o.id===selNode.id?9:4}px;border-radius:50%;transform:translate(-50%,-50%);background:${personFill(o,false)};opacity:${o.id===selNode.id?1:.2};z-index:${o.id===selNode.id?5:1};` })),
+              line: `${(selNode.tags||[])[0]||"the network"} — where they sit on the map.` };
+          })() : null,
+          hasMini: !!selNode,
+        } : null,
+        onOpenMap: ()=>this.setState({ mode:"general", selfId:null, detailId:selNode?selNode.id:null, landing:false }, ()=>this.fitView(true)),
+        onSignOut: ()=>this.clerkSignOut(),
+        noTables: !!(s.desk.tables && s.desk.tables.decisions===false),
       };
     }
 
@@ -3744,10 +4191,11 @@ class Component extends DCLogic {
           this.copyText(this.reachBodyRef.current?this.reachBodyRef.current.value:intro.body,"reachCopied"); },
         copiedStyle:`font-size:12px;color:#2f5c28;${s.reachCopied?"":"display:none;"}`
       };
-    } else if(s.mentorReachIdx!=null && s.mentorship && (s.mentorship.matches||[])[s.mentorReachIdx]){
+    // through mentorMatches(), not s.mentorship.matches — that field holds only the first group
+    } else if(s.mentorReachIdx!=null && s.mentorship && this.mentorMatches()[s.mentorReachIdx]){
       // Same modal, different source. A mentorship match has no map node, so nothing here can
       // come from this.byId — only from the match object the server sent.
-      const m=s.mentorship.matches[s.mentorReachIdx];
+      const m=this.mentorMatches()[s.mentorReachIdx];
       const intro=this.generateMentorIntro(s.mentorship, m);
       reach={
         name:m.name,
@@ -3891,31 +4339,26 @@ class Component extends DCLogic {
         onClick:()=>{ this.track("mentorship_open","reopened"); this.setState({mentorOpen:true}); },
       } : null,
       mentor: (mentorData && s.mentorOpen) ? {
-        title: mentorData.role==="student" ? "Mentors worth writing to" : "Students in your areas",
+        // Keyed on what the panel is SHOWING, not on which list the viewer came from. Keyed on
+        // role, a map student — who sees mentors — got the alum's title, because role==="student"
+        // only ever meant the mentorship form's students.
+        title: (mentorData.groups||[]).length>1 ? "Mentors, and students you could help"
+             : mentorShows==="alum" ? "Mentors worth writing to" : "Students in your areas",
         // Said plainly, because a ranking built on evidence and one built on shared ticks look
         // identical from the outside. Which one this is comes from the server's `basis`, not
         // from which side you're on — both sides can be evidence-backed now that a student's
         // programme is read the way an alum's job is, and either can fall back to ticks.
         sub: mentorData.basis==="role"
-          ? `From the Energy & Climate Mentorship ${mentorData.role==="student" ? "alumni — ranked by what they actually work on" : "students — ranked by what they're studying"}, not just what they ticked.`
-          : `From the Energy & Climate Mentorship ${mentorData.role==="student" ? "alumni" : "students"}. Matched on shared interests only, so read it as a starting point rather than a shortlist.`,
-        matches: mentorData.matches.map((m,i)=>({
-          name:m.name, detail:m.detail||"", location:m.location||"", linkedin:m.linkedin||"",
-          // at most three, and read as a sentence — four topics strung together with "and"
-          // is a wall of words nobody finishes
-          why: (m.evidence&&m.evidence.length) ? `Works in ${listOf(m.evidence)}${m.sameCity?" · in your city":""}`
-             : `Shares ${listOf(m.shared)||"your focus areas"}${m.sameCity?" · in your city":""}`,
-          whyStyle:`display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:${(m.evidence&&m.evidence.length)?"#1c2f5e":"#8a877f"};background:${(m.evidence&&m.evidence.length)?"#eef1f8":"#f4f2ec"};border-radius:999px;padding:3px 9px;`,
-          // opens the shared reach modal on this match. The panel stays open behind it, so
-          // closing the draft puts you back in the list where you were.
-          // Detail is the register the draft will be written in, which is the interesting
-          // thing to count: is the evidence split actually reaching people, or is everyone
-          // getting the hedged version? It describes the MATCH's provenance, not the person.
-          draft:()=>{ this.track("mentorship_draft_email",(m.evidence&&m.evidence.length)?"evidence":"topics"); this.setState({mentorReachIdx:i, reachCopied:false}); },
-          draftStyle:`margin-top:8px;margin-right:12px;font-size:11.5px;font-weight:600;color:#8C1515;background:none;border:none;padding:0;cursor:pointer;`,
-          style:`padding:13px 0;${i?"border-top:1px solid #eeebe2;":""}`,
-        })),
-        note: mentorData.role==="student"
+          ? `From the Energy & Climate Mentorship ${mentorShows==="alum" ? "alumni — ranked by what they actually work on" : "students — ranked by what they're building"}, not just what they ticked.`
+          : `From the Energy & Climate Mentorship ${mentorShows==="alum" ? "alumni" : "students"}. Matched on shared interests only, so read it as a starting point rather than a shortlist.`,
+        // One group normally; two for a map alum, who may want a mentor AND have students they
+        // could help. `i` counts across ALL groups so it lines up with mentorMatches().
+        groups: (()=>{ let i=-1; const gs=(mentorData.groups&&mentorData.groups.length)
+            ? mentorData.groups : [{ shows:mentorData.shows, label:"", matches:mentorData.matches||[] }];
+          return gs.map(g=>({ key:"mg-"+g.shows, label:g.label||"", showLabel: gs.length>1,
+            rows:(g.matches||[]).map(m=>{ i++; return mkMentorRow(m,i); }) })); })(),
+        matches: (mentorData.matches||[]).map(mkMentorRow),
+        note: mentorShows==="alum"
           ? "Anna can make the introduction if you'd rather not write cold."
           : "These are the closest few. The whole current cohort is on the map.",
         noteStyle:`margin-top:14px;padding-top:12px;border-top:1px solid #e6e2d7;font-size:11.5px;line-height:1.5;color:#9a968a;`,
@@ -3978,7 +4421,12 @@ class Component extends DCLogic {
       onResultsSearch:e=>this.setState({resultsQuery:e.target.value}),
       clearResultsSearch:()=>this.setState({resultsQuery:""}),
       statusLine,
-      feed,
+      feed, desk,
+      // "Mentors worth reaching" opens the same suggestions panel the pill does, so there's one
+      // list of suggested mentors in the app rather than two that could disagree
+      hasMentorSuggestions: this.mentorMatches().length>0,
+      noMentorSuggestions: this.mentorMatches().length===0,
+      mentorSuggestLabel: this.mentorMatches().length===1 ? "See 1 suggested mentor" : `See ${this.mentorMatches().length} suggested mentors`,
       previewBanner: previewing ? `Previewing ${previewName}` : "",
       exitPreview:()=>this.exitPreview(),
       ego, egoActive, egoPanel: (egoPanel && !s.listCollapsed) ? egoPanel : null, focus, namePrompt,
@@ -4101,6 +4549,8 @@ class Component extends DCLogic {
           : (s.exchangeDir==="need" ? "People who need this — check whether you can help." : "People offering this — the ones worth an intro."),
       searchQuery:s.searchQuery, programFilter:s.programFilter, statusFilter:s.statusFilter,
       onSearch:e=>this.setState({searchQuery:e.target.value.toLowerCase(), detailId:null, pinId:null, listCollapsed:false, resultsQuery:""}),
+      // the programmes present in the loaded data, in the order the landing stats count them
+      programOptions: (()=>{ const seen=[]; s.nodes.forEach(n=>(n.person.programs||[]).forEach(p=>{ if(p&&!seen.includes(p)) seen.push(p); })); return seen.sort().map(p=>({key:"po-"+p, value:p, label:p})); })(),
       onProgram:e=>this.setState({programFilter:e.target.value, pinId:null, listCollapsed:false}),
       onStatus:e=>this.setState({statusFilter:e.target.value, pinId:null, listCollapsed:false}),
       clearSectors:e=>{ e.preventDefault(); this.setState({activeSectors:[], listCollapsed:false}); },
