@@ -618,11 +618,14 @@
                     <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#6b6a65;font-weight:600;">Why you two</div>
                     <div style="font-size:12.5px;line-height:1.55;margin-top:4px;color:#2e2d29;">{{ mm.why }}</div>
                   </div>
-                  <div style="display:flex;align-items:center;gap:9px;">
-                    <button onClick="{{ mm.onDraft }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 16px;cursor:pointer;">Draft an intro</button>
+                  <!-- Same rule as the mentor's desk: real LinkedIn out-links, hidden when
+                       there's no profile on file. No booking system and no in-app messages. -->
+                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
                     <sc-if value="{{ mm.hasLinkedIn }}" hint-placeholder-val="{{ true }}">
-                      <a href="{{ mm.linkedin }}" target="_blank" rel="noopener" style="font-size:12.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:8px 14px;text-decoration:none;">LinkedIn ↗</a>
+                      <a href="{{ mm.linkedin }}" target="_blank" rel="noopener" onClick="{{ mm.onOutreach }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 16px;cursor:pointer;text-decoration:none;display:inline-block;">Book time ↗</a>
+                      <a href="{{ mm.linkedin }}" target="_blank" rel="noopener" onClick="{{ mm.onOutreach }}" style="font-size:12.5px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:8px 14px;text-decoration:none;">Message ↗</a>
                     </sc-if>
+                    <button onClick="{{ mm.onDraft }}" style="font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">Draft an intro</button>
                   </div>
                 </div>
               </sc-for>
@@ -843,11 +846,17 @@
                   <div style="font-family:Newsreader,serif;font-size:29px;font-weight:600;line-height:1.15;letter-spacing:-.01em;">{{ desk.sel.name }}</div>
                   <div style="font-size:13.5px;color:#6f6c63;margin-top:4px;">{{ desk.sel.sub }}</div>
                 </div>
-                <div style="display:flex;gap:9px;align-items:center;">
-                  <button onClick="{{ desk.sel.onDraft }}" class="atlas-btn-primary" style="font-size:13px;font-weight:600;border-radius:999px;padding:10px 18px;cursor:pointer;">Draft an intro</button>
+                <!-- Real out-links, not a new system: both open this person's LinkedIn, the
+                     same destination the map's own "LinkedIn →" uses. There is no compose or
+                     scheduling deep-link on a LinkedIn profile, so the two differ in intent
+                     rather than in URL. Hidden entirely when there's no profile on file — a
+                     button that goes nowhere is worse than no button. -->
+                <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
                   <sc-if value="{{ desk.sel.hasLinkedIn }}" hint-placeholder-val="{{ true }}">
-                    <a href="{{ desk.sel.linkedin }}" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:10px 16px;text-decoration:none;">LinkedIn ↗</a>
+                    <a href="{{ desk.sel.linkedin }}" target="_blank" rel="noopener" onClick="{{ desk.sel.onOutreach }}" class="atlas-btn-primary" style="font-size:13px;font-weight:600;border-radius:999px;padding:10px 18px;cursor:pointer;text-decoration:none;display:inline-block;">Request a meeting ↗</a>
+                    <a href="{{ desk.sel.linkedin }}" target="_blank" rel="noopener" onClick="{{ desk.sel.onOutreach }}" style="font-size:13px;font-weight:600;color:#211f1a;background:#fff;border:1px solid #e6e2d7;border-radius:999px;padding:10px 16px;text-decoration:none;">Message ↗</a>
                   </sc-if>
+                  <button onClick="{{ desk.sel.onDraft }}" style="font-size:13px;font-weight:600;padding:10px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">Draft an intro</button>
                 </div>
               </div>
 
@@ -2849,6 +2858,33 @@ class Component extends DCLogic {
     this.setState({bookmarks:bm});
   }
 
+  // ---------- near-synonym categories, folded for DISPLAY only ----------
+  //
+  // The four matching dimensions each carry their own vocabulary, and several name the same
+  // idea in slightly different words. A policy-heavy bio earns "Policy & regulation" (what you
+  // know), "Policy & regulatory" (what you can do) AND "Policy/advocacy" (what you build), so a
+  // reader gets three chips saying policy three times. Every chip builder deduped on an exact
+  // string match, which none of these are, so nothing caught it.
+  //
+  // Folded HERE rather than in the taxonomy on purpose: renaming the categories would mean
+  // touching every regex and every dimension weight in api/mentorship.mjs, which is far bigger
+  // and riskier than this wart deserves. The scoring still runs on all four dimensions
+  // independently — this decides only what the reader is shown.
+  //
+  // The domains label wins each cluster, because domains is the one dimension people actually
+  // self-reported; the other three are inferred from their own text.
+  CANON_CAT = {
+    "policy & regulation":"Policy & regulation", "policy & regulatory":"Policy & regulation", "policy/advocacy":"Policy & regulation",
+    "climate finance":"Climate finance", "investment & finance":"Climate finance", "financing/capital":"Climate finance",
+    "ai/software":"AI/Software", "software/platform":"AI/Software",
+  };
+  canonCat(c){ return this.CANON_CAT[this.norm(c)] || String(c==null?"":c); }
+  // canonicalise a list and drop the duplicates that folding creates, order preserved so the
+  // strongest signal still leads
+  canonCats(arr){ const out=[], seen=new Set();
+    (arr||[]).forEach(c=>{ const v=this.canonCat(c), k=this.norm(v); if(v && !seen.has(k)){ seen.add(k); out.push(v); } });
+    return out; }
+
   // avatar initials: first letter of the first and last name parts. Two letters, never three —
   // a 34px circle can't hold more, and "MvdB" reads as noise rather than as a person.
   initialsOf(name){ const w=String(name||"").trim().split(/\s+/).filter(Boolean); if(!w.length) return "?"; return ((w[0][0]||"")+(w.length>1?w[w.length-1][0]:"")).toUpperCase(); }
@@ -2966,7 +3002,11 @@ class Component extends DCLogic {
     // first, so nothing gets demoted by a later weaker mention.
     const byDim=m.byDim||{};
     const seen=new Set(), claim=[], hedge=[], share=[];
-    const put=(bucket,cat)=>{ const k=String(cat).toLowerCase(); if(!seen.has(k)){ seen.add(k); bucket.push(k); } };
+    // canonicalise BEFORE the bucket check: the three policy categories are three different
+    // strings, so the exact-match dedupe below never fired on them and the sentence read
+    // "…you work in policy & regulation and policy & regulatory". Folding first also keeps the
+    // strongest bucket, since claims are put before hedges and hedges before overlaps.
+    const put=(bucket,cat)=>{ const c=this.canonCat(cat), k=String(c).toLowerCase(); if(!seen.has(k)){ seen.add(k); bucket.push(k); } };
     Object.keys(byDim).forEach(d=>{
       const b=byDim[d]||{}, inferred=b.source==="inferred";
       // evidence = their own text backs this up. A claim only when the category was also
@@ -3143,7 +3183,8 @@ class Component extends DCLogic {
   // and slightly uncomfortable answer — it is what the data actually supports.
   peerWhy(m){
     const claim=[], hedge=[], share=[]; const seen=new Set();
-    const put=(b,c)=>{ const k=String(c).toLowerCase(); if(!seen.has(k)){ seen.add(k); b.push(k); } };
+    // same fold as generateMentorIntro, for the same reason — see canonCat
+    const put=(b,c)=>{ const v=this.canonCat(c), k=String(v).toLowerCase(); if(!seen.has(k)){ seen.add(k); b.push(k); } };
     const byDim=m.byDim||{};
     Object.keys(byDim).forEach(d=>{ const b=byDim[d]||{};
       (b.evidence||[]).forEach(c=>put(b.source==="form"?claim:hedge,c)); });
@@ -3564,7 +3605,11 @@ class Component extends DCLogic {
       const keep = inSectors.length>=6;
       return { sectors: keep?mentorSectors:[], count: keep?inSectors.length:withAsk.length };
     })();
-    const listOf = arr => { const a=(arr||[]).slice(0,3).map(x=>String(x).toLowerCase()); const more=(arr||[]).length-a.length;
+    // canonCats first, so "policy & regulation / policy & regulatory / policy/advocacy" becomes
+    // one chip rather than three that read identically. The "+N more" count is taken AFTER the
+    // fold too, or it would promise two more chips that were only ever the same word again.
+    const listOf = arr0 => { const arr=this.canonCats(arr0);
+      const a=arr.slice(0,3).map(x=>String(x).toLowerCase()); const more=arr.length-a.length;
       const s2 = a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
       return more>0 ? `${s2} +${more} more` : s2; };
     // One mentorship row, built once and used by both the grouped list and the flat `matches`
@@ -3840,6 +3885,7 @@ class Component extends DCLogic {
           hasOffer: !!p.offer, offer: this.snippet(p.offer,32),
           why: p.note || `Paired with you by the programme team.`,
           hasLinkedIn: !!p.linkedin, linkedin: p.linkedin||"",
+          onOutreach: ()=>this.logIntro(p.name, p.key, "Mentorship"),
           // no Book time, no Message: contact is the drafted intro and LinkedIn, which is what
           // these alumni agreed to. A button that opens a chat nobody reads is worse than none.
           onDraft: ()=>{ const i=this.mentorMatches().findIndex(m=>this.norm(m.name)===this.norm(p.name));
@@ -3919,7 +3965,7 @@ class Component extends DCLogic {
       const selNode = sel ? s.nodes.find(n=>this.norm(n.name)===this.norm(sel.name)) : null;
       // the student's own words, from the map — the mentorship match object carries none of it
       const selAsk = selNode ? (selNode.person.seeks||selNode.person.asks||"").trim() : "";
-      const listOf2=a=>{ const x=(a||[]).slice(0,3).map(v=>String(v).toLowerCase());
+      const listOf2=a0=>{ const x=this.canonCats(a0).slice(0,3).map(v=>String(v).toLowerCase());
         return x.length<2 ? (x[0]||"") : x.slice(0,-1).join(", ")+" and "+x[x.length-1]; };
       desk={
         who: (s.clerkUser&&s.clerkUser.first) ? s.clerkUser.first : (s.desk.name||"you"),
@@ -3954,6 +4000,9 @@ class Component extends DCLogic {
           tags: selNode ? (selNode.tags||[]).slice(0,4).map(t=>({ key:"dtg-"+t, label:t })) : [],
           hasAsk: !!selAsk, ask: selAsk,
           hasLinkedIn: !!sel.linkedin, linkedin: sel.linkedin||"",
+          // opening LinkedIn IS the outreach, so it's logged like every other channel. Refused
+          // automatically while previewing — logIntro guards that itself.
+          onOutreach: ()=>this.logIntro(sel.name, selKey, "Mentorship"),
           // the same drafted-intro modal every other reach-out uses
           onDraft: (()=>{ const i=all.indexOf(sel); return ()=>this.setState({mentorReachIdx:i, reachCopied:false}); })(),
           state: stateOf(sel), studentKey: selKey,
