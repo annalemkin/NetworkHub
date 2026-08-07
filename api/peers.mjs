@@ -173,7 +173,25 @@ export default async function handler(req, res) {
   try {
     const clerk = createClerkClient({ secretKey });
     const user = await clerk.users.getUser(userId);
-    const metaKey = norm((user.publicMetadata && user.publicMetadata.profileKey) || "");
+    // ---- staff preview: rank as somebody else, gated server-side ----
+    //
+    // The app's "see the app as <student>" mode needs this endpoint to answer for the person
+    // being previewed, not for the staff account driving it. It cannot be done client-side —
+    // the browser holds the staff session and this endpoint derives identity from that session,
+    // so without a server path the preview silently showed the staff account's own (empty)
+    // matches while claiming to show the student's.
+    //
+    // The gate is publicMetadata.staff, re-verified HERE. syncClerk checks the same flag in the
+    // browser, but that check is a UI affordance; this one is the boundary. publicMetadata is
+    // the server-set half of Clerk's metadata and arrives signed in the session token, so it
+    // cannot be granted by editing the page. unsafeMetadata is deliberately not consulted.
+    //
+    // For everyone who is not staff the parameter is ignored completely and they get their own
+    // matches, exactly as before. No email is returned to the browser on either path.
+    const isStaff = !!(user.publicMetadata && user.publicMetadata.staff);
+    const previewRaw = norm(String((req.query && req.query.previewKey) || ""));
+    const preview = isStaff && previewRaw ? previewRaw : "";
+    const metaKey = preview || norm((user.publicMetadata && user.publicMetadata.profileKey) || "");
     // not linked to anyone on the map — there is no "me" to rank against
     if (!metaKey) return res.status(200).json({ role: null, matches: [] });
 

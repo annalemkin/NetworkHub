@@ -129,9 +129,18 @@ export default async function handler(req, res) {
     const primary = (user.emailAddresses || []).find((e) => e.id === user.primaryEmailAddressId);
     // verified only — the same rule /api/link and /api/mentorship use. An unverified address
     // would let anyone claim a mentor's desk by typing their address at sign-up.
-    const email = primary && primary.verification && primary.verification.status === "verified"
-      ? norm(primary.emailAddress) : "";
-    const metaKey = String((user.publicMetadata && user.publicMetadata.profileKey) || "");
+    // Staff preview, same gate and same reasoning as /api/mentorship and /api/peers: this
+    // endpoint reads identity from the session, so without a server path a preview would put
+    // the STAFF account's pairings inside a screen labelled with the student's name.
+    // publicMetadata.staff is re-verified here; it is server-set and arrives signed in the
+    // token, so it cannot be self-granted from the page.
+    const isStaff = !!(user.publicMetadata && user.publicMetadata.staff);
+    const previewRaw = norm(String((req.query && req.query.previewKey) || ""));
+    const preview = isStaff && previewRaw ? previewRaw : "";
+    const email = preview ? ""
+      : (primary && primary.verification && primary.verification.status === "verified"
+          ? norm(primary.emailAddress) : "");
+    const metaKey = preview || String((user.publicMetadata && user.publicMetadata.profileKey) || "");
 
     const me = await whoAmI(email, metaKey);
     // a map student who is on no mentorship list still has pairings to read — their key is the
@@ -142,6 +151,11 @@ export default async function handler(req, res) {
 
     // ---------- POST: one mentor's decision about one student ----------
     if (req.method === "POST") {
+      // A preview is a looking glass, never an account — the same rule the client's isPreview()
+      // enforces on every write path. Without this, staff previewing a mentor would inherit
+      // their role and be able to accept students AS them, with nothing recording who really
+      // pressed it. Read is previewable; write never is.
+      if (preview) return res.status(403).json({ error: "preview_is_read_only" });
       if (!iAmMentor) return res.status(403).json({ error: "mentors_only" });
       const body = typeof req.body === "object" && req.body ? req.body : {};
       const student = keyOf(body.student);

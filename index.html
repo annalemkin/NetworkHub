@@ -1644,7 +1644,7 @@ class Component extends DCLogic {
     try{
       if(typeof Clerk==="undefined"||!Clerk.session) return;
       const tok=await Clerk.session.getToken();
-      const r=await fetch("/api/mentorship",{ headers:{ Authorization:"Bearer "+tok } });
+      const r=await fetch("/api/mentorship"+this.previewQS(), { headers:{ Authorization:"Bearer "+tok } });
       if(!r.ok) return;
       const j=await r.json();
       if(!j||!j.role||!(j.matches||[]).length) return;
@@ -2498,19 +2498,38 @@ class Component extends DCLogic {
   // protects email addresses if those ever reach the browser — data.js is email-free today, and
   // when emails arrive they belong behind a server session check, not behind this flag.
   isPreview(){ return !!this.state.previewId; }
+  // ?previewKey= for the two endpoints that derive identity from the session. They cannot know
+  // who is being previewed any other way: the browser holds the STAFF session, so without this
+  // both silently answered for the staff account while the screen claimed to be the student's.
+  // The server ignores the parameter for anyone whose publicMetadata.staff isn't true.
+  previewQS(){ const n=this.state.previewId?this.byId[this.state.previewId]:null;
+    return n ? "?previewKey="+encodeURIComponent(this.profileKey(n)) : ""; }
+  // Both panels cache per page load and are keyed to whoever was current when they were
+  // fetched, so entering or leaving a preview has to drop them or the previous person's
+  // matches stay on screen under the new name — which is worse than showing nothing.
+  resetMatchFetches(){ this._mentorTriedFor=null; this._mentorShown=true; this._peersTriedFor=null;
+    this._peersCache=null; this._deskCache=null;
+    this.setState({ mentorship:null, peers:null, mentorOpen:false, peersOpen:false, desk:null }); }
   previewAs(id){
     const n=this.byId[id]; if(!n) return;
     // deliberately not selectSelf: that opens the profile interview on a first-ever visit, which
     // would put staff inside a form that writes to this student's record
+    this.resetMatchFetches();
     this.setState({ previewId:id, selfId:id, mode:"student", loginOpen:false, detailId:null,
       showFullMap:false, egoLayout:"map", listCollapsed:false, exploreId:null, pinId:null,
-      searchQuery:"", resultsQuery:"", interview:null, profileEdit:null, exchangeEdit:null },
-      ()=>this.frameNetwork(id, true));
+      searchQuery:"", resultsQuery:"", interview:null, profileEdit:null, exchangeEdit:null,
+      feedTab:"network" },
+      ()=>{ this.frameNetwork(id, true);
+        // refetch AS the previewed person — previewQS() now carries their key
+        this.fetchMentorship(); this.fetchPeers(true); this.fetchDesk(true); });
   }
   exitPreview(){
+    // drop the previewed person's matches BEFORE clearing previewId, so nothing keeps their
+    // cards on screen once the banner naming them has gone
+    this.resetMatchFetches();
     this.setState({ previewId:null, selfId:null, mode:"general", detailId:null, exploreId:null,
       interview:null, profileEdit:null, exchangeEdit:null, reachId:null, listCollapsed:false },
-      ()=>this.fitView(true));
+      ()=>{ this.fitView(true); this.fetchMentorship(); this.fetchDesk(true); });
   }
 
   selectSelf(id){
@@ -3052,7 +3071,7 @@ class Component extends DCLogic {
     try{
       if(typeof Clerk==="undefined"||!Clerk.session) return null;
       const tok=await Clerk.session.getToken();
-      const r=await fetch("/api/mentor-desk",{ headers:{ Authorization:"Bearer "+tok } });
+      const r=await fetch("/api/mentor-desk"+this.previewQS(), { headers:{ Authorization:"Bearer "+tok } });
       if(!r.ok) return null;
       const j=await r.json();
       this._deskCache=j;
@@ -3104,7 +3123,7 @@ class Component extends DCLogic {
     try{
       if(typeof Clerk==="undefined"||!Clerk.session) return null;
       const tok=await Clerk.session.getToken();
-      const r=await fetch("/api/peers",{ headers:{ Authorization:"Bearer "+tok } });
+      const r=await fetch("/api/peers"+this.previewQS(), { headers:{ Authorization:"Bearer "+tok } });
       if(!r.ok) return null;
       const j=await r.json();
       if(!j||!(j.matches||[]).length){ this._peersCache=null; this.setState({peers:null}); return null; }

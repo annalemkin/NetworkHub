@@ -610,8 +610,26 @@ export default async function handler(req, res) {
     const primary = (user.emailAddresses || []).find((e) => e.id === user.primaryEmailAddressId);
     // only a VERIFIED address may match — the same rule /api/link uses. An unverified one
     // would let anyone claim a participant's matches by typing their address at sign-up.
-    const email = primary && primary.verification && primary.verification.status === "verified" ? norm(primary.emailAddress) : "";
-    const metaKey = norm((user.publicMetadata && user.publicMetadata.profileKey) || "");
+    // ---- staff preview: answer for the previewed person, gated server-side ----
+    //
+    // Same shape as /api/peers. The preview mode needs this endpoint to rank for the student
+    // being previewed rather than the staff account driving it, and that cannot be done from
+    // the browser — the client holds the staff session and identity is derived from it, so the
+    // preview was silently returning the staff account's own matches while claiming otherwise.
+    //
+    // publicMetadata.staff is re-verified here rather than trusted from the client: it is the
+    // server-set half of Clerk's metadata, arrives signed in the session token, and cannot be
+    // self-granted by editing the page. unsafeMetadata is deliberately not consulted.
+    //
+    // When previewing, BOTH identity inputs are replaced — the email is blanked as well as the
+    // key. Leaving the staff account's verified email in place would let it keep matching the
+    // mentorship tables and quietly mix two people's identities in one answer.
+    const isStaff = !!(user.publicMetadata && user.publicMetadata.staff);
+    const previewRaw = norm(String((req.query && req.query.previewKey) || ""));
+    const preview = isStaff && previewRaw ? previewRaw : "";
+    const email = preview ? ""
+      : (primary && primary.verification && primary.verification.status === "verified" ? norm(primary.emailAddress) : "");
+    const metaKey = preview || norm((user.publicMetadata && user.publicMetadata.profileKey) || "");
     if (!email && !metaKey) return res.status(200).json({ role: null, matches: [] });
 
     const [students, alumni] = await Promise.all([
