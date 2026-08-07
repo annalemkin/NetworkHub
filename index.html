@@ -2838,6 +2838,10 @@ class Component extends DCLogic {
           // addressed to them both — which is exactly what the first draft did.
           aGives: rec.myOffer || rec.giveHit || "", bGives: rec.theirOffer || rec.helpHit || "",
           aAsk: rec.myAsk || "", bAsk: rec.theirAsk || "",
+          // the UNTRUNCATED ask, for the letter. rec.myAsk has been through snippet(), which
+          // cuts at a word count and adds an ellipsis — fine on a card, wrong mid-sentence in
+          // an email, where it reads as a broken thought.
+          aAskRaw:(a.n.person.seeks||a.n.person.asks||""), bAskRaw:(b.n.person.seeks||b.n.person.asks||""),
           helpHit: rec.helpHit||"", giveHit: rec.giveHit||"",
           // Did the people involved pick this themselves, or did we read it out of their prose?
           // The draft says "you both said so" only when they did. Direction-aware: a one-way
@@ -2861,9 +2865,9 @@ class Component extends DCLogic {
   // somebody wrote down themselves is stated as fact; what was read out of their prose is
   // hedged ("looks like", "from what you've written"). One shared paragraph, because the point
   // is that both of them read the same reason.
-  // "EcoSprint ’26" — the cohort line that follows a venture name in the intro
-  programLabel(n){ const p=(n&&n.person)||{}; const pr=(p.programs||[]).filter(Boolean).join(", ");
-    const yr=p.year?String(p.year).slice(-2):""; return pr ? (yr?`${pr} ’${yr}`:pr) : ""; }
+  // "EcoSprint" — the programme, bracketed after a person's NAME in the intro. Programme only,
+  // no year: the owner's format, and in a letter the cohort year is detail nobody reads.
+  programLabel(n){ const p=(n&&n.person)||{}; return (p.programs||[]).filter(Boolean).join(", "); }
 
   // Light, reversible tidying of somebody's own words so they sit inside a sentence. Deliberately
   // NOT a rewrite: these are things people wrote about themselves, and paraphrasing an offer can
@@ -2879,13 +2883,48 @@ class Component extends DCLogic {
     return s;
   }
 
+  // Somebody's posted ask, shaped to sit inside a sentence in a letter.
+  //
+  // Board answers are rarely one clean phrase — they're bulleted lists ("carbon market & MRV
+  // expertise - Manufacturing scale-up - Connections in…"), and they usually open with the very
+  // words the sentence already supplies ("looking for guidance on…" after "you're after…").
+  // Flattening one whole into a sentence produced doubled phrasing and a mid-thought ellipsis.
+  //
+  // So: split the list, take at most the first two items, drop the leading stem, and never
+  // append an ellipsis — an unfinished sentence in an email over her name reads as carelessness.
+  // Returns "" when nothing survives, and the caller falls back to the ask-free wording.
+  askPhrase(raw){
+    const STEM=/^(i(?:'m| am)?\s+)?(currently\s+)?(looking for|seeking|in search of|after|interested in|hoping for|hoping to find|would love|need|needs|want|wanting|trying to find|help with|advice on|guidance on|intros? to|introductions? to|connections? (?:to|with|in))\s+/i;
+    // Split on real separators, on a comma before a new sentence-cased item, AND on a comma
+    // before a repeated ask-stem — "introduction to X, introduction to Y" is two items even
+    // though the second starts lowercase, and treating it as one produced a 178-character
+    // "phrase" that swallowed the whole answer.
+    const items=String(raw||"")
+      .split(/\s*[\n•;]\s*|\s+-\s+|\s*,\s*(?=[A-Z])|\s*,\s*(?=(?:intros?|introduction|connection|connections|contacts?|advice|help|tips|guidance|access)\b)/i)
+      .map(t=>t.trim()).filter(Boolean);
+    const cleaned=items.map(t=>{
+      // a bullet marker at the very start of a line isn't caught by the " - " separator above
+      let s=t.replace(/^\s*[-–—*•]\s*/,"");
+      for(let i=0;i<2;i++) s=s.replace(STEM,"");        // twice: "looking for intros to X"
+      return this.tidyPhrase(s.replace(/[.…]+$/,""));
+    }).filter(s=>s.length>2);
+    if(!cleaned.length) return "";
+    const take=cleaned.slice(0,2);
+    const joined=take.length>1 ? `${take[0]} and ${take[1]}` : take[0];
+    // a phrase this long stopped being a phrase; use the first item alone rather than truncating
+    return joined.length>140 ? take[0] : joined;
+  }
+
   pairIntro(p){
     const first=(n)=>String(n||"").trim().split(/\s+/)[0]||"there";
     const me=((this.state.clerkUser&&(this.state.clerkUser.first||"").trim())||"").split(/\s+/)[0]||"Anna";
     const A=first(p.aName), B=first(p.bName);
     const subject=`${p.aName} <> ${p.bName} intro`;
-    // "Katherine Sanz is working on Joulian (EcoSprint ’26)" — programme in brackets when known
-    const vent=(name,v,prog)=>v ? `${name} is working on ${v}${prog?` (${prog})`:""}` : name;
+    // "Katherine Sanz (EcoSprint) is working on Joulian" — the programme brackets the PERSON,
+    // not the venture. Falls back to the bare name, then to name-plus-programme, so somebody
+    // with no venture on file still gets placed.
+    const vent=(name,v,prog)=>{ const who=`${name}${prog?` (${prog})`:""}`;
+      return v ? `${who} is working on ${v}` : who; };
     // stated → a claim; inferred → hedged. Same distinction the mentorship drafts make.
     // Each clause names the right person's own words. Stated = they picked it from the shared
     // vocabulary, so it's reported as fact; otherwise it was read out of their prose and is
@@ -2905,10 +2944,22 @@ class Component extends DCLogic {
     // Each person addressed in turn and told what the OTHER brings — the orientation that took
     // a bug to get right, so it is spelled out: aGives is A's own offer, so it is what B hears.
     const aOffer=this.tidyPhrase(p.aGives||p.thing), bOffer=this.tidyPhrase(p.bGives||p.thing);
-    // first names once you're inside the letter — full names appear in the opening paragraph,
-    // and repeating them here reads like a form letter rather than an introduction
-    const forA = bOffer ? `${A}, ${B}'s work on ${bOffer} could be useful given where ${p.aVenture||"your work"} is headed.` : "";
-    const forB = aOffer ? `${B}, ${A} brings ${aOffer}, all of which could be relevant for ${p.bVenture||"your work"}.` : "";
+    // First names once you're inside the letter — full names appear in the opening paragraph,
+    // and repeating them here reads like a form letter rather than an introduction.
+    //
+    // Name each person's OWN ask when they posted one, so the sentence closes the loop instead
+    // of leaving the reader to infer it. aAsk/bAsk are what they actually wrote, so this quotes
+    // them rather than characterising them — and it drops cleanly for the many people who have
+    // written no ask at all.
+    const aAsk=this.askPhrase(p.aAskRaw||p.aAsk), bAsk=this.askPhrase(p.bAskRaw||p.bAsk);
+    const forA = bOffer
+      ? (aAsk ? `${A}, you're looking for ${aAsk} — ${B}'s work on ${bOffer} could be useful there.`
+              : `${A}, ${B}'s work on ${bOffer} could be useful given where ${p.aVenture||"your work"} is headed.`)
+      : "";
+    const forB = aOffer
+      ? (bAsk ? `${B}, you mentioned you're after ${bAsk} — ${A} brings ${aOffer}, which could be relevant.`
+              : `${B}, ${A} brings ${aOffer}, all of which could be relevant for ${p.bVenture||"your work"}.`)
+      : "";
     // one-way says only the half that is true, and says plainly that it is one half
     const helperIsA = p.direction==="aToB";
     const middle = oneWay
