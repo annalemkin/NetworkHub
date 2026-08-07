@@ -946,76 +946,62 @@
     </div>
   </sc-if>
 
-  <!-- ============ the owner's pairings view ============
-       Staff only, and the only screen in this app that shows an email address. z-32: above the
-       feed, the desk and the profile sheet, below the modals — including its own draft. -->
+  <!-- ============ Pairings: the owner's triage workspace ============
+       Staff only, and the only screen in this app that shows an email address. Three panes:
+       queues and filters, the list, and one pairing open with its draft. z-32 — above the feed,
+       the desk and the profile sheet, below every modal. -->
   <sc-if value="{{ admin }}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute;inset:0;z-index:32;display:flex;flex-direction:column;background:#f7f5ef;animation:atlasFade .2s ease;">
-      <header style="flex:none;display:flex;align-items:center;gap:16px;padding:0 24px;height:64px;background:#fbf9f4;border-bottom:1px solid #e6e2d7;">
-        <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;">Pairings</div>
-        <div style="font-size:12px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:999px;padding:4px 11px;white-space:nowrap;">Staff only · shows email addresses</div>
+    <div style="position:absolute;inset:0;z-index:32;display:flex;flex-direction:column;background:#f1eee6;animation:atlasFade .2s ease;">
+
+      <div style="flex:none;background:#fbf9f4;border-bottom:1px solid #e6e2d7;padding:0 20px;display:flex;align-items:center;gap:14px;height:56px;">
+        <div style="font-family:Newsreader,serif;font-size:21px;font-weight:600;letter-spacing:-.01em;">Pairings</div>
+        <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b6a65;border:1px solid #e6e2d7;background:#fff;border-radius:999px;padding:4px 10px;white-space:nowrap;">Staff only · shows emails</div>
         <div style="flex:1;"></div>
-        <button onClick="{{ admin.onClose }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Close</button>
-      </header>
-
-      <div class="atlas-scroll" style="flex:1;min-height:0;overflow-y:auto;padding:24px 30px 60px;">
-        <div style="max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">
-
-          <div style="display:flex;gap:7px;flex-wrap:wrap;">
-            <sc-for list="{{ admin.tabs }}" as="t" hint-placeholder-count="4">
-              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
-            </sc-for>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#6f6c63;flex:none;">
+          <span style="white-space:nowrap;">{{ admin.progressLine }}</span>
+          <div style="width:120px;height:5px;border-radius:99px;background:#e6e2d7;overflow:hidden;">
+            <div style="height:100%;background:#8C1515;border-radius:99px;transition:width .3s;width:{{ admin.progressPct }};"></div>
           </div>
+        </div>
+        <button onClick="{{ admin.onClose }}" class="atlas-quiet" style="flex:none;background:none;border:none;padding:0 0 0 6px;font-size:12.5px;font-weight:600;color:#6f6c63;cursor:pointer;">Close</button>
+      </div>
 
-          <sc-if value="{{ admin.loading }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:14px;color:#6f6c63;padding:20px 0;">Working out who is matched with whom…</div>
-          </sc-if>
-          <sc-if value="{{ admin.forbidden }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:14px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:11px;padding:14px 16px;line-height:1.6;">This view is staff only, and this account isn’t marked as staff.</div>
-          </sc-if>
-          <sc-if value="{{ admin.failed }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:14px;color:#6f6c63;background:#fffefa;border:1px solid #e6e2d7;border-radius:11px;padding:14px 16px;line-height:1.6;">Couldn’t load the pairings just now. Close and try again.</div>
-          </sc-if>
+      <div style="flex:1;display:flex;min-height:0;">
 
-          <sc-if value="{{ admin.blurb }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:13.5px;color:#6f6c63;line-height:1.55;max-width:70ch;margin:-6px 0 -2px;">{{ admin.blurb }}</div>
-          </sc-if>
-
-          <!-- the four pair lists share one row, so a pairing reads the same however it arose -->
-          <sc-if value="{{ admin.hasRows }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <sc-for list="{{ admin.rows }}" as="r" hint-placeholder-count="4">
-                <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 8px 24px rgba(33,31,26,.05);padding:16px 18px;display:flex;flex-direction:column;gap:11px;">
-                  <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:240px;">
-                      <div style="font-family:Newsreader,serif;font-size:20px;font-weight:600;line-height:1.25;">{{ r.a }} <span style="color:#9a968a;">&lt;&gt;</span> {{ r.b }}</div>
-                      <div style="font-size:12.5px;color:#6f6c63;margin-top:3px;">{{ r.aSub }} · {{ r.bSub }}</div>
-                    </div>
-                    <span style="{{ r.kindStyle }}">{{ r.kindLabel }}</span>
-                  </div>
-                  <div style="font-size:13.5px;line-height:1.55;color:#2e2d29;">{{ r.why }}</div>
-                  <sc-if value="{{ r.noEmail }}" hint-placeholder-val="{{ false }}">
-                    <div style="font-size:12.5px;color:#8a6d00;background:#fdf6e0;border:1px solid #f0e2b4;border-radius:9px;padding:8px 11px;">{{ r.noEmail }} — the draft is still below, ready for when you have it.</div>
-                  </sc-if>
-                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
-                    <sc-if value="{{ r.hasMailto }}" hint-placeholder-val="{{ true }}">
-                      <a href="{{ r.mailto }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;border-radius:999px;padding:8px 16px;text-decoration:none;display:inline-block;">Email them both</a>
-                    </sc-if>
-                    <button onClick="{{ r.onDraft }}" style="font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">Read the draft</button>
-                  </div>
-                </div>
+        <div id="pair-side" class="atlas-scroll" style="flex:none;width:212px;background:#fbf9f4;border-right:1px solid #e6e2d7;padding:16px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;">
+          <div>
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#6b6a65;font-weight:600;margin-bottom:7px;">Search</div>
+            <input type="text" value="{{ admin.query }}" onInput="{{ admin.onQuery }}" placeholder="name, venture, topic…" class="atlas-field" style="width:100%;padding:8px 10px;border-radius:10px;font-size:12.5px;" />
+          </div>
+          <div>
+            <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#6b6a65;font-weight:600;margin-bottom:8px;">Queues</div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <sc-for list="{{ admin.tabs }}" as="t" hint-placeholder-count="5">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span>{{ t.label }}</span><span style="{{ t.countStyle }}">{{ t.count }}</span></button>
               </sc-for>
             </div>
+          </div>
+          <sc-if value="{{ admin.showStatusFilters }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#6b6a65;font-weight:600;margin-bottom:8px;">Status</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <sc-for list="{{ admin.statusFilters }}" as="f" hint-placeholder-count="4">
+                  <button onClick="{{ f.onClick }}" style="{{ f.style }}"><span style="{{ f.dotStyle }}"></span><span style="flex:1;text-align:left;">{{ f.label }}</span><span style="opacity:.5;font-weight:500;">{{ f.count }}</span></button>
+                </sc-for>
+              </div>
+            </div>
           </sc-if>
-          <sc-if value="{{ admin.empty }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:14px;color:#9b978d;line-height:1.6;padding:8px 0;">{{ admin.emptyLine }}</div>
-          </sc-if>
+          <div style="flex:1;"></div>
+          <div style="font-size:10.5px;color:#9a968a;line-height:1.5;">Sent and set-aside are remembered on this device only.</div>
+          <button onClick="{{ admin.onReset }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;text-align:left;">Reset queue progress</button>
+        </div>
 
-          <!-- ---- mentor lookup: the whole roster, filtered by sector ---- -->
-          <sc-if value="{{ admin.isRoster }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:14px;">
+        <sc-if value="{{ admin.isRoster }}" hint-placeholder-val="{{ false }}">
+          <div class="atlas-scroll" style="flex:1;min-width:0;overflow-y:auto;padding:20px 24px 40px;background:#f1eee6;">
+            <div style="max-width:840px;display:flex;flex-direction:column;gap:14px;">
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <input type="text" value="{{ admin.query }}" onInput="{{ admin.onQuery }}" placeholder="Search mentors by name or role…" class="atlas-field" style="flex:1;min-width:240px;padding:9px 13px;border-radius:999px;font-size:13.5px;" />
+                <div style="font-family:Newsreader,serif;font-size:23px;font-weight:600;">Mentor lookup</div>
+                <div style="flex:1;"></div>
                 <div style="font-size:12.5px;color:#8a857a;white-space:nowrap;">{{ admin.rosterCount }}</div>
               </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -1048,26 +1034,111 @@
                 <div style="font-size:13.5px;color:#9b978d;">No mentors match that filter.</div>
               </sc-if>
             </div>
-          </sc-if>
-
-        </div>
-      </div>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ admin.draft }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ admin.draft.onClose }}" style="position:fixed;inset:0;background:rgba(30,28,24,.4);display:flex;align-items:center;justify-content:center;padding:22px;z-index:72;">
-      <div onClick="{{ stopPropagation }}" style="background:#fffefa;border:1px solid #e6e2d7;border-radius:12px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(33,31,26,.28);" class="atlas-scroll">
-        <div style="font-family:Newsreader,serif;font-size:22px;font-weight:600;line-height:1.2;">{{ admin.draft.subject }}</div>
-        <sc-if value="{{ admin.draft.hasTo }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:#6b6a65;margin-top:6px;">To: {{ admin.draft.to }}</div>
+          </div>
         </sc-if>
-        <div style="white-space:pre-wrap;font-size:13.5px;line-height:1.65;color:#2e2d29;background:#faf8f2;border:1px solid #e9e5da;border-radius:11px;padding:14px 15px;margin-top:14px;">{{ admin.draft.body }}</div>
-        <div style="display:flex;gap:9px;align-items:center;margin-top:14px;">
-          <button onClick="{{ admin.draft.onCopy }}" style="font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #d9d5c8;">Copy message</button>
-          <span style="{{ admin.draft.copiedStyle }}">Copied ✓</span>
-          <button onClick="{{ admin.draft.onClose }}" class="atlas-quiet" style="margin-left:auto;font-size:13px;color:#9a968a;background:none;border:none;cursor:pointer;">Close</button>
+
+        <sc-if value="{{ admin.isQueue }}" hint-placeholder-val="{{ true }}">
+        <div id="pair-list" style="flex:0 1 400px;min-width:280px;border-right:1px solid #e6e2d7;display:flex;flex-direction:column;min-height:0;background:#f7f5ef;">
+          <div style="flex:none;padding:11px 16px;border-bottom:1px solid #e6e2d7;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:12.5px;font-weight:600;">{{ admin.listTitle }}</div>
+            <div style="font-size:12px;color:#9a968a;">{{ admin.listCount }}</div>
+            <div style="flex:1;"></div>
+            <button onClick="{{ admin.onNext }}" style="font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;background:#211f1a;color:#fff;border:1px solid #211f1a;white-space:nowrap;">Next unsent →</button>
+          </div>
+          <div class="atlas-scroll" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;">
+            <sc-for list="{{ admin.rows }}" as="r" hint-placeholder-count="9">
+              <div onClick="{{ r.onClick }}" style="{{ r.style }}">
+                <span style="{{ r.railStyle }}"></span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+                  <span style="{{ r.nameStyle }}">{{ r.names }}</span>
+                  <span style="font-size:11.5px;color:#6f6c63;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.orgs }}</span>
+                  <span style="display:flex;align-items:center;gap:6px;margin-top:2px;min-width:0;">
+                    <span style="{{ r.badgeStyle }}">{{ r.badge }}</span>
+                    <span style="font-size:11px;color:#9a968a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.theme }}</span>
+                  </span>
+                </span>
+                <span style="{{ r.statusStyle }}">{{ r.statusLabel }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ admin.isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:40px 20px;text-align:center;font-size:12.5px;color:#9a968a;line-height:1.6;">Nothing matches those filters.</div>
+            </sc-if>
+          </div>
         </div>
+
+        <div class="atlas-scroll" style="flex:1 1 420px;min-width:340px;overflow-y:auto;background:#f1eee6;padding:20px 24px 40px;">
+          <sc-if value="{{ admin.hasSelection }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:640px;display:flex;flex-direction:column;gap:14px;">
+
+              <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,.07);padding:18px 20px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:Newsreader,serif;font-size:25px;font-weight:600;line-height:1.15;letter-spacing:-.01em;">{{ admin.sel.names }}</div>
+                    <div style="font-size:12.5px;color:#6f6c63;margin-top:4px;">{{ admin.sel.orgs }}</div>
+                  </div>
+                  <div style="{{ admin.sel.badgeStyle }}">{{ admin.sel.badge }}</div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:#e6e2d7;border:1px solid #e6e2d7;border-radius:10px;overflow:hidden;margin-top:16px;">
+                  <sc-for list="{{ admin.sel.cols }}" as="c" hint-placeholder-count="2">
+                    <div style="background:#fffefa;padding:11px 13px;min-width:0;overflow-wrap:break-word;">
+                      <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#6b6a65;font-weight:600;">{{ c.name }}</div>
+                      <div style="font-size:11px;color:#9a968a;margin-top:7px;">Offers</div>
+                      <div style="font-size:12.5px;line-height:1.45;">{{ c.offer }}</div>
+                      <div style="font-size:11px;color:#9a968a;margin-top:7px;">Wants</div>
+                      <div style="font-size:12.5px;line-height:1.45;">{{ c.want }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="font-size:12px;color:#9a968a;margin-top:10px;">{{ admin.sel.note }}</div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+                  <sc-for list="{{ admin.sel.emails }}" as="e" hint-placeholder-count="2">
+                    <span style="{{ e.style }}">{{ e.text }}</span>
+                  </sc-for>
+                </div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center;">
+                  <sc-if value="{{ admin.canSend }}" hint-placeholder-val="{{ true }}">
+                    <a href="{{ admin.sendHref }}" onClick="{{ admin.onSend }}" class="atlas-btn-primary" style="font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:999px;cursor:pointer;text-decoration:none;display:inline-block;">Send intro</a>
+                  </sc-if>
+                  <sc-if value="{{ admin.sentAlready }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ admin.onUnsend }}" style="font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:999px;cursor:pointer;background:#fff;color:#8C1515;border:1px solid #8C1515;">✓ Sent — undo</button>
+                  </sc-if>
+                  <sc-if value="{{ admin.cannotSend }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:999px;background:#faf6e8;color:#8a7326;border:1px solid #e8e0c7;">Add emails to send</span>
+                  </sc-if>
+                  <button onClick="{{ admin.onCopy }}" style="font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:#fff;color:#211f1a;border:1px solid #e6e2d7;">{{ admin.copyLabel }}</button>
+                  <button onClick="{{ admin.onDismiss }}" class="atlas-quiet" style="font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;background:none;color:#6f6c63;border:1px solid transparent;">{{ admin.dismissLabel }}</button>
+                  <div style="flex:1;"></div>
+                  <button onClick="{{ admin.onNext }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:11.5px;font-weight:600;color:#6f6c63;cursor:pointer;white-space:nowrap;">Skip for now →</button>
+                </div>
+              </div>
+
+              <div style="background:rgba(255,254,250,.95);border:1px solid #e6e2d7;border-radius:12px;box-shadow:0 1px 2px rgba(33,31,26,.05),0 10px 30px rgba(33,31,26,.07);overflow:hidden;">
+                <div style="padding:11px 20px;border-bottom:1px solid #e6e2d7;display:flex;align-items:center;gap:10px;">
+                  <div style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:#6b6a65;font-weight:600;">Intro draft</div>
+                  <div style="flex:1;"></div>
+                  <button onClick="{{ admin.onToggleDraft }}" class="atlas-quiet" style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#6f6c63;cursor:pointer;">{{ admin.draftToggleLabel }}</button>
+                </div>
+                <sc-if value="{{ admin.draftOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="padding:16px 20px;">
+                    <div style="font-size:12px;color:#9a968a;margin-bottom:10px;">Subject &nbsp;<span style="color:#211f1a;font-weight:600;">{{ admin.sel.subject }}</span></div>
+                    <div style="font-size:13.5px;line-height:1.6;white-space:pre-wrap;color:#2e2d29;">{{ admin.sel.draft }}</div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="font-size:11.5px;color:#9a968a;padding-left:2px;line-height:1.55;">Reasoning read from what both people wrote — their asks, offers and project descriptions.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ admin.noSelection }}" hint-placeholder-val="{{ false }}">
+            <div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#9a968a;">Select a pairing to see its draft.</div>
+          </sc-if>
+        </div>
+        </sc-if>
+
       </div>
     </div>
   </sc-if>
@@ -1446,6 +1517,9 @@ class Component extends DCLogic {
       // the one payload in this app that carries email addresses.
       adminOpen:false, admin:null, adminLoading:false, adminTab:"reciprocity",
       adminSector:"", adminQuery:"", adminDraft:null,
+      // triage: which pairing is open, what's been done with each, and the panel's own toggles.
+      // adminStatuses is loaded from localStorage on mount — see loadTriage.
+      adminSel:null, adminStatuses:{}, adminStatusFilter:null, adminDraftOpen:true, adminCopied:false,
       pinId:null,       // in Browse: whose network stays lit after their profile is closed
       clerkStatus:"loading",  // "loading" → "ready" | "failed" — gates which face the Student front door shows
       clerkUser:null,         // flat snapshot of the signed-in Clerk user {id, first, email, profileKey}; null = signed out
@@ -2759,12 +2833,28 @@ class Component extends DCLogic {
   //
   // Split in two halves so the caller can hoist the expensive one: the "my side" work is
   // per-viewer, and egoData runs the other half across ~200 candidates on every render.
+  // ---------- triage state: what's been sent, what's been set aside ----------
+  //
+  // localStorage, not Airtable, and deliberately: this is one person working through a queue on
+  // her own machine, and a table would need a schema, a write path and a sync story to record
+  // something only she acts on. The trade is that it lives on this device — said plainly in the
+  // interface rather than left to be discovered.
+  loadTriage(){ try{ return JSON.parse(localStorage.getItem("ecoatlas_pairings_v1")||"{}")||{}; }catch(e){ return {}; } }
+  saveTriage(m){ try{ localStorage.setItem("ecoatlas_pairings_v1", JSON.stringify(m)); }catch(e){} }
+  setPairStatus(id, v){
+    this.setState(st=>{ const m={...st.adminStatuses};
+      // pressing the same button again clears it, so a mis-click is one click to undo
+      if(m[id]===v) delete m[id]; else m[id]=v;
+      this.saveTriage(m); return { adminStatuses:m };
+    });
+  }
+
   // ---------- the owner's pairings view ----------
   // Sends only the profile KEYS of the pairs computed here and gets back addresses, the mentor
   // pairings and the roster. The keys are the whole request: this endpoint never lists people,
   // it answers about the ones already on screen.
   async openAdmin(){
-    this.setState({ adminOpen:true, adminLoading:!this.state.admin });
+    this.setState({ adminOpen:true, adminLoading:!this.state.admin, adminStatuses:this.loadTriage() });
     try{
       if(typeof Clerk==="undefined"||!Clerk.session) return;
       const pairs=this.allReciprocityPairs();
@@ -4396,117 +4486,181 @@ ${me}`;
     }
 
     // ---------- the owner's pairings view ----------
+    //
+    // A triage workspace, not a report (owner's mock, 2026-08-07): sidebar of queues and status
+    // filters, a scannable list, and one pairing open at a time with its draft. Every queue —
+    // two-way, one-way, mentor, suggested — is folded into ONE pair shape here, so a row, a
+    // status and a draft mean the same thing wherever they came from. That is what makes the
+    // sidebar counts and "next unsent" possible at all.
     let admin=null;
     if(s.adminOpen && isStaff){
       const d=s.admin||{}, em=d.emails||{};
-      const pairs=this._adminPairs||[];
-      const noEmail=(k)=>!em[k];
-      const tab=s.adminTab||"reciprocity";
-      const chip=(on)=>`white-space:nowrap;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};transition:background .12s ease;`;
-      // one row shape for all three kinds, so the list reads the same however the pair arose
-      const mkPair=(o)=>{
-        const missing=[o.aMissing?o.aName:"", o.bMissing?o.bName:""].filter(Boolean);
-        return { key:o.key, a:o.aName, b:o.bName, aSub:o.aSub||"", bSub:o.bSub||"",
-          why:o.why, kind:o.kind, kindLabel:o.kindLabel,
-          kindStyle:`font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:600;border-radius:999px;padding:3px 9px;color:${o.kindInk};background:${o.kindBg};border:1px solid ${o.kindLine};`,
-          hasMailto:!!o.mailto, mailto:o.mailto||"#",
-          // shown either way — the copy is useful before the address is found
-          noEmail: missing.length ? `No email on file for ${missing.join(" or ")}` : "",
-          onDraft:()=>this.setState({adminDraft:o.draft}),
-        };
-      };
-      const mkRecRow=(p)=>{
-        const { subject, body }=this.pairIntro(p);
-        // the arrow points the way the help actually flows, so the list is readable at a glance
-        const why = p.oneWay
-          ? `${p.helperName} → ${p.askerName}${p.thing?" · "+p.thing:""}${p.stated?" — they picked it themselves":" — read from what they wrote"}`
-          : (p.stated ? `Both picked it themselves — ${p.helpHit} ⇄ ${p.giveHit}` : `Two-way fit read from what they wrote — ${p.helpHit} ⇄ ${p.giveHit}`);
-        return mkPair({ key:"ap-"+p.aKey+"|"+p.bKey, aName:p.aName, bName:p.bName,
-          aSub:p.aVenture, bSub:p.bVenture, why,
-          kind:"reciprocity",
-          kindLabel: p.oneWay?"One-way match":"Two-way match",
-          kindInk: p.oneWay?"#7a5c12":"#1c2f5e", kindBg: p.oneWay?"#f7f1e2":"#eef1f8", kindLine: p.oneWay?"#7a5c1233":"#1c2f5e33",
-          aMissing:noEmail(p.aKey), bMissing:noEmail(p.bKey),
-          mailto:this.pairMailto(p, em), draft:{ subject, body, to:[em[p.aKey]||"", em[p.bKey]||""] } });
-      };
-      const recRows=pairs.filter(p=>p.mutual).map(mkRecRow);
-      // One-way matches are far more numerous than two-way ones, so the ones where somebody
-      // actually picked the thing from the vocabulary lead — those are a claim, the rest are a
-      // reading of their prose.
-      const oneWayRows=pairs.filter(p=>p.oneWay).sort((x,y)=>(y.stated?1:0)-(x.stated?1:0)).map(mkRecRow);
-      const mkMentorRow=(m,confirmed)=>{
-        const p={ aName:m.mentorName, bName:m.studentName, aKey:m.mentorKey, bKey:m.studentKey,
-          aVenture:m.mentorDetail, bVenture:m.studentDetail,
-          aGives:(m.offers||[]).join(", "), bGives:"", aAsk:"", bAsk:"", stated:false };
-        const { subject, body }=this.pairIntro(p);
-        return mkPair({ key:"am-"+m.mentorKey+"|"+m.studentKey, aName:m.mentorName, bName:m.studentName,
-          aSub:m.mentorDetail, bSub:m.studentDetail,
-          why: confirmed
-            ? (m.note || (m.formalised ? `Paired${m.since?" since "+m.since:""}.` : "Mentor accepted — not written up as a pairing yet."))
-            : `Top-ranked and nobody has acted on it${(m.evidence||[]).length?" — both work in "+this.canonCats(m.evidence).slice(0,2).join(" and ").toLowerCase():""}.`,
-          kind: confirmed?"confirmed":"suggested",
-          kindLabel: confirmed?(m.formalised?"Confirmed":"Accepted, not written up"):"Suggested — no action yet",
-          kindInk: confirmed?"#2f5c28":"#8a6d00", kindBg: confirmed?"#2f5c2814":"#fdf6e0", kindLine: confirmed?"#2f5c2833":"#f0e2b4",
-          aMissing:noEmail(m.mentorKey), bMissing:noEmail(m.studentKey),
-          mailto:this.pairMailto(p, em), draft:{ subject, body, to:[em[m.mentorKey]||"", em[m.studentKey]||""] } });
-      };
-      const confirmedRows=((d.mentors&&d.mentors.confirmed)||[]).map(m=>mkMentorRow(m,true));
-      const suggestedRows=((d.mentors&&d.mentors.suggested)||[]).map(m=>mkMentorRow(m,false));
+      const st=s.adminStatuses||{};
+      const listOf2=a=>{ const x=this.canonCats(a).slice(0,3).map(v=>String(v).toLowerCase());
+        return x.length<2?(x[0]||""):x.slice(0,-1).join(", ")+" and "+x[x.length-1]; };
 
-      // ---- the sector lookup over the whole mentor roster ----
-      // Domains only, canonicalised through the same fold the chips use, so a sector here means
-      // exactly what it means on a match card.
+      // ---- one shape for every kind of pairing ----
+      const mkPair=(o)=>{
+        const emails=[em[o.aKey]||null, em[o.bKey]||null];
+        const ready=emails.every(Boolean);
+        const { subject, body }=this.pairIntro(o.p);
+        return { ...o, emails, ready, subject, draft:body,
+          // status is explicit when triaged, otherwise derived from whether it COULD be sent
+          status: st[o.id] || (ready?"ready":"blocked") };
+      };
+      const recPairs=(this._adminPairs||[]).map(p=>mkPair({
+        id:"r:"+p.aKey+"|"+p.bKey, tab: p.mutual?"two":"one", p,
+        aName:p.aName, bName:p.bName, aOrg:p.aVenture||"—", bOrg:p.bVenture||"—",
+        aKey:p.aKey, bKey:p.bKey,
+        aOffer:this.tidyPhrase(p.aGives)||"—", bOffer:this.tidyPhrase(p.bGives)||"—",
+        aWant:this.askPhrase(p.aAskRaw||p.aAsk)||"—", bWant:this.askPhrase(p.bAskRaw||p.bAsk)||"—",
+        theme: p.mutual ? `${p.helpHit} ⇄ ${p.giveHit}` : `${p.helperName.split(" ")[0]} → ${p.askerName.split(" ")[0]}${p.thing?" · "+p.thing:""}`,
+        note: p.stated ? "Both picked it themselves" : "Read from what they wrote",
+      }));
+      const mkMentorPair=(m,confirmed)=>{
+        const p={ aName:m.mentorName, bName:m.studentName, aKey:m.mentorKey, bKey:m.studentKey,
+          aVenture:m.mentorDetail, bVenture:m.studentDetail, aProgram:"", bProgram:"",
+          aGives:(m.offers||[]).join(", "), bGives:"", aAsk:"", bAsk:"", aAskRaw:"", bAskRaw:"",
+          stated:false, oneWay:false, direction:"mutual" };
+        return mkPair({ id:(confirmed?"c:":"s:")+m.mentorKey+"|"+m.studentKey,
+          tab: confirmed?"mentor":"sugg", p,
+          aName:m.mentorName, bName:m.studentName, aOrg:m.mentorDetail||"—", bOrg:m.studentDetail||"—",
+          aKey:m.mentorKey, bKey:m.studentKey,
+          aOffer:this.tidyPhrase((m.offers||[]).join(", "))||"—", bOffer:"—",
+          aWant:"—", bWant:"—",
+          theme: confirmed
+            ? (m.formalised ? `Paired${m.since?" since "+m.since:""}` : "Accepted, not written up")
+            : `Top-ranked${(m.evidence||[]).length?" · "+listOf2(m.evidence):""}`,
+          note: confirmed ? (m.note||"Mentor accepted this student.") : "Nobody has acted on this yet.",
+        });
+      };
+      const all=recPairs
+        .concat(((d.mentors&&d.mentors.confirmed)||[]).map(m=>mkMentorPair(m,true)))
+        .concat(((d.mentors&&d.mentors.suggested)||[]).map(m=>mkMentorPair(m,false)));
+
+      const TABS=[["two","Two-way matches"],["one","One-way matches"],["mentor","Mentor pairings"],["sugg","Suggested"],["roster","Mentor lookup"]];
+      const tab=s.adminTab||"two";
       const roster=d.roster||[];
-      const sectors=[...new Set(roster.flatMap(r=>this.canonCats(r.domains||[])))].sort();
+      const countOf=k=> k==="roster" ? roster.length : all.filter(x=>x.tab===k).length;
+
+      // ---- search and status filter, applied to the open queue ----
       const q=this.norm(s.adminQuery);
-      const sec=s.adminSector;
-      const filtered=roster.filter(r=>{
-        const doms=this.canonCats(r.domains||[]);
-        if(sec && !doms.some(x=>this.norm(x)===this.norm(sec))) return false;
-        if(q && !(this.norm(r.name).includes(q) || this.norm(r.detail).includes(q))) return false;
-        return true;
-      });
+      const inQueue=all.filter(x=>x.tab===tab);
+      const matches=x=>!q || this.norm(`${x.aName} ${x.bName} ${x.aOrg} ${x.bOrg} ${x.theme}`).includes(q);
+      let rows=inQueue.filter(matches);
+      if(s.adminStatusFilter) rows=rows.filter(x=>x.status===s.adminStatusFilter);
+      // ready first, then the ones somebody actually stated, then alphabetical — a stable order
+      // that puts what she can act on today at the top. No invented "strength" score.
+      const rank=x=>(x.status==="sent"||x.status==="dismissed"?2:0)+(x.ready?0:1);
+      rows=[...rows].sort((x,y)=>rank(x)-rank(y) || x.aName.localeCompare(y.aName));
+
+      const sel=rows.find(x=>x.id===s.adminSel) || all.find(x=>x.id===s.adminSel) || rows[0] || null;
+      const STATUS={ ready:{label:"Ready",color:"#3f6a49"}, blocked:{label:"No email",color:"#8a7326"},
+                     sent:{label:"Sent",color:"#8C1515"}, dismissed:{label:"Set aside",color:"#9a968a"} };
+      const statusCounts={}; inQueue.forEach(x=>{ statusCounts[x.status]=(statusCounts[x.status]||0)+1; });
+      const sentCount=all.filter(x=>x.status==="sent").length;
+      const openCount=all.filter(x=>x.status!=="sent"&&x.status!=="dismissed").length;
+
+      const nextUnsent=()=>{
+        const q2=rows.filter(x=>x.status!=="sent"&&x.status!=="dismissed");
+        if(!q2.length) return;
+        const i=q2.findIndex(x=>sel&&x.id===sel.id);
+        const nx=q2[(i+1)%q2.length];
+        if(nx) this.setState({adminSel:nx.id, adminCopied:false});
+      };
+
       admin={
         loading: !!s.adminLoading,
         forbidden: !!(s.admin&&s.admin.forbidden), failed: !!(s.admin&&s.admin.failed),
-        tabs: [["reciprocity",`Two-way matches ${recRows.length}`],["oneway",`One-way matches ${oneWayRows.length}`],["confirmed",`Mentor pairings ${confirmedRows.length}`],["suggested",`Suggested ${suggestedRows.length}`],["roster",`Mentor lookup ${roster.length}`]]
-          .map(([k,label])=>({ key:"at-"+k, label, style:chip(tab===k), onClick:()=>this.setState({adminTab:k}) })),
-        isRec: tab==="reciprocity", isOneWay: tab==="oneway", isConfirmed: tab==="confirmed", isSuggested: tab==="suggested", isRoster: tab==="roster",
-        // a line saying what this tab's list actually claims, since the four make different ones
-        blurb: tab==="reciprocity" ? "Both people can help each other. The strongest kind of introduction to make."
-             : tab==="oneway" ? "Help runs one way only — the arrow shows which. Still worth an introduction, but say so honestly."
-             : tab==="confirmed" ? "Mentors who accepted a student. Yours to formalise."
-             : tab==="suggested" ? "Top-ranked mentor per student that nobody has acted on yet."
-             : "",
-        rows: tab==="reciprocity"?recRows : tab==="oneway"?oneWayRows : tab==="confirmed"?confirmedRows : tab==="suggested"?suggestedRows : [],
-        hasRows: (tab==="reciprocity"?recRows.length : tab==="oneway"?oneWayRows.length : tab==="confirmed"?confirmedRows.length : tab==="suggested"?suggestedRows.length : 0)>0,
-        empty: (tab==="reciprocity"&&!recRows.length) || (tab==="oneway"&&!oneWayRows.length) || (tab==="confirmed"&&!confirmedRows.length) || (tab==="suggested"&&!suggestedRows.length),
-        emptyLine: tab==="reciprocity" ? "No two-way matches in the network yet — both sides have to have posted an ask and an offer."
-                 : tab==="oneway" ? "No one-way matches either — nobody's ask lines up with anybody's offer yet."
-                 : tab==="confirmed" ? "No mentor has accepted anyone yet."
-                 : "Nothing suggested that hasn't already been decided.",
-        // roster lookup
-        sectorChips: [{ key:"as-all", label:"All sectors", style:chip(!sec), onClick:()=>this.setState({adminSector:""}) }]
-          .concat(sectors.map(x=>({ key:"as-"+x, label:x, style:chip(this.norm(sec)===this.norm(x)), onClick:()=>this.setState({adminSector:x}) }))),
+        sentCount, openCount,
+        progressLine: `${sentCount} sent · ${openCount} left`,
+        progressPct: all.length ? Math.round(sentCount/all.length*100)+"%" : "0%",
         query: s.adminQuery, onQuery:(e)=>this.setState({adminQuery:e.target.value}),
-        rosterRows: filtered.map(r=>({ key:"ar-"+r.key, name:r.name, detail:r.detail||"", location:r.location||"",
-          cohort:r.cohort||"", hasLinkedIn:!!r.linkedin, linkedin:r.linkedin||"",
-          domains: this.canonCats(r.domains||[]).join(" · "),
-          load: r.mentees===0?"No mentees":(r.mentees===1?"1 mentee":`${r.mentees} mentees`),
-          loadStyle:`font-size:11.5px;font-weight:600;color:${r.mentees?"#2f5c28":"#8a857a"};background:${r.mentees?"#2f5c2814":"#f4f2ec"};border:1px solid ${r.mentees?"#2f5c2833":"#e6e2d7"};border-radius:999px;padding:3px 9px;white-space:nowrap;`,
-          noEmail: r.hasEmail?"":"No email on file" })),
-        rosterEmpty: filtered.length===0,
-        rosterCount: `${filtered.length} of ${roster.length} mentors`,
+        onReset:()=>{ this.saveTriage({}); this.setState({adminStatuses:{}, adminStatusFilter:null}); },
+        tabs: TABS.map(([k,label])=>{ const on=k===tab; return { key:"at-"+k, label, count:countOf(k),
+          onClick:()=>this.setState({adminTab:k, adminStatusFilter:null, adminSel:null, adminCopied:false}),
+          style:`display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;text-align:left;font-size:12px;padding:7px 9px;border-radius:8px;cursor:pointer;transition:background .12s;border:1px solid ${on?"#e6e2d7":"transparent"};background:${on?"#fff":"transparent"};color:${on?"#211f1a":"#6f6c63"};font-weight:${on?600:500};`,
+          countStyle:`font-size:11px;font-weight:600;color:${on?"#8C1515":"#9a968a"};` }; }),
+        statusFilters: ["ready","blocked","sent","dismissed"].map(k=>{ const on=s.adminStatusFilter===k; return {
+          key:"as-"+k, label:STATUS[k].label, count:statusCounts[k]||0,
+          onClick:()=>this.setState({adminStatusFilter: on?null:k, adminSel:null}),
+          style:`display:flex;align-items:center;gap:8px;width:100%;font-size:12px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s;border:1px solid ${on?"#e6e2d7":"transparent"};background:${on?"#fff":"transparent"};color:${on?"#211f1a":"#6f6c63"};font-weight:${on?600:500};`,
+          dotStyle:`display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:${STATUS[k].color};opacity:${on?1:.65};` }; }),
+        isRoster: tab==="roster", isQueue: tab!=="roster",
+        // status is a property of a PAIRING, so the filters mean nothing on the roster tab
+        showStatusFilters: tab!=="roster",
+        listTitle: (TABS.find(t=>t[0]===tab)||[])[1]||"",
+        listCount: rows.length,
+        isEmpty: rows.length===0,
+        onNext: nextUnsent,
+        rows: rows.map(x=>{ const on=sel&&x.id===sel.id, dim=x.status==="sent"||x.status==="dismissed";
+          const B={ two:{l:"TWO-WAY",bg:"#eef0f8",fg:"#3f4a7a",bd:"#dcdfef"}, one:{l:"ONE-WAY",bg:"#f4f1e6",fg:"#7a6a2e",bd:"#e8e0c7"},
+                    mentor:{l:"MENTOR",bg:"#eef3ee",fg:"#3f6a49",bd:"#dae6dc"}, sugg:{l:"SUGGESTED",bg:"#f2f0ec",fg:"#6f6c63",bd:"#e6e2d7"} }[x.tab];
+          return { key:"pr-"+x.id, names:`${x.aName}  ·  ${x.bName}`, orgs:`${x.aOrg} · ${x.bOrg}`, theme:x.theme,
+            badge:B.l, badgeStyle:`flex:none;font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:999px;background:${B.bg};color:${B.fg};border:1px solid ${B.bd};`,
+            statusLabel:STATUS[x.status].label,
+            statusStyle:`flex:none;align-self:flex-start;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${STATUS[x.status].color};`,
+            nameStyle:`font-family:Newsreader,serif;font-size:15.5px;font-weight:600;line-height:1.2;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:${x.status==="dismissed"?"line-through":"none"};`,
+            railStyle:`flex:none;width:3px;border-radius:99px;background:${on?"#8C1515":"transparent"};`,
+            style:`display:flex;align-items:stretch;gap:10px;width:100%;text-align:left;padding:10px 11px;border-radius:10px;cursor:pointer;transition:background .12s,border-color .12s;border:1px solid ${on?"#c9c3b2":"#e6e2d7"};background:${on?"#fffefa":"rgba(255,254,250,.6)"};box-shadow:${on?"0 1px 2px rgba(33,31,26,.05),0 6px 18px rgba(33,31,26,.07)":"none"};opacity:${dim?.55:1};`,
+            onClick:()=>this.setState({adminSel:x.id, adminCopied:false}) }; }),
+        hasSelection: !!sel, noSelection: !sel,
+        sel: sel ? {
+          names:`${sel.aName} · ${sel.bName}`, orgs:`${sel.aOrg} · ${sel.bOrg}`,
+          badge:{two:"TWO-WAY",one:"ONE-WAY",mentor:"MENTOR",sugg:"SUGGESTED"}[sel.tab],
+          badgeStyle:`flex:none;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 9px;border-radius:999px;background:#f2f0ec;color:#6f6c63;border:1px solid #e6e2d7;`,
+          note: sel.note,
+          // one column per person, each headed by their name — "Offers/Wants" alone never said
+          // whose, and this is the panel she writes the introduction from
+          cols:[{key:"ca",name:sel.aName,offer:sel.aOffer,want:sel.aWant},
+                {key:"cb",name:sel.bName,offer:sel.bOffer,want:sel.bWant}],
+          emails:[[sel.aName,sel.emails[0]],[sel.bName,sel.emails[1]]].map(([n,e],i)=>({
+            key:"em"+i, text: e || `${n} — no email on file`,
+            style:`font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid ${e?"#e6e2d7":"#e8e0c7"};background:${e?"#fff":"#faf6e8"};color:${e?"#6f6c63":"#8a7326"};font-weight:${e?500:600};` })),
+          subject: sel.subject, draft: sel.draft,
+        } : null,
+        // the send button IS the mailto when it can be — no separate "email them both"
+        canSend: !!(sel&&sel.ready&&sel.status!=="sent"),
+        sentAlready: !!(sel&&sel.status==="sent"),
+        cannotSend: !!(sel&&!sel.ready&&sel.status!=="sent"),
+        sendHref: sel&&sel.ready ? this.pairMailto(sel.p, em) : "#",
+        sendLabel: sel&&sel.ready ? "Send intro" : "Add emails to send",
+        onSend: ()=>{ if(sel) this.setPairStatus(sel.id,"sent"); },
+        onUnsend: ()=>{ if(sel) this.setPairStatus(sel.id,"sent"); },
+        copyLabel: s.adminCopied ? "✓ Copied" : "Copy draft",
+        onCopy: ()=>{ if(sel) this.copyText(sel.draft,"adminCopied"); },
+        dismissLabel: sel&&sel.status==="dismissed" ? "Put back" : "Not a fit",
+        onDismiss: ()=>{ if(sel) this.setPairStatus(sel.id,"dismissed"); },
+        draftOpen: !!s.adminDraftOpen,
+        draftToggleLabel: s.adminDraftOpen ? "Hide" : "Show",
+        onToggleDraft: ()=>this.setState({adminDraftOpen:!s.adminDraftOpen}),
         onClose:()=>this.closeAdmin(),
-        draft: s.adminDraft ? { subject:s.adminDraft.subject, body:s.adminDraft.body,
-          // With no address at all the To: line said "— no address on file —", which is a row of
-          // furniture reporting its own emptiness. The card already says the address is missing;
-          // drop the line instead. One address still shows, so you can see who you do have.
-          hasTo: s.adminDraft.to.filter(Boolean).length>0,
-          to: s.adminDraft.to.filter(Boolean).join(", "),
-          onClose:()=>this.setState({adminDraft:null}),
-          onCopy:()=>this.copyText(s.adminDraft.body,"adminCopied"),
-          copiedStyle:`font-size:12px;color:#2f5c28;${s.adminCopied?"":"display:none;"}` } : null,
+
+        // ---- mentor lookup, unchanged in substance ----
+        sectorChips: (()=>{ const secs=[...new Set(roster.flatMap(r=>this.canonCats(r.domains||[])))].sort();
+          const chip=(on)=>`white-space:nowrap;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;background:${on?"#211f1a":"#fff"};color:${on?"#fff":"#211f1a"};border:1px solid ${on?"#211f1a":"#e6e2d7"};`;
+          return [{key:"as-all",label:"All sectors",style:chip(!s.adminSector),onClick:()=>this.setState({adminSector:""})}]
+            .concat(secs.map(x=>({key:"asec-"+x,label:x,style:chip(this.norm(s.adminSector)===this.norm(x)),onClick:()=>this.setState({adminSector:x})}))); })(),
+        rosterRows: roster.filter(r=>{
+            const doms=this.canonCats(r.domains||[]);
+            if(s.adminSector && !doms.some(x=>this.norm(x)===this.norm(s.adminSector))) return false;
+            if(q && !(this.norm(r.name).includes(q)||this.norm(r.detail).includes(q))) return false;
+            return true; })
+          .map(r=>({ key:"ar-"+r.key, name:r.name, detail:r.detail||"", location:r.location||"", cohort:r.cohort||"",
+            hasLinkedIn:!!r.linkedin, linkedin:r.linkedin||"", domains:this.canonCats(r.domains||[]).join(" · "),
+            load: r.mentees===0?"No mentees":(r.mentees===1?"1 mentee":`${r.mentees} mentees`),
+            loadStyle:`font-size:11.5px;font-weight:600;color:${r.mentees?"#2f5c28":"#8a857a"};background:${r.mentees?"#2f5c2814":"#f4f2ec"};border:1px solid ${r.mentees?"#2f5c2833":"#e6e2d7"};border-radius:999px;padding:3px 9px;white-space:nowrap;`,
+            noEmail: r.hasEmail?"":"No email on file" })),
+        rosterEmpty: roster.length>0 && !roster.filter(r=>{
+            const doms=this.canonCats(r.domains||[]);
+            if(s.adminSector && !doms.some(x=>this.norm(x)===this.norm(s.adminSector))) return false;
+            if(q && !(this.norm(r.name).includes(q)||this.norm(r.detail).includes(q))) return false;
+            return true; }).length,
+        rosterCount: `${roster.filter(r=>{
+            const doms=this.canonCats(r.domains||[]);
+            if(s.adminSector && !doms.some(x=>this.norm(x)===this.norm(s.adminSector))) return false;
+            if(q && !(this.norm(r.name).includes(q)||this.norm(r.detail).includes(q))) return false;
+            return true; }).length} of ${roster.length} mentors`,
       };
     }
 
