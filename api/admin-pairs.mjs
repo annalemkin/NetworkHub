@@ -150,9 +150,17 @@ export default async function handler(req, res) {
       addEmail(f["Profile key"] || f["LinkedIn URL"] || f.Name, f.Email);
     });
 
-    // only the keys asked about leave this function
+    // Only keys this response is actually about leave the function. That is the caller's list
+    // PLUS the two sides of every pairing this endpoint itself returns — filled in after the
+    // mentor work below, because the caller cannot ask for keys it has not received yet.
+    //
+    // Getting this wrong is not a leak but it is a silent failure: the first version returned
+    // the asked-for keys only, so all 87 suggested pairings reported "no email on file" while
+    // every one of the 111 mentors had an address sitting right there. The point of the screen
+    // is the address.
     const emailsOut = {};
-    wanted.forEach((k) => { if (emails[k]) emailsOut[k] = emails[k]; });
+    const includeKey = (k) => { const kk = keyOf(k); if (kk && emails[kk]) emailsOut[kk] = emails[kk]; };
+    wanted.forEach(includeKey);
 
     // ---------- mentor pairings ----------
     const students = dedupe((studentsT.records || []).map((r) => studentOf(r.fields || {})));
@@ -219,6 +227,9 @@ export default async function handler(req, res) {
       mentees: load[a.key] || 0,
       hasEmail: !!emails[a.key],
     }));
+
+    // now the pairings this response carries — see includeKey above
+    [...confirmed, ...suggested].forEach((m) => { includeKey(m.mentorKey); includeKey(m.studentKey); });
 
     res.setHeader("Cache-Control", "no-store");
     return res.status(200).json({
